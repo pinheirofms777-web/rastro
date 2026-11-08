@@ -232,7 +232,7 @@ function pagerHtml(){
 function parts(){
   const r=S.ref,t=S.tab;let sub='',title='',v='';
   if(t==='today'){const d=S.day,isT=key(d)===key(TODAY);sub=WD[d.getDay()]+(isT?' · '+pad(d.getDate())+' '+MS[d.getMonth()].toLowerCase():'');title=isT?'Hoje':d.getDate()+' '+MS[d.getMonth()].toLowerCase();v=viewToday()}
-  if(t==='week'){const mon=monday(r);sub=MES[mon.getMonth()];title='Semana '+weekNum(mon);v=viewWeek()}
+  if(t==='week'){const mon=monday(r);const m2=addD(mon,6).getMonth();sub=MES[mon.getMonth()]+(m2!==mon.getMonth()?' / '+MES[m2]:'');title='Semana '+weekNum(mon);v=viewWeek()}
   if(t==='month'){sub=r.getFullYear();title=MES[r.getMonth()];v=viewMonth()}
   if(t==='year'){sub='';title=r.getFullYear();v=viewYear()}
   return {sub,title,v}}
