@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#151618;--panel:#1d1e21;--line:#2b2c30;--txt:#ececec;--mut:#85878d;--g:#5fd38d;--r:#ef5a5a;--c:#38393d;--f:#232427}
+:root{--bg:#151618;--panel:#1d1e21;--line:#2b2c30;--txt:#ececec;--mut:#85878d;--g:#00ba4a;--r:#ff3b30;--c:#38393d;--f:#232427}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:#0b0b0c;color:var(--txt);font-family:'JetBrains Mono',ui-monospace,Menlo,monospace}
 #app{max-width:430px;height:100dvh;margin:0 auto;background:var(--bg);position:relative;display:flex;flex-direction:column;overflow:hidden}
@@ -44,9 +44,9 @@ main.inL{animation:inL .18s ease-out}main.inR{animation:inR .18s ease-out}
 .chev{color:var(--mut);cursor:pointer;padding:8px}
 .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .wk .cell{height:48px;border-radius:8px;display:grid;place-items:center;font-size:12px;color:#c9cacd}
-.cell{background:var(--c)}.cell.f{background:var(--f);color:#55565b}.cell.g{background:var(--g);color:#0b2a17}.cell.r{background:var(--r);color:#2b0909}.cell.t{outline:1.5px solid var(--txt);outline-offset:-1.5px}
+.cell{background:var(--c)}.cell.f{background:var(--f);color:#55565b}.cell.g{background:var(--g);color:#032b12}.cell.r{background:var(--r);color:#3a0704}.cell.t{outline:1.5px solid var(--txt);outline-offset:-1.5px}
 .mg{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}.mg .cell{aspect-ratio:1;border-radius:5px}
-.yh{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:2px}.yh .cell{aspect-ratio:1;border-radius:2px}.yh .cell.x{background:transparent}
+.yh{display:grid;grid-template-columns:repeat(40,1fr);gap:2px}.yh .cell{aspect-ratio:1;border-radius:1.5px}
 .nav{display:flex;gap:4px}
 .tabs{display:flex;justify-content:space-around;padding:10px 0 calc(env(safe-area-inset-bottom) + 14px);border-top:1px solid var(--line);background:var(--bg)}
 .tab{padding:8px 18px;border-radius:10px;color:#6c6e74}.tab.on{color:#fff;background:#2a2b2f}
@@ -95,11 +95,12 @@ const key=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const sod=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate());
 const addD=(d,n)=>{const x=sod(d);x.setDate(x.getDate()+n);return x};
 const TODAY=sod(new Date());
-const WS=()=>(D&&D.weekStart!==undefined)?D.weekStart:1;
+const WS=()=>(D&&D.weekStart!==undefined)?D.weekStart:0;
 const monday=d=>addD(d,-((d.getDay()-WS()+7)%7));
 const DLF=['D','S','T','Q','Q','S','S'];
 function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y0)/864e5+1)/7)}
 
+function weekNum(m){if(WS()===1)return isoWeek(m);const sat=addD(m,6),y=sat.getFullYear(),j=new Date(y,0,1),f=addD(j,-j.getDay());return Math.round((m-f)/6048e5)+1}
 /* ---------- estado ---------- */
 let D={habits:[],entries:{},seq:1};
 /* ---------- armazenamento: IndexedDB ---------- */
@@ -126,9 +127,10 @@ function streak(h,ref=TODAY){
 function pct(h,from,to){ // registros / dias decorridos
   const end=to>TODAY?TODAY:to;let tot=0,on=0;
   for(let d=from;d<=end;d=addD(d,1)){tot++;if(has(h,key(d)))on++}
-  return tot?Math.round(on/tot*100):null;
+  return tot?on/tot*100:null;
 }
-const pTxt=(h,a,b)=>{const p=pct(h,a,b);return p===null?'':`<span class="p ${h.intent==='build'?'g':'r'}">${p}%</span>`};
+const fmtP=p=>(Math.round(p*1000)/1000).toFixed(3).replace(/0+$/,'').replace(/\.$/,'').replace('.',',');
+const pTxt=(h,a,b)=>{const p=pct(h,a,b);return p===null?'':`<span class="p ${h.intent==='build'?'g':'r'}">${fmtP(p)}%</span>`};
 const cls=(h,d)=>d>TODAY?'f':has(h,key(d))?(h.intent==='build'?'g':'r'):'';
 const cell=(h,d,txt='',extra='')=>`<div class="cell ${cls(h,d)} ${key(d)===key(TODAY)?'t':''} ${extra}" ${d>TODAY?'':`data-a="toggle" data-h="${h.id}" data-d="${key(d)}"`}>${txt}</div>`;
 
@@ -139,9 +141,9 @@ function weekHtml(h,mon,compact){
 function monthHtml(h,y,m){
   const n=new Date(y,m+1,0).getDate();let c='';for(let i=1;i<=n;i++)c+=cell(h,new Date(y,m,i));return `<div class="mg">${c}</div>`}
 function yearHtml(h,y){
-  const s=monday(new Date(y,0,1));let c='';
-  for(let w=0;w<53;w++)for(let i=0;i<7;i++){const d=addD(s,w*7+i);c+=d.getFullYear()!==y?'<div class="cell x"></div>':cell(h,d)}
-  return `<div class="yh" style="grid-template-columns:repeat(53,1fr)">${c}</div>`}
+  const n=(new Date(y,11,31)-new Date(y,0,1))/864e5+1;let c='';
+  for(let i=0;i<n;i++){const d=new Date(y,0,1+i);c+=`<div class="cell ${cls(h,d)}"></div>`}
+  return `<div class="yh">${c}</div>`}
 function yearRows(h,y){
   let o='';for(let m=0;m<12;m++){const n=new Date(y,m+1,0).getDate();let b='';
     for(let i=1;i<=31;i++){if(i>n){b+='<b class="x"></b>';continue}const d=new Date(y,m,i);b+=`<b class="${cls(h,d)}"></b>`}
@@ -201,7 +203,7 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
   let body='',sub='';
   if(sh.mode==='year'){body=yearRows(h,y);sub=`${y} ${pTxt(h,new Date(y,0,1),new Date(y,11,31))}`}
   if(sh.mode==='month'){body=monthHtml(h,y,m);sub=`${MES[m]} ${y} ${pTxt(h,new Date(y,m,1),new Date(y,m+1,0))}`}
-  if(sh.mode==='week'){const mon=monday(sh.ref);body=weekHtml(h,mon);sub=`Semana ${isoWeek(mon)} ${pTxt(h,mon,addD(mon,6))}`}
+  if(sh.mode==='week'){const mon=monday(sh.ref);body=weekHtml(h,mon);sub=`Semana ${weekNum(mon)} ${pTxt(h,mon,addD(mon,6))}`}
   return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
   <div class="sh"><b>${h.name}</b><button class="lnk" data-a="editsheet" data-h="${h.id}">Editar</button></div>
   <div class="sh"><span><button class="ib" style="width:30px;height:30px;font-size:16px" data-a="sprev">‹</button> <span class="sub" style="color:var(--txt);font-size:13px">${sub}</span> <button class="ib" style="width:30px;height:30px;font-size:16px" data-a="snext">›</button></span></div>
@@ -229,7 +231,7 @@ function pagerHtml(){
 function render(){
   const r=S.ref,t=S.tab;let sub='',title='',v='';
   if(t==='today'){const d=S.day,isT=key(d)===key(TODAY);sub=WD[d.getDay()]+(isT?' · '+pad(d.getDate())+' '+MS[d.getMonth()].toLowerCase():'');title=isT?'Hoje':d.getDate()+' '+MS[d.getMonth()].toLowerCase();v=viewToday()}
-  if(t==='week'){const mon=monday(r);sub=MES[mon.getMonth()];title='Semana '+isoWeek(mon);v=viewWeek()}
+  if(t==='week'){const mon=monday(r);sub=MES[mon.getMonth()];title='Semana '+weekNum(mon);v=viewWeek()}
   if(t==='month'){sub=r.getFullYear();title=MES[r.getMonth()];v=viewMonth()}
   if(t==='year'){sub='';title=r.getFullYear();v=viewYear()}
   const nav=`<button class="ib" data-a="prev">‹</button><button class="ib" data-a="next" ${canNext()?'':'disabled'}>›</button>`;
