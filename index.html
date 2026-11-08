@@ -83,6 +83,21 @@ input[type=text]{width:100%;background:var(--bg);border:1px solid var(--line);co
 .ro.drag{background:#2b2c31;border-radius:8px}
 .hd{touch-action:none;cursor:grab;padding:10px 6px 10px 20px;color:var(--mut);font-size:22px;line-height:1}
 .trash{padding:6px 10px;border-radius:8px;color:var(--mut);font-size:13px;cursor:pointer}.trash.c{background:var(--r);color:#fff}
+.tk{padding:6px 20px 24px}
+.tkh{display:flex;justify-content:space-between;align-items:center;padding:18px 0 8px;font-size:12px;color:var(--mut);letter-spacing:.06em}
+.tkh span:last-child{cursor:pointer;padding:6px 0 6px 12px}
+.tkr{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.tkb{width:24px;height:24px;border-radius:7px;border:2px solid var(--mut);flex:none;display:grid;place-items:center;cursor:pointer}
+.tkb.on{background:var(--txt);border-color:var(--txt);color:#111}
+.tkt{flex:1;font-size:15px;line-height:1.35;word-break:break-word}
+.tkr.d .tkt{color:var(--mut);text-decoration:line-through}
+.tkx{color:var(--mut);padding:6px 4px 6px 10px;font-size:18px;cursor:pointer;line-height:1}
+.tka{display:flex;gap:8px;margin-top:12px}
+.tka input{flex:1;margin:0;padding:11px 12px;font-size:16px}
+.tka button{width:44px;border-radius:10px;background:var(--panel);font-size:22px}
+.tks{display:block;color:var(--mut);font-size:11px;margin-top:3px}.tkm{font-size:12px;padding:8px 10px;border-radius:8px;background:var(--panel);cursor:pointer;white-space:nowrap}
+.tke{color:var(--mut);font-size:13px;padding:10px 0 4px}
+.hd2{font-size:12px;color:var(--mut);letter-spacing:.04em;padding:14px 0 4px;cursor:pointer}
 .note{font-size:11px;color:var(--mut);padding:14px 20px;line-height:1.5}
 </style>
 </head>
@@ -105,7 +120,7 @@ function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.get
 
 function weekNum(m){if(WS()===1)return isoWeek(m);const sat=addD(m,6),y=sat.getFullYear(),j=new Date(y,0,1),f=addD(j,-j.getDay());return Math.round((m-f)/6048e5)+1}
 /* ---------- estado ---------- */
-let D={habits:[],entries:{},seq:1};
+let D={habits:[],entries:{},seq:1,tasks:[]};
 /* ---------- armazenamento: IndexedDB ---------- */
 const DB={open(){return new Promise((ok,no)=>{const r=indexedDB.open('rastro',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})},
   async get(){const db=await this.open();return new Promise((ok,no)=>{const q=db.transaction('kv').objectStore('kv').get('data');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})},
@@ -163,13 +178,24 @@ function yearRows(h,y){
     for(let i=1;i<=31;i++){if(i>n){b+='<b class="x"></b>';continue}const d=new Date(y,m,i);b+=`<b class="${cls(h,d)}"></b>`}
     o+=`<div class="mr"><i>${MS[m]}</i><div class="bars">${b}</div></div>`}return o}
 
+const tasksOf=k=>(D.tasks||[]).filter(t=>t.day===k);
+const dlabel=d=>WD[d.getDay()].slice(0,3)+' · '+pad(d.getDate())+' '+MS[d.getMonth()].toLowerCase();
+function tasksHtml(day){
+  const k=key(day),isT=k===key(TODAY),L=tasksOf(k);
+  return `<div class="tk"><div class="tkh"><span>${isT?'TAREFAS DE HOJE':'TAREFAS · '+pad(day.getDate())+' '+MS[day.getMonth()]}</span><span data-a="thist">Histórico ›</span></div>
+  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div><div class="tkt">${t.text.replace(/</g,'&lt;')}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
+  <div class="tka"><input type="text" class="tin" placeholder="Nova tarefa" maxlength="120" enterkeyhint="done"><button data-a="tadd" aria-label="Adicionar tarefa">+</button></div>${isT?pendHtml(k):''}</div>`}
+function pendHtml(k){
+  const P=(D.tasks||[]).filter(t=>!t.done&&t.day<k).sort((a,b)=>a.day<b.day?1:a.day>b.day?-1:0);if(!P.length)return '';
+  const lab=dk=>{const [y,m,d]=dk.split('-').map(Number);return pad(d)+' '+MS[m-1]};
+  return `<div class="tkh" style="margin-top:14px"><span>PENDENTES DE DIAS ANTERIORES</span><span data-a="tall">Trazer todas</span></div>`+P.map(t=>`<div class="tkr"><div class="tkt">${t.text.replace(/</g,'&lt;')}<small class="tks">${lab(t.day)}</small></div><div class="tkm" data-a="tmove" data-t="${t.id}">Trazer para hoje</div></div>`).join('')}
 function viewToday(){
-  if(!D.habits.length)return empty();
   const day=S.day,k=key(day),isT=k===key(TODAY);
-  return list().map(h=>{const on=has(h,k),st=streak(h,day);
+  const hab=!D.habits.length?'':list().map(h=>{const on=has(h,k),st=streak(h,day);
     const sub=h.intent==='build'?(st?`${st} dia${st>1?'s':''} seguido${st>1?'s':''}`:'sem sequência'):(st?`${st} dia${st>1?'s':''} sem`:(on?'registrado'+(isT?' hoje':''):''));
     return `<div class="today"><div class="dot ${on?(h.intent==='build'?'g':'r'):''}" data-a="toggle" data-h="${h.id}" data-d="${k}"></div>
-    <div class="tx" data-a="open" data-h="${h.id}">${h.name}<small>${sub}</small></div><div class="chev" data-a="open" data-h="${h.id}">›</div></div>`}).join('')}
+    <div class="tx" data-a="open" data-h="${h.id}">${h.name}<small>${sub}</small></div><div class="chev" data-a="open" data-h="${h.id}">›</div></div>`}).join('');
+  return hab+tasksHtml(day)}
 function viewWeek(){const mon=monday(S.ref),end=addD(mon,6);
   if(!D.habits.length)return empty();
   return list().map(h=>`<div class="row"><div class="rh"><span class="nm" data-a="open" data-h="${h.id}">${h.name}${pTxt(h,mon,end)}</span><span class="chev" data-a="open" data-h="${h.id}">›</span></div>${weekHtml(h,mon)}</div>`).join('')}
@@ -189,9 +215,13 @@ year:'<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><g>'+[
 function menuHtml(){if(!S.menu)return '';
   const m=D.sort||'green',it=(v,t)=>`<div class="mi" data-a="setsort" data-v="${v}"><i>${m===v?'✓':''}</i>${t}</div>`;
   return `<div class="shade mshade" data-a="closemenu"><div class="menu" data-stop>
-  <div class="mi" data-a="add"><i>+</i>Adicionar</div><div class="mi" data-a="settings"><i>⚙</i>Configurações</div>
+  <div class="mi" data-a="add"><i>+</i>Adicionar</div><div class="mi" data-a="thist"><i>☑</i>Histórico de tarefas</div><div class="mi" data-a="settings"><i>⚙</i>Configurações</div>
   <div class="ml">Ordenar:</div>${it('green','Verdes primeiro')}${it('red','Vermelhos primeiro')}${it('date','Data de criação')}${it('manual','Manual')}</div></div>`}
 function sheetHtml(){const sh=S.sheet;if(!sh)return '';
+  if(sh.thist){const days=[...new Set((D.tasks||[]).map(t=>t.day))].sort().reverse();
+    return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
+    <div class="sh"><b>Histórico de tarefas</b><button class="lnk" data-a="close">Fechar</button></div>
+    ${days.map(dk=>{const [y,m,d]=dk.split('-').map(Number),dt=new Date(y,m-1,d);return `<div class="hd2" data-a="gotoday" data-d="${dk}">${dlabel(dt).toUpperCase()} ›</div>`+tasksOf(dk).map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" style="cursor:default">${t.done?CHECK:''}</div><div class="tkt">${t.text.replace(/</g,'&lt;')}</div></div>`).join('')}).join('')||'<div class="empty">Nenhuma tarefa registrada ainda.</div>'}</div></div>`}
   if(sh.settings)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Configurações</b><button class="lnk" data-a="close">Fechar</button></div>
     <div class="sr" data-a="goreorder"><span>Reordenar hábitos</span><span>›</span></div>
@@ -252,13 +282,15 @@ function parts(){
 function render(){
   const {sub,title,v}=parts(),t=S.tab;
   const nav=`<button class="ib" data-a="prev">‹</button><button class="ib" data-a="next" ${canNext()?'':'disabled'}>›</button>`;
-  const scroll=document.querySelector('main')?.scrollTop||0,hadSheet=!!document.querySelector('.sheet');
+  const tv=document.querySelector('main .tin')?.value||'',scroll=document.querySelector('main')?.scrollTop||0,hadSheet=!!document.querySelector('.sheet');
   document.getElementById('app').innerHTML=`<header><div class="hl"><div class="sub">${sub}</div><h1>${title}</h1></div><div class="hb">${nav}<button class="ib" data-a="menu" aria-label="Menu">☰</button></div></header>
   <main class="${S.anim}">${v}</main>
   ${pagerHtml()}<nav class="tabs">${['today','week','month','year'].map(k=>`<button class="tab ${t===k?'on':''}" data-a="tab" data-v="${k}">${ICON[k]}</button>`).join('')}</nav>${sheetHtml()}${menuHtml()}`;
   document.querySelector('main').scrollTop=scroll;paintYear(document.getElementById('app'));
   if(hadSheet)document.querySelectorAll('.sheet').forEach(e=>e.style.animation='none');
   S.anim='';
+  if(tv){const n=document.querySelector('main .tin');if(n)n.value=tv}
+  if(S.refocus){S.refocus=false;const n=document.querySelector('main .tin');if(n)n.focus()}
   const nm=document.getElementById('nm');if(nm)nm.addEventListener('input',e=>S.draft=e.target.value);
 }
 
@@ -280,6 +312,13 @@ document.addEventListener('click',e=>{
   else if(a==='mv'){const i=D.habits.findIndex(x=>x.id===h),j=i+(+el.dataset.d);if(j>=0&&j<D.habits.length){[D.habits[i],D.habits[j]]=[D.habits[j],D.habits[i]];D.sort='manual';save()}}
   else if(a==='export'){doExport();return}
   else if(a==='import'){document.getElementById('imp').click();return}
+  else if(a==='thist'){S.sheet={thist:true}}
+  else if(a==='gotoday'){const [y,m,d]=el.dataset.d.split('-').map(Number);S.tab='today';S.day=new Date(y,m-1,d);S.ref=S.day;S.sheet=null}
+  else if(a==='tdone'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.done=!t.done;save()}}
+  else if(a==='tmove'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.day=key(TODAY);save()}}
+  else if(a==='tall'){D.tasks.forEach(t=>{if(!t.done&&t.day<key(TODAY))t.day=key(TODAY)});save()}
+  else if(a==='tdel'){D.tasks=D.tasks.filter(x=>x.id!==el.dataset.t);save()}
+  else if(a==='tadd'){if(!addTask(el.closest('.tk')))return;S.refocus=true}
   else if(a==='goreorder'){S.sheet={reorder:true}}
   else if(a==='goremove'){S.sheet={remove:true};S.confirm=null}
   else if(a==='ws'){D.weekStart=WS()===0?1:0;save()}
@@ -303,6 +342,13 @@ document.addEventListener('click',e=>{
     Object.keys(D.entries).forEach(k=>{if(k.startsWith(id+'|'))delete D.entries[k]});save();S.sheet=null}
   render();
 });
+function addTask(box){
+  const inp=box&&box.querySelector('.tin');if(!inp)return false;
+  const v=inp.value.trim();if(!v){inp.focus();return false}
+  inp.value='';D.tasks.push({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),day:key(S.day),text:v,done:false});save();return true}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||!e.target.classList||!e.target.classList.contains('tin'))return;
+  e.preventDefault();if(addTask(e.target.closest('.tk'))){S.refocus=true;render()}});
 function startDrag(hd,add,rm){
   const row=hd.closest('.ro'),lst=row.parentNode;row.classList.add('drag');
   const mv=(x,y)=>{const el=document.elementFromPoint(x,y)?.closest('.ro');
@@ -382,11 +428,12 @@ document.getElementById('imp').addEventListener('change',async e=>{
   try{const j=JSON.parse(await f.text());
     if(!Array.isArray(j.habits)||typeof j.entries!=='object'||!j.habits.every(h=>h&&h.id&&h.name&&(h.intent==='build'||h.intent==='break')))throw 0;
     if(!confirm('Importar vai SUBSTITUIR todos os dados atuais ('+D.habits.length+' hábitos) por '+j.habits.length+' hábitos do arquivo. Continuar?'))return;
-    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart};save();S.sheet=null;render();
+    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[]};save();S.sheet=null;render();
   }catch(_){alert('Arquivo inválido. Use um backup exportado pelo Rastro.')}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&svT)flush();if(!document.hidden&&key(new Date())!==key(TODAY))location.reload()});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 (async()=>{try{const d=await DB.get();if(d&&Array.isArray(d.habits))D=d}catch(e){}
+  if(!Array.isArray(D.tasks))D.tasks=[];
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   render()})();
 </script>
