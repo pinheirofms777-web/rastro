@@ -42,19 +42,19 @@ main.inL{animation:inL .12s ease-out}main.inR{animation:inR .12s ease-out}
 .p{font-size:13px;margin-left:8px}.p.g{color:var(--g)}.p.r{color:var(--r)}
 .today{display:flex;align-items:center;gap:16px;padding:18px 20px;border-bottom:1px solid var(--line)}
 .dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--txt);flex:none;display:grid;place-items:center}
-.dot.g{background:var(--g);border-color:var(--g);color:#0b2a17}.dot.r{background:var(--r);border-color:var(--r);color:#2b0909}
+.dot.g{background:var(--g);border-color:#fff;box-shadow:inset 0 0 0 2.5px var(--bg)}.dot.r{background:var(--r);border-color:#fff;box-shadow:inset 0 0 0 2.5px var(--bg)}
 .tx{flex:1;cursor:pointer}.tx small{display:block;color:var(--mut);margin-top:3px;font-size:12px}
 .chev{color:var(--mut);cursor:pointer;padding:8px}
 .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.wk .cell{height:48px;border-radius:8px;display:grid;place-items:center;font-size:12px;color:#c9cacd}
+.wk .cell{height:54px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;color:#c9cacd}.wk .cell b{font-weight:500;font-size:11px;opacity:.7}
 .cell{background:var(--c)}.cell.f{background:var(--f);color:#55565b}.cell.g{background:var(--g);color:#032b12}.cell.r{background:var(--r);color:#3a0704}.cell.t{outline:1.5px solid var(--txt);outline-offset:-1.5px}
-.mg{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}.mg .cell{aspect-ratio:1;border-radius:5px}
+.mg .cell.g,.mg .cell.r{color:#04210f}.mg .cell.f{color:#55565b}.mg{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}.mg .cell{aspect-ratio:1;border-radius:5px;display:grid;place-items:center;font-size:10px;color:#c9cacd}
 .yc{display:block}
 .nav{display:flex;gap:4px}
 .tabs{display:flex;justify-content:space-around;padding:10px 0 calc(env(safe-area-inset-bottom) + 14px);border-top:1px solid var(--line);background:var(--bg)}
 .tab{padding:8px 18px;border-radius:10px;color:#6c6e74}.tab.on{color:#fff;background:#2a2b2f}
 .tab svg{display:block}
-.shade{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
+.shade{z-index:5;position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
 .sheet{background:var(--panel);width:100%;max-height:88%;overflow-y:auto;border-radius:18px 18px 0 0;padding:14px 20px calc(env(safe-area-inset-bottom) + 24px);animation:up .16s ease-out}
 @keyframes up{from{transform:translateY(40px);opacity:.4}}
 .grab{width:40px;height:4px;border-radius:3px;background:#55565b;margin:0 auto 14px}
@@ -142,9 +142,9 @@ const cell=(h,d,txt='',extra='')=>`<div class="cell ${cls(h,d)} ${key(d)===key(T
 /* ---------- views ---------- */
 const CHECK='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
 function weekHtml(h,mon,compact){
-  let c='';for(let i=0;i<7;i++){const d=addD(mon,i);c+=cell(h,d,DLF[d.getDay()])}return `<div class="wk">${c}</div>`}
+  let c='';for(let i=0;i<7;i++){const d=addD(mon,i);c+=cell(h,d,`<span>${DLF[d.getDay()]}</span><b>${d.getDate()}</b>`)}return `<div class="wk">${c}</div>`}
 function monthHtml(h,y,m){
-  const n=new Date(y,m+1,0).getDate();let c='';for(let i=1;i<=n;i++)c+=cell(h,new Date(y,m,i));return `<div class="mg">${c}</div>`}
+  const n=new Date(y,m+1,0).getDate();let c='';for(let i=1;i<=n;i++)c+=cell(h,new Date(y,m,i),i);return `<div class="mg">${c}</div>`}
 function yearHtml(h,y){return `<canvas class="yc" data-h="${h.id}" data-y="${y}"></canvas>`}
 function paintYear(root){
   const cv=root.querySelectorAll('canvas.yc');if(!cv.length)return;
@@ -168,7 +168,7 @@ function viewToday(){
   const day=S.day,k=key(day),isT=k===key(TODAY);
   return list().map(h=>{const on=has(h,k),st=streak(h,day);
     const sub=h.intent==='build'?(st?`${st} dia${st>1?'s':''} seguido${st>1?'s':''}`:'sem sequência'):(st?`${st} dia${st>1?'s':''} sem`:(on?'registrado'+(isT?' hoje':''):''));
-    return `<div class="today"><div class="dot ${on?(h.intent==='build'?'g':'r'):''}" data-a="toggle" data-h="${h.id}" data-d="${k}">${on?CHECK:''}</div>
+    return `<div class="today"><div class="dot ${on?(h.intent==='build'?'g':'r'):''}" data-a="toggle" data-h="${h.id}" data-d="${k}"></div>
     <div class="tx" data-a="open" data-h="${h.id}">${h.name}<small>${sub}</small></div><div class="chev" data-a="open" data-h="${h.id}">›</div></div>`}).join('')}
 function viewWeek(){const mon=monday(S.ref),end=addD(mon,6);
   if(!D.habits.length)return empty();
@@ -240,7 +240,7 @@ function go(dir){
 function pagerHtml(){
   const ym=d=>d.getFullYear()*12+d.getMonth();
   const off=S.tab==='today'?Math.round((TODAY-S.day)/864e5):S.tab==='week'?Math.round((monday(TODAY)-monday(S.ref))/6048e5):S.tab==='month'?ym(TODAY)-ym(S.ref):TODAY.getFullYear()-S.ref.getFullYear();
-  const on=Math.max(1,3-off);
+  const on=((3-off)%4+4)%4;
   return `<div class="pager"><div>${[0,1,2,3].map(i=>`<i class="${i===on?'on':''}"></i>`).join('')}</div></div>`}
 function parts(){
   const r=S.ref,t=S.tab;let sub='',title='',v='';
@@ -252,11 +252,12 @@ function parts(){
 function render(){
   const {sub,title,v}=parts(),t=S.tab;
   const nav=`<button class="ib" data-a="prev">‹</button><button class="ib" data-a="next" ${canNext()?'':'disabled'}>›</button>`;
-  const scroll=document.querySelector('main')?.scrollTop||0;
+  const scroll=document.querySelector('main')?.scrollTop||0,hadSheet=!!document.querySelector('.sheet');
   document.getElementById('app').innerHTML=`<header><div class="hl"><div class="sub">${sub}</div><h1>${title}</h1></div><div class="hb">${nav}<button class="ib" data-a="menu" aria-label="Menu">☰</button></div></header>
   <main class="${S.anim}">${v}</main>
   ${pagerHtml()}<nav class="tabs">${['today','week','month','year'].map(k=>`<button class="tab ${t===k?'on':''}" data-a="tab" data-v="${k}">${ICON[k]}</button>`).join('')}</nav>${sheetHtml()}${menuHtml()}`;
   document.querySelector('main').scrollTop=scroll;paintYear(document.getElementById('app'));
+  if(hadSheet)document.querySelectorAll('.sheet').forEach(e=>e.style.animation='none');
   S.anim='';
   const nm=document.getElementById('nm');if(nm)nm.addEventListener('input',e=>S.draft=e.target.value);
 }
