@@ -280,14 +280,15 @@ function parts(){
   if(t==='month'){sub=r.getFullYear();title=MES[r.getMonth()];v=viewMonth()}
   if(t==='year'){sub='';title=r.getFullYear();v=viewYear()}
   return {sub,title,v}}
+var nav0=0;
 function render(){
   const {sub,title,v}=parts(),t=S.tab;
   const nav=`<button class="ib" data-a="prev">‹</button><button class="ib" data-a="next" ${canNext()?'':'disabled'}>›</button>`;
-  const tv=document.querySelector('main .tin')?.value||'',scroll=document.querySelector('main')?.scrollTop||0,hadSheet=!!document.querySelector('.sheet');
+  const tv=document.querySelector('main .tin')?.value||'',scroll=nav0?0:(document.querySelector('main')?.scrollTop||0),hadSheet=!!document.querySelector('.sheet');
   document.getElementById('app').innerHTML=`<header><div class="hl"><div class="sub">${sub}</div><h1>${title}</h1></div><div class="hb">${nav}<button class="ib" data-a="menu" aria-label="Menu">☰</button></div></header>
   <main class="${S.anim}">${v}</main>
   ${pagerHtml()}<nav class="tabs">${['today','week','month','year'].map(k=>`<button class="tab ${t===k?'on':''}" data-a="tab" data-v="${k}">${ICON[k]}</button>`).join('')}</nav>${sheetHtml()}${menuHtml()}`;
-  document.querySelector('main').scrollTop=scroll;paintYear(document.getElementById('app'));
+  nav0=0;document.querySelector('main').scrollTop=scroll;paintYear(document.getElementById('app'));
   if(hadSheet)document.querySelectorAll('.sheet').forEach(e=>e.style.animation='none');
   S.anim='';
   if(tv){const n=document.querySelector('main .tin');if(n)n.value=tv}
@@ -315,7 +316,7 @@ document.addEventListener('click',e=>{
   else if(a==='export'){doExport();return}
   else if(a==='import'){document.getElementById('imp').click();return}
   else if(a==='thist'){S.sheet={thist:true}}
-  else if(a==='gotoday'){const [y,m,d]=el.dataset.d.split('-').map(Number);S.tab='today';S.day=new Date(y,m-1,d);S.ref=S.day;S.sheet=null}
+  else if(a==='gotoday'){const [y,m,d]=el.dataset.d.split('-').map(Number);nav0=1;S.tab='today';S.day=new Date(y,m-1,d);S.ref=S.day;S.sheet=null}
   else if(a==='tdone'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.done=!t.done;save()}}
   else if(a==='tmove'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.day=key(TODAY);save()}}
   else if(a==='tall'){D.tasks.forEach(t=>{if(!t.done&&t.day<key(TODAY))t.day=key(TODAY)});save()}
@@ -327,7 +328,7 @@ document.addEventListener('click',e=>{
   else if(a==='ws'){D.weekStart=WS()===0?1:0;save()}
   else if(a==='rm'){if(S.confirm===h){D.habits=D.habits.filter(x=>x.id!==h);Object.keys(D.entries).forEach(k=>{if(k.startsWith(h+'|'))delete D.entries[k]});save();S.confirm=null}else S.confirm=h}
   else if(a==='rmall'){if(S.confirm==='all'){D.habits=[];D.entries={};save();S.confirm=null}else S.confirm='all'}
-  else if(a==='tab'){S.tab=el.dataset.v;S.ref=TODAY;S.day=TODAY;S.anim=''}
+  else if(a==='tab'){nav0=1;S.tab=el.dataset.v;S.ref=TODAY;S.day=TODAY;S.anim=''}
   else if(a==='toggle'){const k=h+'|'+el.dataset.d;D.entries[k]?delete D.entries[k]:D.entries[k]=1;save()}
   else if(a==='prev'||a==='next'){slide(a==='next'?1:-1);return}
   else if(a==='open'){S.sheet={id:h,mode:S.tab==='week'?'week':S.tab==='month'?'month':'year',ref:S.tab==='today'?TODAY:S.ref}}
@@ -403,7 +404,7 @@ function setPos(g,dx,anim){
 function reset(g){[g.m,g.hl].forEach(e=>{e.style.transition='';e.style.transform='';e.style.opacity=''})}
 function finish(g,dir){
   setPos(g,-dir*g.W,true);
-  setTimeout(()=>{go(dir);render();busy=false},210)}
+  setTimeout(()=>{go(dir);nav0=1;render();busy=false},210)}
 function back(g){
   setPos(g,0,true);
   setTimeout(()=>{reset(g);dropGhost(g);busy=false},210)}
