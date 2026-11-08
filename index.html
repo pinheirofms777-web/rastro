@@ -31,7 +31,7 @@ main{flex:1;overflow-y:auto;padding-bottom:12px;touch-action:pan-y;will-change:t
 .hl{will-change:transform}
 @keyframes inL{from{transform:translateX(-28%);opacity:0}}
 @keyframes inR{from{transform:translateX(28%);opacity:0}}
-main.inL{animation:inL .18s ease-out}main.inR{animation:inR .18s ease-out}
+main.inL{animation:inL .12s ease-out}main.inR{animation:inR .12s ease-out}
 .pager{z-index:2;position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 76px);display:flex;justify-content:center;pointer-events:none}
 .pager div{display:flex;gap:8px;background:rgba(40,41,45,.92);padding:9px 14px;border-radius:20px}
 .pager i{width:7px;height:7px;border-radius:50%;background:#5a5c62}.pager i.on{background:#fff}
@@ -55,7 +55,7 @@ main.inL{animation:inL .18s ease-out}main.inR{animation:inR .18s ease-out}
 .tab{padding:8px 18px;border-radius:10px;color:#6c6e74}.tab.on{color:#fff;background:#2a2b2f}
 .tab svg{display:block}
 .shade{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
-.sheet{background:var(--panel);width:100%;max-height:88%;overflow-y:auto;border-radius:18px 18px 0 0;padding:14px 20px calc(env(safe-area-inset-bottom) + 24px);animation:up .22s ease}
+.sheet{background:var(--panel);width:100%;max-height:88%;overflow-y:auto;border-radius:18px 18px 0 0;padding:14px 20px calc(env(safe-area-inset-bottom) + 24px);animation:up .16s ease-out}
 @keyframes up{from{transform:translateY(40px);opacity:.4}}
 .grab{width:40px;height:4px;border-radius:3px;background:#55565b;margin:0 auto 14px}
 .sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
@@ -110,7 +110,9 @@ let D={habits:[],entries:{},seq:1};
 const DB={open(){return new Promise((ok,no)=>{const r=indexedDB.open('rastro',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})},
   async get(){const db=await this.open();return new Promise((ok,no)=>{const q=db.transaction('kv').objectStore('kv').get('data');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})},
   async set(v){const db=await this.open();return new Promise((ok,no)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,'data');t.oncomplete=()=>ok();t.onerror=()=>no(t.error)})}};
-const save=()=>{DB.set(JSON.parse(JSON.stringify(D))).catch(()=>{})};
+let svT=0;const flush=()=>{clearTimeout(svT);svT=0;DB.set(JSON.parse(JSON.stringify(D))).catch(()=>{})};
+const save=()=>{if(!svT)svT=setTimeout(flush,400)};
+addEventListener('pagehide',()=>{if(svT)flush()});
 const WD=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
 const S={tab:'today',day:TODAY,ref:TODAY,anim:'',sheet:null,draft:'',intent:'build'};
 const H=id=>D.habits.find(h=>h.id===id);
@@ -381,7 +383,7 @@ document.getElementById('imp').addEventListener('change',async e=>{
     if(!confirm('Importar vai SUBSTITUIR todos os dados atuais ('+D.habits.length+' hábitos) por '+j.habits.length+' hábitos do arquivo. Continuar?'))return;
     D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart};save();S.sheet=null;render();
   }catch(_){alert('Arquivo inválido. Use um backup exportado pelo Rastro.')}});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&key(new Date())!==key(TODAY))location.reload()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&svT)flush();if(!document.hidden&&key(new Date())!==key(TODAY))location.reload()});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 (async()=>{try{const d=await DB.get();if(d&&Array.isArray(d.habits))D=d}catch(e){}
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
