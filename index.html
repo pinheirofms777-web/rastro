@@ -96,6 +96,9 @@ input[type=text],input[type=password]{width:100%;background:var(--bg);border:1px
 .tka{display:flex;gap:8px;margin-top:12px}
 .tka input{flex:1;margin:0;padding:11px 12px;font-size:16px}
 .tka button{width:44px;border-radius:10px;background:var(--panel);font-size:22px}
+input[type=date]{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:16px;padding:10px 12px;border-radius:10px;margin:8px 0 14px;min-height:46px;color-scheme:dark}
+.wdr{display:flex;gap:6px;margin:8px 0 16px}.wdr .opt{flex:1;padding:11px 0;font-size:13px}
+.evr{display:flex;gap:6px;align-items:center}.evr input{width:64px;margin:8px 0 14px;flex:none}.evr .opt{flex:1;padding:12px 2px;margin-bottom:6px;font-size:13px}
 .load{padding:12px 20px 0;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.load b{color:var(--txt);font-size:14px}
 .tkd{font-size:12px;color:var(--mut);padding:6px 4px;white-space:nowrap;cursor:pointer}
 .durr{display:flex;gap:8px;align-items:center}.durr input{width:84px;margin:8px 0 14px;flex:none}.durr .opt{flex:1;margin-bottom:6px}
@@ -184,6 +187,37 @@ function yearRows(h,y){
     o+=`<div class="mr"><i>${MS[m]}</i><div class="bars">${b}</div></div>`}return o}
 
 const tasksOf=k=>(D.tasks||[]).filter(t=>t.day===k);
+const WDS=['dom','seg','ter','qua','qui','sex','sáb'];
+const escH=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const dparse=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+const dnum=k=>{const [y,m,d]=k.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/864e5)};
+function occurs(r,k){
+  if(r.paused||k<r.start||(r.end&&k>r.end))return false;
+  const n=Math.max(1,r.rule.every|0),u=r.rule.unit,d=dparse(k),s=dparse(r.start);
+  if(u==='d')return (dnum(k)-dnum(r.start))%n===0;
+  if(u==='w'){const wd=r.rule.wd&&r.rule.wd.length?r.rule.wd:[s.getDay()],a=dnum(r.start)-((s.getDay()+6)%7),w=Math.floor((dnum(k)-a)/7);
+    return w%n===0&&wd.includes(d.getDay())}
+  const mi=(d.getFullYear()-s.getFullYear())*12+d.getMonth()-s.getMonth();
+  if(mi<0||mi%n)return false;
+  const md=r.rule.md&&r.rule.md.length?r.rule.md:[s.getDate()],last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  return md.some(x=>Math.min(x,last)===d.getDate())}
+function ruleLabel(r){const n=r.rule.every|0||1,u=r.rule.unit,s=dparse(r.start);
+  if(u==='d')return n===1?'Todo dia':'A cada '+n+' dias';
+  if(u==='w'){const wd=r.rule.wd&&r.rule.wd.length?r.rule.wd:[s.getDay()];
+    return (n===1?'Toda semana':'A cada '+n+' semanas')+' · '+wd.slice().sort((a,b)=>(a+6)%7-(b+6)%7).map(x=>WDS[x]).join(', ')}
+  const md=r.rule.md&&r.rule.md.length?r.rule.md:[s.getDate()];
+  return (n===1?'Todo mês':'A cada '+n+' meses')+' · dia '+md.slice().sort((a,b)=>a-b).join(', ')}
+function recLab(t){const r=t.rid&&(D.rec||[]).find(x=>x.id===t.rid);return r?'<small class="tks">↻ '+ruleLabel(r)+'</small>':''}
+function ensureDay(k){
+  if(k<key(TODAY)||!(D.rec||[]).length)return 0;
+  if(SY.cfg&&navigator.onLine&&!SY.last&&!SY.err)return 0;
+  let c=0;
+  D.rec.forEach(r=>{
+    if(!occurs(r,k)||(r.skip||[]).includes(k))return;
+    const id=r.id+'_'+k;
+    if(D.tasks.some(t=>t.id===id))return;
+    D.tasks.push(Object.assign({id,day:k,text:r.text,done:false,rid:r.id},r.dur?{dur:r.dur}:{}));c++});
+  if(c)save();return c}
 const dlabel=d=>WD[d.getDay()].slice(0,3)+' · '+pad(d.getDate())+' '+MS[d.getMonth()].toLowerCase();
 function parseDur(s,paren){const r=paren?/\((\d+)\s*(pomodoros?|pomos?|min(?:utos?)?|h)\)/i:/\s(\d+)\s*(pomodoros?|pomos?|p|min(?:utos?)?|m|h)$/i,m=s.match(r);if(!m)return null;const n=+m[1],u=m[2].toLowerCase();if(!n)return null;const d=/^p/.test(u)?{n,u:'p'}:u==='h'?{n:n*60,u:'m'}:{n,u:'m'};d.i=m.index;return d}
 const fmtDur=d=>d.u==='p'?d.n+' pomo':d.n+' min';
@@ -202,14 +236,15 @@ function loadHtml(k){const L=dayLoad(k);if(!L.tot)return '';
 function tasksHtml(day){
   const k=key(day),isT=k===key(TODAY),L=tasksOf(k);
   return `<div class="tk"><div class="tkh"><span>${isT?'TAREFAS DE HOJE':'TAREFAS · '+pad(day.getDate())+' '+MS[day.getMonth()]}</span><span data-a="thist">Histórico ›</span></div>
-  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}</div>`}<div class="tkd" data-a="tdur" data-t="${t.id}">${t.dur?fmtDur(t.dur):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
-  <div class="tka"><input type="text" class="tin" placeholder="Nova tarefa · ex.: Ligar 30min" maxlength="120" enterkeyhint="done"><button data-a="tadd" aria-label="Adicionar tarefa">+</button></div>${isT?pendHtml(k):''}</div>`}
+  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}${recLab(t)}</div>`}<div class="tkd" data-a="tdur" data-t="${t.id}">${t.dur?fmtDur(t.dur):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
+  <div class="tka"><input type="text" class="tin" placeholder="Nova tarefa · 30min" maxlength="120" enterkeyhint="done"><button data-a="rnew" aria-label="Repetir tarefa">↻</button><button data-a="tadd" aria-label="Adicionar tarefa">+</button></div>${isT?pendHtml(k):''}</div>`}
 function pendHtml(k){
-  const P=(D.tasks||[]).filter(t=>!t.done&&t.day<k).sort((a,b)=>a.day<b.day?1:a.day>b.day?-1:0);if(!P.length)return '';
+  const P=(D.tasks||[]).filter(t=>!t.done&&!t.rid&&t.day<k).sort((a,b)=>a.day<b.day?1:a.day>b.day?-1:0);if(!P.length)return '';
   const lab=dk=>{const [y,m,d]=dk.split('-').map(Number);return pad(d)+' '+MS[m-1]};
   return `<div class="tkh" style="margin-top:14px"><span>PENDENTES DE DIAS ANTERIORES</span><span data-a="tall">Trazer todas</span></div>`+P.map(t=>`<div class="tkr"><div class="tkt">${t.text.replace(/</g,'&lt;')}<small class="tks">${lab(t.day)}</small></div><div class="tkm" data-a="tmove" data-t="${t.id}">Trazer para hoje</div></div>`).join('')}
 function viewToday(){
   const day=S.day,k=key(day),isT=k===key(TODAY);
+  ensureDay(k);
   if(k>key(TODAY))return loadHtml(k)+tasksHtml(day);
   const hab=!D.habits.length?'':list().map(h=>{const on=has(h,k),st=streak(h,day);
     const sub=h.intent==='build'?(st?`${st} dia${st>1?'s':''} seguido${st>1?'s':''}`:'sem sequência'):(st?`${st} dia${st>1?'s':''} sem`:(on?'registrado'+(isT?' hoje':''):''));
@@ -251,6 +286,7 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
   if(sh.settings)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Configurações</b><button class="lnk" data-a="close">Fechar</button></div>
     <div class="sr" data-a="goreorder"><span>Reordenar hábitos</span><span>›</span></div>
+    <div class="sr" data-a="rlist"><span>Tarefas recorrentes</span><span>${(D.rec||[]).length||'›'}</span></div>
     <div class="sr" data-a="goremove"><span>Remover hábitos</span><span>›</span></div>
     <div class="sr" data-a="durfill"><span>Ler durações dos nomes</span><span>›</span></div>
     <div class="sr" data-a="syncset"><span>Sincronização</span><span>${SY.cfg?(SY.err?'⚠ erro':'ligada'):'desligada'}</span></div>
@@ -265,6 +301,22 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     <div class="sh"><button class="lnk" data-a="back">‹ Voltar</button><b>Remover</b><span style="width:50px"></span></div>
     ${D.habits.length?`<div class="sr" data-a="rmall" style="color:var(--r)"><span style="color:var(--r)">${S.confirm==='all'?'Toque de novo para apagar tudo':'Apagar tudo'}</span><span class="trash ${S.confirm==='all'?'c':''}">🗑</span></div>`:'<div class="empty">Nenhum hábito.</div>'}
     ${D.habits.map(h=>`<div class="sr" data-a="rm" data-h="${h.id}"><span style="color:var(--txt)">${h.name}</span><span class="trash ${S.confirm===h.id?'c':''}">${S.confirm===h.id?'Confirmar':'🗑'}</span></div>`).join('')}</div></div>`;
+  if(sh.recs)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
+    <div class="sh"><button class="lnk" data-a="back">‹ Voltar</button><b>Tarefas recorrentes</b><button class="lnk" data-a="close">Fechar</button></div>
+    ${(D.rec||[]).length?D.rec.map(r=>`<div class="sr" data-a="redit" data-r="${r.id}"><span style="color:var(--txt)${r.paused?';opacity:.5':''}">${escH(r.text)}<small class="tks">${ruleLabel(r)}${r.paused?' · pausada':''}</small></span><span>›</span></div>`).join(''):'<div class="note" style="padding:0">Nenhuma recorrência ainda. Na tela Hoje, escreva a tarefa e toque em ↻.</div>'}</div></div>`;
+  if(sh.rec&&S.rf){const f=S.rf,u=f.unit,cur=f.id&&(D.rec||[]).find(x=>x.id===f.id),
+    wdo=[1,2,3,4,5,6,0].map(i=>`<div class="opt ${f.wd.includes(i)?'g':''}" data-a="rwd" data-v="${i}">${WDS[i]}</div>`).join('');
+    return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
+    <div class="sh">${f.id?'<button class="lnk" data-a="rlist">‹ Voltar</button>':'<span style="width:60px"></span>'}<b>${f.id?'Tarefa recorrente':'Repetir tarefa'}</b><button class="lnk" data-a="close">Fechar</button></div>
+    <div class="sub">TAREFA</div><input type="text" class="rin" data-f="text" maxlength="120" placeholder="Nome da tarefa" value="${escH(f.text)}">
+    <div class="sub">DURAÇÃO (OPCIONAL)</div><div class="durr"><input type="text" id="dn" inputmode="numeric" maxlength="3" placeholder="0" value="${S.dn||''}"><div class="opt ${S.du==='m'?'g':''}" data-a="dunit" data-v="m">min</div><div class="opt ${S.du==='p'?'g':''}" data-a="dunit" data-v="p">pomodoros</div></div>
+    <div class="sub">REPETIR A CADA</div><div class="evr"><input type="text" class="rin" data-f="every" inputmode="numeric" maxlength="2" value="${escH(f.every)}"><div class="opt ${u==='d'?'g':''}" data-a="runit" data-v="d">dia(s)</div><div class="opt ${u==='w'?'g':''}" data-a="runit" data-v="w">semana(s)</div><div class="opt ${u==='m'?'g':''}" data-a="runit" data-v="m">mês(es)</div></div>
+    ${u==='w'?`<div class="sub">DIAS DA SEMANA (VAZIO = DIA DO INÍCIO)</div><div class="wdr">${wdo}</div>`:''}
+    ${u==='m'?`<div class="sub">DIAS DO MÊS, EX.: 10, 25 (VAZIO = DIA DO INÍCIO)</div><input type="text" class="rin" data-f="md" inputmode="numeric" placeholder="10, 25" value="${escH(f.md)}">`:''}
+    <div class="sub">INÍCIO</div><input type="date" class="rin" data-f="start" value="${escH(f.start)}">
+    <div class="sub">TÉRMINO (OPCIONAL)</div><input type="date" class="rin" data-f="end" value="${escH(f.end)}">
+    <button class="btn" data-a="rsave">Salvar</button>
+    ${f.id?`<button class="btn" style="background:var(--bg);color:var(--txt);margin-top:10px;border:1px solid var(--line)" data-a="rpause">${cur&&cur.paused?'Retomar':'Pausar'}</button><button class="btn d" data-a="rdel">${S.confirm==='rdel'?'Confirmar exclusão':'Apagar recorrência'}</button>`:''}</div></div>`}
   if(sh.tdur){const t=(D.tasks||[]).find(x=>x.id===sh.tdur);if(!t)return '';
     return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Duração da tarefa</b><button class="lnk" data-a="close">Fechar</button></div>
@@ -330,6 +382,9 @@ function render(){
   if(S.refocus){S.refocus=false;const n=document.querySelector('main .tin');if(n)n.focus()}
   const dn=document.getElementById('dn');if(dn)dn.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,3);S.dn=e.target.value});
   const nm=document.getElementById('nm');if(nm)nm.addEventListener('input',e=>S.draft=e.target.value);
+  document.querySelectorAll('.rin').forEach(i=>['input','change'].forEach(ev=>i.addEventListener(ev,e=>{if(!S.rf)return;const f=e.target.dataset.f;let v=e.target.value;
+    if(f==='every'){v=v.replace(/\D/g,'').slice(0,2);e.target.value=v}else if(f==='md'){v=v.replace(/[^\d,; ]/g,'');e.target.value=v}
+    S.rf[f]=v})));
 }
 
 /* ---------- ações ---------- */
@@ -352,6 +407,27 @@ document.addEventListener('click',e=>{
   else if(a==='import'){document.getElementById('imp').click();return}
   else if(a==='thist'){S.sheet={thist:true}}
   else if(a==='dunit'){S.du=el.dataset.v}
+  else if(a==='rlist'){S.sheet={recs:true};S.confirm=null}
+  else if(a==='rnew'){const inp=document.querySelector('main .tin'),v=(inp?inp.value:'').trim(),pd=parseDur(v,false),text=pd&&v.slice(0,pd.i).trim()?v.slice(0,pd.i).trim():v;
+    S.rf={text,every:'1',unit:'d',wd:[],md:'',start:key(S.day)<key(TODAY)?key(TODAY):key(S.day),end:'',fi:v?1:0};S.dn=pd&&text!==v?String(pd.n):'';S.du=pd&&text!==v?pd.u:'m';S.sheet={rec:true};S.confirm=null}
+  else if(a==='redit'){const r=D.rec.find(x=>x.id===el.dataset.r);if(r){S.rf={id:r.id,text:r.text,every:String(r.rule.every),unit:r.rule.unit,wd:(r.rule.wd||[]).slice(),md:(r.rule.md||[]).join(', '),start:r.start,end:r.end||''};S.dn=r.dur?String(r.dur.n):'';S.du=r.dur?r.dur.u:'m';S.sheet={rec:true};S.confirm=null}}
+  else if(a==='runit'){S.rf.unit=el.dataset.v}
+  else if(a==='rwd'){const i=+el.dataset.v,w=S.rf.wd,p=w.indexOf(i);if(p<0)w.push(i);else w.splice(p,1)}
+  else if(a==='rpause'){const r=D.rec.find(x=>x.id===S.rf.id);if(r){if(r.paused)delete r.paused;else r.paused=true;save()}}
+  else if(a==='rdel'){if(S.confirm==='rdel'){const id=S.rf.id;D.rec=D.rec.filter(x=>x.id!==id);D.tasks=D.tasks.filter(t=>!(t.rid===id&&!t.done&&t.day>=key(TODAY)));save();S.confirm=null;S.sheet={recs:true}}else S.confirm='rdel'}
+  else if(a==='rsave'){const f=S.rf,text=(f.text||'').trim(),n=parseInt(f.every,10)||0;
+    if(!text){alert('Dê um nome à tarefa.');return}
+    if(n<1){alert('Informe de quanto em quanto tempo ela repete (1 ou mais).');return}
+    if(!f.start){alert('Informe a data de início.');return}
+    if(f.end&&f.end<f.start){alert('O término precisa ser depois do início.');return}
+    const rule={every:n,unit:f.unit};
+    if(f.unit==='w')rule.wd=f.wd.slice().sort((a,b)=>a-b);
+    if(f.unit==='m')rule.md=[...new Set((f.md||'').split(/\D+/).filter(Boolean).map(Number).filter(x=>x>=1&&x<=31))].sort((a,b)=>a-b);
+    const dn=parseInt(S.dn,10),base={text,rule,start:f.start};if(dn>0)base.dur={n:dn,u:S.du};if(f.end)base.end=f.end;
+    let r;
+    if(f.id){r=D.rec.find(x=>x.id===f.id);if(!r)return;delete r.dur;delete r.end;Object.assign(r,base);D.tasks=D.tasks.filter(t=>!(t.rid===r.id&&!t.done&&t.day>=key(TODAY)))}
+    else{r=Object.assign({id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)},base);D.rec.push(r);if(f.fi){const i=document.querySelector('main .tin');if(i)i.value=''}}
+    ensureDay(key(S.day));save();S.confirm=null;S.sheet=f.id?{recs:true}:null}
   else if(a==='tdur'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){S.sheet={tdur:t.id};S.dn=t.dur?String(t.dur.n):'';S.du=t.dur?t.dur.u:'m'}}
   else if(a==='tdursave'){const t=D.tasks.find(x=>x.id===S.sheet.tdur),n=parseInt(S.dn,10);if(t){if(n>0)t.dur={n,u:S.du};else delete t.dur;save()}S.sheet=null}
   else if(a==='tdurclear'){const t=D.tasks.find(x=>x.id===S.sheet.tdur);if(t){delete t.dur;save()}S.sheet=null}
@@ -365,9 +441,9 @@ document.addEventListener('click',e=>{
   else if(a==='gotoday'){const [y,m,d]=el.dataset.d.split('-').map(Number);nav0=1;S.tab='today';S.day=new Date(y,m-1,d);S.ref=S.day;S.sheet=null}
   else if(a==='tdone'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.done=!t.done;save()}}
   else if(a==='tmove'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.day=key(TODAY);save()}}
-  else if(a==='tall'){D.tasks.forEach(t=>{if(!t.done&&t.day<key(TODAY))t.day=key(TODAY)});save()}
+  else if(a==='tall'){D.tasks.forEach(t=>{if(!t.done&&!t.rid&&t.day<key(TODAY))t.day=key(TODAY)});save()}
   else if(a==='tedit'){S.edit=el.dataset.t;S.refocusEdit=true}
-  else if(a==='tdel'){D.tasks=D.tasks.filter(x=>x.id!==el.dataset.t);save()}
+  else if(a==='tdel'){const t=D.tasks.find(x=>x.id===el.dataset.t),r=t&&t.rid&&D.rec.find(x=>x.id===t.rid);if(r){r.skip=r.skip||[];if(!r.skip.includes(t.day))r.skip.push(t.day)}D.tasks=D.tasks.filter(x=>x.id!==el.dataset.t);save()}
   else if(a==='tadd'){if(!addTask(el.closest('.tk')))return;S.refocus=true}
   else if(a==='goreorder'){S.sheet={reorder:true}}
   else if(a==='goremove'){S.sheet={remove:true};S.confirm=null}
@@ -490,7 +566,7 @@ document.getElementById('imp').addEventListener('change',async e=>{
   try{const j=JSON.parse(await f.text());
     if(!Array.isArray(j.habits)||typeof j.entries!=='object'||!j.habits.every(h=>h&&h.id&&h.name&&(h.intent==='build'||h.intent==='break')))throw 0;
     if(!confirm('Importar vai SUBSTITUIR todos os dados atuais ('+D.habits.length+' hábitos) por '+j.habits.length+' hábitos do arquivo. Continuar?'))return;
-    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],sync:D.sync};save();S.sheet=null;render();
+    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],rec:Array.isArray(j.rec)?j.rec:[],sync:D.sync};save();S.sheet=null;render();
   }catch(_){alert('Arquivo inválido. Use um backup exportado pelo Rastro.')}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&svT)flush();if(!document.hidden&&key(new Date())!==key(TODAY))location.reload();if(!document.hidden)sync()});
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{})}
@@ -499,7 +575,8 @@ var SY={cfg:null,run:0,again:0,err:'',msg:'',last:0,t:0,cache:null};
 const jstr=JSON.stringify;
 function flat(){const r={};
   for(const k in D.entries)if(D.entries[k])r['e|'+k]=1;
-  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur}});
+  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur,rid:t.rid}});
+  (D.rec||[]).forEach(x=>{r['r|'+x.id]={text:x.text,dur:x.dur,rule:x.rule,start:x.start,end:x.end,paused:x.paused,skip:x.skip}});
   D.habits.forEach(h=>{r['h|'+h.id]={name:h.name,intent:h.intent,created:h.created,dur:h.dur}});
   r['o|']=D.habits.map(h=>h.id);
   r['s|sort']=D.sort===undefined?null:D.sort;
@@ -508,14 +585,14 @@ function flat(){const r={};
 function stamp(){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   for(const k in S2){if(S2[k].v!==null&&!(k in r))S2[k]={v:null,ts:now}}}
-function rebuild(){const S2=D.sync,E={},T=[],Hs={};let ord=[],sort,ws;
+function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[];let ord=[],sort,ws;
   for(const k in S2){const c=S2[k];if(c.v===null)continue;const p=k.slice(0,2),id=k.slice(2);
-    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='h|')Hs[id]=Object.assign({id},c.v);
+    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='h|')Hs[id]=Object.assign({id},c.v);
     else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v}
   const ids=ord.filter(i=>Hs[i]);Object.keys(Hs).sort().forEach(i=>{if(!ids.includes(i))ids.push(i)});
   D.habits=ids.map(i=>Hs[i]);
   D.entries={};for(const k in E)if(Hs[k.split('|')[0]])D.entries[k]=1;
-  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
   if(sort===undefined||sort===null)delete D.sort;else D.sort=sort;
   if(ws===undefined||ws===null)delete D.weekStart;else D.weekStart=ws}
 function mergeIn(rem){const S2=D.sync||(D.sync={});let ch=0;
@@ -552,7 +629,7 @@ async function sync(){
         if(!p.ok)throw p.status}
       break}
     SY.last=Date.now();SY.err='';
-    if(changed){await persist();uiRefresh()}
+    if(changed){await persist();uiRefresh()}else if(ensureDay(key(S.day)))uiRefresh();
   }catch(e){SY.err=errTxt(e);if(changed)await persist()}
   finally{SY.run=0;if(SY.again){SY.again=0;sync()}}}
 async function connect(){
@@ -577,7 +654,7 @@ addEventListener('online',()=>sync());
 setInterval(()=>{if(!document.hidden)sync()},45000);
 (async()=>{try{const d=await DB.get();if(d&&Array.isArray(d.habits))D=d}catch(e){}
   try{SY.cfg=(await DB.get('cfg'))||null}catch(e){}
-  if(!Array.isArray(D.tasks))D.tasks=[];
+  if(!Array.isArray(D.tasks))D.tasks=[];if(!Array.isArray(D.rec))D.rec=[];
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   render();if(SY.cfg)sync()})();
 </script>
