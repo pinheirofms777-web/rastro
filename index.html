@@ -96,6 +96,9 @@ input[type=text],input[type=password]{width:100%;background:var(--bg);border:1px
 .tka{display:flex;gap:8px;margin-top:12px}
 .tka input{flex:1;margin:0;padding:11px 12px;font-size:16px}
 .tka button{width:44px;border-radius:10px;background:var(--panel);font-size:22px}
+.load{padding:12px 20px 0;font-size:12px;color:var(--mut)}.load b{color:var(--txt);font-size:14px}
+.tkd{font-size:12px;color:var(--mut);padding:6px 4px;white-space:nowrap;cursor:pointer}
+.durr{display:flex;gap:8px;align-items:center}.durr input{width:84px;margin:8px 0 14px;flex:none}.durr .opt{flex:1;margin-bottom:6px}
 .tks{display:block;color:var(--mut);font-size:11px;margin-top:3px}.tkm{font-size:12px;padding:8px 10px;border-radius:8px;background:var(--panel);cursor:pointer;white-space:nowrap}
 .tke{color:var(--mut);font-size:13px;padding:10px 0 4px}
 .hd2{font-size:12px;color:var(--mut);letter-spacing:.04em;padding:14px 0 4px;cursor:pointer}
@@ -182,23 +185,37 @@ function yearRows(h,y){
 
 const tasksOf=k=>(D.tasks||[]).filter(t=>t.day===k);
 const dlabel=d=>WD[d.getDay()].slice(0,3)+' · '+pad(d.getDate())+' '+MS[d.getMonth()].toLowerCase();
+function parseDur(s,paren){const r=paren?/\((\d+)\s*(pomodoros?|pomos?|min(?:utos?)?|h)\)/i:/\s(\d+)\s*(pomodoros?|pomos?|p|min(?:utos?)?|m|h)$/i,m=s.match(r);if(!m)return null;const n=+m[1],u=m[2].toLowerCase();if(!n)return null;const d=/^p/.test(u)?{n,u:'p'}:u==='h'?{n:n*60,u:'m'}:{n,u:'m'};d.i=m.index;return d}
+const fmtDur=d=>d.u==='p'?d.n+' pomo':d.n+' min';
+const fmtT=m=>m<60?m+'min':Math.floor(m/60)+'h'+pad(m%60);
+const cyc=p=>{let t=p*25;for(let i=1;i<p;i++)t+=i%3?5:10;return t};
+function dayLoad(k){let P=0,M=0,Pd=0,Md=0,miss=0;
+  const add=(d,done)=>{if(!d||!(d.n>0)){miss++;return}if(d.u==='p'){P+=d.n;if(done)Pd+=d.n}else{M+=d.n;if(done)Md+=d.n}};
+  D.habits.filter(h=>h.intent==='build').forEach(h=>add(h.dur,has(h,k)));
+  tasksOf(k).forEach(t=>add(t.dur,t.done));
+  const tot=cyc(P)+M,fe=cyc(Pd)+Md;return {tot,fe,miss}}
+function loadHtml(k){const L=dayLoad(k);if(!L.tot)return '';
+  const ms=L.miss?' · '+L.miss+' sem tempo':'';
+  if(k>key(TODAY))return `<div class="load">⏱ <b>${fmtT(L.tot)}</b> planejado${ms}</div>`;
+  const rest=L.tot-L.fe;
+  return `<div class="load">⏱ <b>${fmtT(L.tot)}</b>${L.fe?' · feito '+fmtT(L.fe):''} · ${rest>0?'falta '+fmtT(rest):'concluído'}${ms}</div>`}
 function tasksHtml(day){
   const k=key(day),isT=k===key(TODAY),L=tasksOf(k);
   return `<div class="tk"><div class="tkh"><span>${isT?'TAREFAS DE HOJE':'TAREFAS · '+pad(day.getDate())+' '+MS[day.getMonth()]}</span><span data-a="thist">Histórico ›</span></div>
-  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}</div>`}<div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
-  <div class="tka"><input type="text" class="tin" placeholder="Nova tarefa" maxlength="120" enterkeyhint="done"><button data-a="tadd" aria-label="Adicionar tarefa">+</button></div>${isT?pendHtml(k):''}</div>`}
+  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}</div>`}<div class="tkd" data-a="tdur" data-t="${t.id}">${t.dur?fmtDur(t.dur):'⏱'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
+  <div class="tka"><input type="text" class="tin" placeholder="Nova tarefa · ex.: Ligar 30min" maxlength="120" enterkeyhint="done"><button data-a="tadd" aria-label="Adicionar tarefa">+</button></div>${isT?pendHtml(k):''}</div>`}
 function pendHtml(k){
   const P=(D.tasks||[]).filter(t=>!t.done&&t.day<k).sort((a,b)=>a.day<b.day?1:a.day>b.day?-1:0);if(!P.length)return '';
   const lab=dk=>{const [y,m,d]=dk.split('-').map(Number);return pad(d)+' '+MS[m-1]};
   return `<div class="tkh" style="margin-top:14px"><span>PENDENTES DE DIAS ANTERIORES</span><span data-a="tall">Trazer todas</span></div>`+P.map(t=>`<div class="tkr"><div class="tkt">${t.text.replace(/</g,'&lt;')}<small class="tks">${lab(t.day)}</small></div><div class="tkm" data-a="tmove" data-t="${t.id}">Trazer para hoje</div></div>`).join('')}
 function viewToday(){
   const day=S.day,k=key(day),isT=k===key(TODAY);
-  if(k>key(TODAY))return tasksHtml(day);
+  if(k>key(TODAY))return loadHtml(k)+tasksHtml(day);
   const hab=!D.habits.length?'':list().map(h=>{const on=has(h,k),st=streak(h,day);
     const sub=h.intent==='build'?(st?`${st} dia${st>1?'s':''} seguido${st>1?'s':''}`:'sem sequência'):(st?`${st} dia${st>1?'s':''} sem`:(on?'registrado'+(isT?' hoje':''):''));
     return `<div class="today"><div class="dot ${on?(h.intent==='build'?'g':'r'):''}" data-a="toggle" data-h="${h.id}" data-d="${k}"></div>
     <div class="tx" data-a="open" data-h="${h.id}">${h.name}<small>${sub}</small></div><div class="chev" data-a="open" data-h="${h.id}">›</div></div>`}).join('');
-  return hab+tasksHtml(day)}
+  return loadHtml(k)+hab+tasksHtml(day)}
 function viewWeek(){const mon=monday(S.ref),end=addD(mon,6);
   if(!D.habits.length)return empty();
   return list().map(h=>`<div class="row"><div class="rh"><span class="nm" data-a="open" data-h="${h.id}">${h.name}${pTxt(h,mon,end)}</span><span class="chev" data-a="open" data-h="${h.id}">›</span></div>${weekHtml(h,mon)}</div>`).join('')}
@@ -235,6 +252,7 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     <div class="sh"><b>Configurações</b><button class="lnk" data-a="close">Fechar</button></div>
     <div class="sr" data-a="goreorder"><span>Reordenar hábitos</span><span>›</span></div>
     <div class="sr" data-a="goremove"><span>Remover hábitos</span><span>›</span></div>
+    <div class="sr" data-a="durfill"><span>Ler durações dos nomes</span><span>›</span></div>
     <div class="sr" data-a="syncset"><span>Sincronização</span><span>${SY.cfg?(SY.err?'⚠ erro':'ligada'):'desligada'}</span></div>
     <div class="sr" data-a="export"><span>Exportar dados (backup)</span><span>›</span></div>
     <div class="sr" data-a="import"><span>Importar dados</span><span>›</span></div>
@@ -247,11 +265,18 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     <div class="sh"><button class="lnk" data-a="back">‹ Voltar</button><b>Remover</b><span style="width:50px"></span></div>
     ${D.habits.length?`<div class="sr" data-a="rmall" style="color:var(--r)"><span style="color:var(--r)">${S.confirm==='all'?'Toque de novo para apagar tudo':'Apagar tudo'}</span><span class="trash ${S.confirm==='all'?'c':''}">🗑</span></div>`:'<div class="empty">Nenhum hábito.</div>'}
     ${D.habits.map(h=>`<div class="sr" data-a="rm" data-h="${h.id}"><span style="color:var(--txt)">${h.name}</span><span class="trash ${S.confirm===h.id?'c':''}">${S.confirm===h.id?'Confirmar':'🗑'}</span></div>`).join('')}</div></div>`;
+  if(sh.tdur){const t=(D.tasks||[]).find(x=>x.id===sh.tdur);if(!t)return '';
+    return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
+    <div class="sh"><b>Duração da tarefa</b><button class="lnk" data-a="close">Fechar</button></div>
+    <div class="note" style="padding:0 0 6px">${t.text.replace(/</g,'&lt;')}</div>
+    <div class="durr"><input type="text" id="dn" inputmode="numeric" maxlength="3" placeholder="0" value="${S.dn||''}"><div class="opt ${S.du==='m'?'g':''}" data-a="dunit" data-v="m">min</div><div class="opt ${S.du==='p'?'g':''}" data-a="dunit" data-v="p">pomodoros</div></div>
+    <button class="btn" data-a="tdursave">Salvar</button>${t.dur?'<button class="btn d" data-a="tdurclear">Remover duração</button>':''}</div></div>`}
   if(sh.add||sh.edit){const h=sh.edit?H(sh.edit):null;
     return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>${h?'Editar hábito':'Novo hábito'}</b><button class="lnk" data-a="close">Fechar</button></div>
     <div class="sub">NOME</div><input type="text" id="nm" value="${(S.draft||'').replace(/"/g,'&quot;')}" placeholder="ex.: Caminhada" maxlength="40">
     <div class="sub">TIPO</div><div class="two" style="margin-top:8px"><div class="opt ${S.intent==='build'?'g':''}" data-a="intent" data-v="build">Construir</div><div class="opt ${S.intent==='break'?'r':''}" data-a="intent" data-v="break">Abandonar</div></div>
+    <div class="sub">DURAÇÃO (OPCIONAL)</div><div class="durr"><input type="text" id="dn" inputmode="numeric" maxlength="3" placeholder="0" value="${S.dn||''}"><div class="opt ${S.du==='m'?'g':''}" data-a="dunit" data-v="m">min</div><div class="opt ${S.du==='p'?'g':''}" data-a="dunit" data-v="p">pomodoros</div></div>
     <button class="btn" data-a="saveh">Salvar</button>${h?'<button class="btn d" data-a="delh">Excluir hábito</button>':''}</div></div>`}
   const h=H(sh.id);if(!h)return '';const y=sh.ref.getFullYear(),m=sh.ref.getMonth();
   let body='',sub='';
@@ -303,6 +328,7 @@ function render(){
   if(tv){const n=document.querySelector('main .tin');if(n)n.value=tv}
   if(S.refocusEdit){S.refocusEdit=false;const n=document.querySelector('main .tedit');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}}
   if(S.refocus){S.refocus=false;const n=document.querySelector('main .tin');if(n)n.focus()}
+  const dn=document.getElementById('dn');if(dn)dn.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,3);S.dn=e.target.value});
   const nm=document.getElementById('nm');if(nm)nm.addEventListener('input',e=>S.draft=e.target.value);
 }
 
@@ -325,6 +351,13 @@ document.addEventListener('click',e=>{
   else if(a==='export'){doExport();return}
   else if(a==='import'){document.getElementById('imp').click();return}
   else if(a==='thist'){S.sheet={thist:true}}
+  else if(a==='dunit'){S.du=el.dataset.v}
+  else if(a==='tdur'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){S.sheet={tdur:t.id};S.dn=t.dur?String(t.dur.n):'';S.du=t.dur?t.dur.u:'m'}}
+  else if(a==='tdursave'){const t=D.tasks.find(x=>x.id===S.sheet.tdur),n=parseInt(S.dn,10);if(t){if(n>0)t.dur={n,u:S.du};else delete t.dur;save()}S.sheet=null}
+  else if(a==='tdurclear'){const t=D.tasks.find(x=>x.id===S.sheet.tdur);if(t){delete t.dur;save()}S.sheet=null}
+  else if(a==='durfill'){const c=D.habits.filter(h=>!h.dur&&h.intent==='build'&&parseDur(h.name,true));
+    if(!c.length)alert('Nenhum hábito com duração no nome, como "(2 pomodoros)" ou "(30 min)".');
+    else if(confirm('Encontrei duração no nome de '+c.length+' hábito(s). Preencher o campo de duração com esses valores? Os nomes não mudam.')){c.forEach(h=>{const d=parseDur(h.name,true);h.dur={n:d.n,u:d.u}});save()}}
   else if(a==='syncset'){S.sheet={sync:true};SY.msg='';SY.err=SY.cfg?SY.err:''}
   else if(a==='syncnow'){sync().then(()=>render())}
   else if(a==='syncon'){connect();return}
@@ -348,12 +381,13 @@ document.addEventListener('click',e=>{
   else if(a==='close'){S.sheet=null}
   else if(a==='mode'){S.sheet.mode=el.dataset.v}
   else if(a==='sprev'||a==='snext'){S.sheet.ref=step(S.sheet.ref,S.sheet.mode,a==='snext'?1:-1)}
-  else if(a==='add'){S.sheet={add:true};S.draft='';S.intent='build'}
-  else if(a==='editsheet'){const x=H(h);S.sheet={edit:h};S.draft=x.name;S.intent=x.intent}
+  else if(a==='add'){S.sheet={add:true};S.draft='';S.intent='build';S.dn='';S.du='p'}
+  else if(a==='editsheet'){const x=H(h);S.sheet={edit:h};S.draft=x.name;S.intent=x.intent;const pd=x.dur||parseDur(x.name,true);S.dn=pd?String(pd.n):'';S.du=pd?pd.u:'p'}
   else if(a==='intent'){S.intent=el.dataset.v}
   else if(a==='saveh'){const name=(S.draft||'').trim();if(!name)return;
-    if(S.sheet.edit){const x=H(S.sheet.edit);x.name=name;x.intent=S.intent}
-    else D.habits.push({id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),name,intent:S.intent,created:key(TODAY)});
+    const dn=parseInt(S.dn,10),dur=dn>0?{n:dn,u:S.du}:null;
+    if(S.sheet.edit){const x=H(S.sheet.edit);x.name=name;x.intent=S.intent;if(dur)x.dur=dur;else delete x.dur}
+    else D.habits.push(Object.assign({id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),name,intent:S.intent,created:key(TODAY)},dur?{dur}:{}));
     save();S.sheet=null}
   else if(a==='delh'){const id=S.sheet.edit;D.habits=D.habits.filter(x=>x.id!==id);
     Object.keys(D.entries).forEach(k=>{if(k.startsWith(id+'|'))delete D.entries[k]});save();S.sheet=null}
@@ -362,7 +396,8 @@ document.addEventListener('click',e=>{
 function addTask(box){
   const inp=box&&box.querySelector('.tin');if(!inp)return false;
   const v=inp.value.trim();if(!v){inp.focus();return false}
-  inp.value='';D.tasks.push({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),day:key(S.day),text:v,done:false});save();return true}
+  const pd=parseDur(v,false),text=pd?v.slice(0,pd.i).trim():v,dur=pd&&text?{n:pd.n,u:pd.u}:null;
+  inp.value='';D.tasks.push(Object.assign({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),day:key(S.day),text:dur?text:v,done:false},dur?{dur}:{}));save();return true}
 function endEdit(inp,save_){
   const id=S.edit;if(!id)return;S.edit=null;
   const v=inp.value.trim(),t=D.tasks.find(x=>x.id===id);
@@ -464,8 +499,8 @@ var SY={cfg:null,run:0,again:0,err:'',msg:'',last:0,t:0,cache:null};
 const jstr=JSON.stringify;
 function flat(){const r={};
   for(const k in D.entries)if(D.entries[k])r['e|'+k]=1;
-  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done}});
-  D.habits.forEach(h=>{r['h|'+h.id]={name:h.name,intent:h.intent,created:h.created}});
+  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur}});
+  D.habits.forEach(h=>{r['h|'+h.id]={name:h.name,intent:h.intent,created:h.created,dur:h.dur}});
   r['o|']=D.habits.map(h=>h.id);
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
