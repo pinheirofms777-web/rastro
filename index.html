@@ -96,7 +96,7 @@ input[type=text],input[type=password]{width:100%;background:var(--bg);border:1px
 .tka{display:flex;gap:8px;margin-top:12px}
 .tka input{flex:1;margin:0;padding:11px 12px;font-size:16px}
 .tka button{width:44px;border-radius:10px;background:var(--panel);font-size:22px}
-.load{padding:12px 20px 0;font-size:12px;color:var(--mut)}.load b{color:var(--txt);font-size:14px}
+.load{padding:12px 20px 0;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.load b{color:var(--txt);font-size:14px}
 .tkd{font-size:12px;color:var(--mut);padding:6px 4px;white-space:nowrap;cursor:pointer}
 .durr{display:flex;gap:8px;align-items:center}.durr input{width:84px;margin:8px 0 14px;flex:none}.durr .opt{flex:1;margin-bottom:6px}
 .tks{display:block;color:var(--mut);font-size:11px;margin-top:3px}.tkm{font-size:12px;padding:8px 10px;border-radius:8px;background:var(--panel);cursor:pointer;white-space:nowrap}
@@ -196,13 +196,13 @@ function dayLoad(k){let P=0,M=0,Pd=0,Md=0,miss=0;
   const tot=cyc(P)+M,fe=cyc(Pd)+Md;return {tot,fe,miss}}
 function loadHtml(k){const L=dayLoad(k);if(!L.tot)return '';
   const ms=L.miss?' · '+L.miss+' sem tempo':'';
-  if(k>key(TODAY))return `<div class="load">⏱ <b>${fmtT(L.tot)}</b> planejado${ms}</div>`;
+  if(k>key(TODAY))return `<div class="load"><b>${fmtT(L.tot)}</b> planejado${ms}</div>`;
   const rest=L.tot-L.fe;
-  return `<div class="load">⏱ <b>${fmtT(L.tot)}</b>${L.fe?' · feito '+fmtT(L.fe):''} · ${rest>0?'falta '+fmtT(rest):'concluído'}${ms}</div>`}
+  return `<div class="load"><b>${fmtT(L.tot)}</b>${L.fe?' · feito '+fmtT(L.fe):''} · ${rest>0?'falta '+fmtT(rest):'concluído'}${ms}</div>`}
 function tasksHtml(day){
   const k=key(day),isT=k===key(TODAY),L=tasksOf(k);
   return `<div class="tk"><div class="tkh"><span>${isT?'TAREFAS DE HOJE':'TAREFAS · '+pad(day.getDate())+' '+MS[day.getMonth()]}</span><span data-a="thist">Histórico ›</span></div>
-  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}</div>`}<div class="tkd" data-a="tdur" data-t="${t.id}">${t.dur?fmtDur(t.dur):'⏱'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
+  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}</div>`}<div class="tkd" data-a="tdur" data-t="${t.id}">${t.dur?fmtDur(t.dur):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
   <div class="tka"><input type="text" class="tin" placeholder="Nova tarefa · ex.: Ligar 30min" maxlength="120" enterkeyhint="done"><button data-a="tadd" aria-label="Adicionar tarefa">+</button></div>${isT?pendHtml(k):''}</div>`}
 function pendHtml(k){
   const P=(D.tasks||[]).filter(t=>!t.done&&t.day<k).sort((a,b)=>a.day<b.day?1:a.day>b.day?-1:0);if(!P.length)return '';
