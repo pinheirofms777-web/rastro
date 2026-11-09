@@ -65,7 +65,7 @@ main.inL{animation:inL .12s ease-out}main.inR{animation:inR .12s ease-out}
 .mr{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:12px}.mr i{width:34px;font-style:normal}
 .bars{display:flex;gap:2px;flex:1}.bars b{flex:1;height:20px;border-radius:2px;background:var(--c)}
 .bars b.g{background:var(--g)}.bars b.r{background:var(--r)}.bars b.f{background:var(--f)}.bars b.x{background:transparent}
-input[type=text]{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:16px;padding:12px;border-radius:10px;margin:8px 0 14px}
+input[type=text],input[type=password]{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:16px;padding:12px;border-radius:10px;margin:8px 0 14px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
 .opt{padding:12px;border-radius:10px;border:1px solid var(--line);text-align:center;font-size:14px}
 .opt.g{background:var(--g);color:#0b2a17;border-color:var(--g)}.opt.r{background:var(--r);color:#2b0909;border-color:var(--r)}
@@ -124,9 +124,10 @@ function weekNum(m){if(WS()===1)return isoWeek(m);const sat=addD(m,6),y=sat.getF
 let D={habits:[],entries:{},seq:1,tasks:[]};
 /* ---------- armazenamento: IndexedDB ---------- */
 const DB={open(){return new Promise((ok,no)=>{const r=indexedDB.open('rastro',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})},
-  async get(){const db=await this.open();return new Promise((ok,no)=>{const q=db.transaction('kv').objectStore('kv').get('data');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})},
-  async set(v){const db=await this.open();return new Promise((ok,no)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,'data');t.oncomplete=()=>ok();t.onerror=()=>no(t.error)})}};
-let svT=0;const flush=()=>{clearTimeout(svT);svT=0;DB.set(JSON.parse(JSON.stringify(D))).catch(()=>{})};
+  async get(k='data'){const db=await this.open();return new Promise((ok,no)=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})},
+  async set(v,k='data'){const db=await this.open();return new Promise((ok,no)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>ok();t.onerror=()=>no(t.error)})}};
+let svT=0;const persist=()=>{try{stamp()}catch(e){}return DB.set(JSON.parse(JSON.stringify(D))).catch(()=>{})};
+const flush=()=>{clearTimeout(svT);svT=0;persist();if(SY.cfg){clearTimeout(SY.t);SY.t=setTimeout(sync,2500)}};
 const save=()=>{if(!svT)svT=setTimeout(flush,400)};
 addEventListener('pagehide',()=>{if(svT)flush()});
 const WD=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
@@ -223,10 +224,17 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Histórico de tarefas</b><button class="lnk" data-a="close">Fechar</button></div>
     ${days.map(dk=>{const [y,m,d]=dk.split('-').map(Number),dt=new Date(y,m-1,d);return `<div class="hd2" data-a="gotoday" data-d="${dk}">${dlabel(dt).toUpperCase()} ›</div>`+tasksOf(dk).map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" style="cursor:default">${t.done?CHECK:''}</div><div class="tkt">${t.text.replace(/</g,'&lt;')}</div></div>`).join('')}).join('')||'<div class="empty">Nenhuma tarefa registrada ainda.</div>'}</div></div>`}
+  if(sh.sync){const c=SY.cfg,fx=t=>`<div class="note" style="padding:0 0 10px">${t}</div>`;
+    return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
+    <div class="sh"><button class="lnk" data-a="back">‹ Voltar</button><b>Sincronização</b><span style="width:50px"></span></div>
+    ${c?fx('Conectado a <b>'+c.repo+'</b>.<br>'+(SY.run?'Sincronizando…':SY.last?'Última sincronização: '+new Date(SY.last).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'Ainda não sincronizou neste acesso.'))+(SY.err?'<div class="note" style="color:var(--r);padding:0 0 10px">'+SY.err+'</div>':'')+`<div class="sr" data-a="syncnow"><span>Sincronizar agora</span><span>↻</span></div>
+    <div class="sr" data-a="syncoff"><span style="color:var(--r)">Desconectar este aparelho</span><span>›</span></div>`
+    :fx('Repositório privado do GitHub (dono/nome)')+`<input type="text" id="sr_repo" value="pinheirofms777-web/rastro-dados" autocapitalize="off" autocorrect="off" spellcheck="false">`+fx('Token de acesso (fica só neste aparelho)')+`<input type="password" id="sr_tok" placeholder="github_pat_…" autocapitalize="off" autocorrect="off" spellcheck="false">`+(SY.msg?'<div class="note" style="padding:0 0 10px">'+SY.msg+'</div>':'')+`<div class="sr" data-a="syncon"><span>Conectar e sincronizar</span><span>›</span></div>`}</div></div>`}
   if(sh.settings)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Configurações</b><button class="lnk" data-a="close">Fechar</button></div>
     <div class="sr" data-a="goreorder"><span>Reordenar hábitos</span><span>›</span></div>
     <div class="sr" data-a="goremove"><span>Remover hábitos</span><span>›</span></div>
+    <div class="sr" data-a="syncset"><span>Sincronização</span><span>${SY.cfg?(SY.err?'⚠ erro':'ligada'):'desligada'}</span></div>
     <div class="sr" data-a="export"><span>Exportar dados (backup)</span><span>›</span></div>
     <div class="sr" data-a="import"><span>Importar dados</span><span>›</span></div>
     <div class="sr" data-a="ws"><span>Início da semana</span><span>${WS()===1?'Segunda':'Domingo'}</span></div></div></div>`;
@@ -316,6 +324,10 @@ document.addEventListener('click',e=>{
   else if(a==='export'){doExport();return}
   else if(a==='import'){document.getElementById('imp').click();return}
   else if(a==='thist'){S.sheet={thist:true}}
+  else if(a==='syncset'){S.sheet={sync:true};SY.msg='';SY.err=SY.cfg?SY.err:''}
+  else if(a==='syncnow'){sync().then(()=>render())}
+  else if(a==='syncon'){connect();return}
+  else if(a==='syncoff'){if(confirm('Desconectar este aparelho? Os dados continuam aqui e na nuvem.')){SY.cfg=null;SY.cache=null;DB.set(null,'cfg').catch(()=>{})}}
   else if(a==='gotoday'){const [y,m,d]=el.dataset.d.split('-').map(Number);nav0=1;S.tab='today';S.day=new Date(y,m-1,d);S.ref=S.day;S.sheet=null}
   else if(a==='tdone'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.done=!t.done;save()}}
   else if(a==='tmove'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.day=key(TODAY);save()}}
@@ -340,7 +352,7 @@ document.addEventListener('click',e=>{
   else if(a==='intent'){S.intent=el.dataset.v}
   else if(a==='saveh'){const name=(S.draft||'').trim();if(!name)return;
     if(S.sheet.edit){const x=H(S.sheet.edit);x.name=name;x.intent=S.intent}
-    else D.habits.push({id:'h'+(D.seq++),name,intent:S.intent,created:key(TODAY)});
+    else D.habits.push({id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),name,intent:S.intent,created:key(TODAY)});
     save();S.sheet=null}
   else if(a==='delh'){const id=S.sheet.edit;D.habits=D.habits.filter(x=>x.id!==id);
     Object.keys(D.entries).forEach(k=>{if(k.startsWith(id+'|'))delete D.entries[k]});save();S.sheet=null}
@@ -434,7 +446,7 @@ function swEnd(cancel){
 document.addEventListener('touchend',()=>swEnd(false));
 document.addEventListener('touchcancel',()=>swEnd(true));
 function doExport(){
-  const blob=new Blob([JSON.stringify(D,null,1)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify(D,(k,v)=>k==='sync'?undefined:v,1)],{type:'application/json'});
   const u=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=u;a.download='rastro-backup-'+key(TODAY)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
 document.getElementById('imp').addEventListener('change',async e=>{
@@ -442,14 +454,96 @@ document.getElementById('imp').addEventListener('change',async e=>{
   try{const j=JSON.parse(await f.text());
     if(!Array.isArray(j.habits)||typeof j.entries!=='object'||!j.habits.every(h=>h&&h.id&&h.name&&(h.intent==='build'||h.intent==='break')))throw 0;
     if(!confirm('Importar vai SUBSTITUIR todos os dados atuais ('+D.habits.length+' hábitos) por '+j.habits.length+' hábitos do arquivo. Continuar?'))return;
-    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[]};save();S.sheet=null;render();
+    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],sync:D.sync};save();S.sheet=null;render();
   }catch(_){alert('Arquivo inválido. Use um backup exportado pelo Rastro.')}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&svT)flush();if(!document.hidden&&key(new Date())!==key(TODAY))location.reload()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&svT)flush();if(!document.hidden&&key(new Date())!==key(TODAY))location.reload();if(!document.hidden)sync()});
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{})}
+/* ---------- sincronização (GitHub, repositório privado) ---------- */
+var SY={cfg:null,run:0,again:0,err:'',msg:'',last:0,t:0,cache:null};
+const jstr=JSON.stringify;
+function flat(){const r={};
+  for(const k in D.entries)if(D.entries[k])r['e|'+k]=1;
+  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done}});
+  D.habits.forEach(h=>{r['h|'+h.id]={name:h.name,intent:h.intent,created:h.created}});
+  r['o|']=D.habits.map(h=>h.id);
+  r['s|sort']=D.sort===undefined?null:D.sort;
+  r['s|ws']=D.weekStart===undefined?null:D.weekStart;
+  return r}
+function stamp(){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
+  for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
+  for(const k in S2){if(S2[k].v!==null&&!(k in r))S2[k]={v:null,ts:now}}}
+function rebuild(){const S2=D.sync,E={},T=[],Hs={};let ord=[],sort,ws;
+  for(const k in S2){const c=S2[k];if(c.v===null)continue;const p=k.slice(0,2),id=k.slice(2);
+    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='h|')Hs[id]=Object.assign({id},c.v);
+    else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v}
+  const ids=ord.filter(i=>Hs[i]);Object.keys(Hs).sort().forEach(i=>{if(!ids.includes(i))ids.push(i)});
+  D.habits=ids.map(i=>Hs[i]);
+  D.entries={};for(const k in E)if(Hs[k.split('|')[0]])D.entries[k]=1;
+  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+  if(sort===undefined||sort===null)delete D.sort;else D.sort=sort;
+  if(ws===undefined||ws===null)delete D.weekStart;else D.weekStart=ws}
+function mergeIn(rem){const S2=D.sync||(D.sync={});let ch=0;
+  for(const k in rem){const a=S2[k],b=rem[k];if(!a||b.ts>a.ts){S2[k]=b;ch=1}}return ch}
+const b64d=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+const b64e=t=>{const u=new TextEncoder().encode(t);let b='';for(let i=0;i<u.length;i+=8192)b+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(b)};
+const GH=(m,path,body,extra)=>fetch((SY.cfg.api||'https://api.github.com')+path,{method:m,headers:Object.assign({Authorization:'Bearer '+SY.cfg.tok,Accept:'application/vnd.github+json'},body?{'Content-Type':'application/json'}:{},extra||{}),body:body?jstr(body):undefined,cache:'no-store'});
+const fpath=()=>'/repos/'+SY.cfg.repo+'/contents/rastro-data.json';
+async function pull(){
+  const r=await GH('GET',fpath(),null,SY.cache&&SY.cache.etag?{'If-None-Match':SY.cache.etag}:null);
+  if(r.status===304&&SY.cache)return SY.cache;
+  if(r.status===404){SY.cache=null;return {sha:null,rem:{}}}
+  if(!r.ok)throw r.status;
+  const j=await r.json();let txt;
+  if(j.content&&j.encoding==='base64')txt=b64d(j.content);
+  else{const rr=await GH('GET',fpath(),null,{Accept:'application/vnd.github.raw+json'});if(!rr.ok)throw rr.status;txt=await rr.text()}
+  const c={etag:r.headers.get('ETag'),sha:j.sha,rem:(JSON.parse(txt).rec)||{}};SY.cache=c.etag?c:null;return c}
+const errTxt=e=>e===401?'Token inválido ou expirado.':e===403?'Sem permissão no repositório (ou limite de uso). Confira o token.':e===404?'Repositório não encontrado para este token.':(typeof e==='number'?'Erro '+e+' do GitHub.':'Sem conexão com o GitHub.');
+function uiRefresh(){const a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName))return;if(typeof busy!=='undefined'&&busy)return;render()}
+async function sync(){
+  if(!SY.cfg||!navigator.onLine)return;
+  if(SY.run){SY.again=1;return}
+  SY.run=1;let changed=false;
+  try{
+    for(let n=0;n<3;n++){
+      stamp();
+      const {sha,rem}=await pull();
+      if(mergeIn(rem)){rebuild();changed=true}
+      const S2=D.sync;
+      if(Object.keys(S2).some(k=>!rem[k]||S2[k].ts>rem[k].ts)){
+        const p=await GH('PUT',fpath(),{message:'sync',content:b64e(jstr({v:1,rec:S2})),sha:sha||undefined});
+        SY.cache=null;
+        if(p.status===409||p.status===422){if(n===2)throw 409;continue}
+        if(!p.ok)throw p.status}
+      break}
+    SY.last=Date.now();SY.err='';
+    if(changed){await persist();uiRefresh()}
+  }catch(e){SY.err=errTxt(e);if(changed)await persist()}
+  finally{SY.run=0;if(SY.again){SY.again=0;sync()}}}
+async function connect(){
+  const repo=document.getElementById('sr_repo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/$/,''),tok=document.getElementById('sr_tok').value.trim();
+  const fail=m=>{SY.cfg=null;SY.msg=m;render()};
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||tok.length<20)return fail('Confira o repositório (dono/nome) e o token.');
+  SY.cfg={repo,tok,api:window.RASTRO_API};SY.cache=null;SY.msg='Conectando…';render();
+  try{
+    const r=await GH('GET','/repos/'+repo);
+    if(!r.ok)return fail(errTxt(r.status));
+    const j=await r.json();
+    if(!j.private)return fail('Este repositório é público. Use um repositório privado para seus dados.');
+    const f=await pull();
+    if(f.sha&&D.habits.length&&!confirm('Já existem dados na nuvem. Substituir os dados deste aparelho pelos da nuvem?'))return fail('Conexão cancelada.');
+    if(f.sha){D={habits:[],entries:{},seq:1,tasks:[],sync:{}}}
+    await DB.set(SY.cfg,'cfg');SY.msg='';
+    await sync();
+    if(SY.err){const m=SY.err;DB.set(null,'cfg').catch(()=>{});return fail(m)}
+    render()
+  }catch(e){fail(errTxt(e))}}
+addEventListener('online',()=>sync());
+setInterval(()=>{if(!document.hidden)sync()},45000);
 (async()=>{try{const d=await DB.get();if(d&&Array.isArray(d.habits))D=d}catch(e){}
+  try{SY.cfg=(await DB.get('cfg'))||null}catch(e){}
   if(!Array.isArray(D.tasks))D.tasks=[];
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-  render()})();
+  render();if(SY.cfg)sync()})();
 </script>
 </body>
 </html>
