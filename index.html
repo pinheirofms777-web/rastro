@@ -357,7 +357,7 @@ year:'<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><g>'+[
 function menuHtml(){if(!S.menu)return '';
   const m=D.sort||'green',it=(v,t)=>`<div class="mi" data-a="setsort" data-v="${v}"><i>${m===v?'✓':''}</i>${t}</div>`;
   return `<div class="shade mshade" data-a="closemenu"><div class="menu" data-stop>
-  <div class="mi" data-a="add"><i>+</i>Adicionar</div><div class="mi" data-a="thist"><i>☑</i>Histórico de tarefas</div><div class="mi" data-a="aprov"><i>%</i>Aproveitamento semanal</div><div class="mi" data-a="water"><i>💧</i>Água</div><div class="mi" data-a="settings"><i>⚙</i>Configurações</div>
+  <div class="mi" data-a="add"><i>+</i>Adicionar</div><div class="mi" data-a="thist"><i>☑</i>Histórico de tarefas</div><div class="mi" data-a="aprov"><i>%</i>Aproveitamento semanal</div><div class="mi" data-a="water"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><path d="M12 2.5S5 10 5 15a7 7 0 0014 0c0-5-7-12.5-7-12.5z"/></svg></i>Água</div><div class="mi" data-a="settings"><i>⚙</i>Configurações</div>
   <div class="ml">Ordenar:</div>${it('green','Verdes primeiro')}${it('red','Vermelhos primeiro')}${it('date','Data de criação')}${it('manual','Manual')}</div></div>`}
 function sheetHtml(){const sh=S.sheet;if(!sh)return '';
   if(sh.thist){const days=[...new Set((D.tasks||[]).map(t=>t.day))].sort().reverse();
