@@ -224,10 +224,23 @@ function parseDur(s,paren){const r=paren?/\((\d+)\s*(pomodoros?|pomos?|min(?:uto
 const fmtDur=d=>d.u==='p'?d.n+' pomo':d.n+' min';
 const fmtT=m=>m<60?m+'min':Math.floor(m/60)+'h'+pad(m%60);
 const cyc=p=>p*30;
+const progOf=(hb,k)=>(D.prog&&D.prog[hb.id+'|'+k])||0;
+const pU=d=>d.u==='p'?'pomo':'min';
+const falta=(d,p)=>'falta '+Math.max(0,d.n-p)+' '+pU(d);
+const pgBadge=(d,p,done)=>!done&&p>0?Math.min(p,d.n)+'/'+d.n+' '+pU(d):fmtDur(d);
+const pgLab=t=>t.dur&&!t.done&&t.prog>0?'<small class="tks">'+falta(t.dur,t.prog)+'</small>':'';
+function pgItem(){const g=S.sheet&&S.sheet.pg;if(!g)return null;
+  if(g.t==='t'){const t=D.tasks.find(x=>x.id===g.id);return t&&t.dur?{name:t.text,dur:t.dur,prog:t.prog||0}:null}
+  const hb=D.habits.find(x=>x.id===g.id);return hb&&hb.dur?{name:hb.name,dur:hb.dur,prog:progOf(hb,g.day)}:null}
+const pgStatus=(it,n)=>{const m=it.dur.n-n;return m<=0?'Meta atingida. Marque como feito na bolinha.':'Falta '+m+' '+(it.dur.u==='p'?(m===1?'pomodoro':'pomodoros')+' ('+fmtT(m*30)+')':'min')};
+function setProg(n){const g=S.sheet.pg,it=pgItem();n=Math.max(0,Math.min(it?it.dur.n:999,n|0));
+  if(g.t==='t'){const t=D.tasks.find(x=>x.id===g.id);if(t){if(n>0)t.prog=n;else delete t.prog}}
+  else{if(!D.prog)D.prog={};const k=g.id+'|'+g.day;if(n>0)D.prog[k]=n;else delete D.prog[k]}
+  save()}
 function dayLoad(k){let P=0,M=0,Pd=0,Md=0,miss=0;
-  const add=(d,done)=>{if(!d||!(d.n>0)){miss++;return}if(d.u==='p'){P+=d.n;if(done)Pd+=d.n}else{M+=d.n;if(done)Md+=d.n}};
-  D.habits.filter(h=>h.intent==='build').forEach(h=>add(h.dur,has(h,k)));
-  tasksOf(k).forEach(t=>add(t.dur,t.done));
+  const add=(d,done,pr)=>{if(!d||!(d.n>0)){miss++;return}const f=done?d.n:Math.min(pr||0,d.n);if(d.u==='p'){P+=d.n;Pd+=f}else{M+=d.n;Md+=f}};
+  D.habits.filter(h=>h.intent==='build').forEach(h=>add(h.dur,has(h,k),progOf(h,k)));
+  tasksOf(k).forEach(t=>add(t.dur,t.done,t.prog));
   const tot=cyc(P)+M,fe=cyc(Pd)+Md;return {tot,fe,miss}}
 function loadHtml(k){const L=dayLoad(k);if(!L.tot)return '';
   const ms=L.miss?' · '+L.miss+' sem tempo':'';
@@ -237,7 +250,7 @@ function loadHtml(k){const L=dayLoad(k);if(!L.tot)return '';
 function tasksHtml(day){
   const k=key(day),isT=k===key(TODAY),L=tasksOf(k);
   return `<div class="tk"><div class="tkh"><span>${isT?'TAREFAS DE HOJE':'TAREFAS · '+pad(day.getDate())+' '+MS[day.getMonth()]}</span><span data-a="thist">Histórico ›</span></div>
-  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}${recLab(t)}</div>`}<div class="tkd" data-a="tdur" data-t="${t.id}">${t.dur?fmtDur(t.dur):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
+  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}${recLab(t)}${pgLab(t)}</div>`}<div class="tkd" data-a="${t.dur?'pgt':'tdur'}" data-t="${t.id}">${t.dur?pgBadge(t.dur,t.prog||0,t.done):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
   <div class="tka"><input type="text" class="tin" placeholder="Nova tarefa · 30min" maxlength="120" enterkeyhint="done"><button data-a="rnew" aria-label="Repetir tarefa">↻</button><button data-a="tadd" aria-label="Adicionar tarefa">+</button></div>${isT?pendHtml(k):''}</div>`}
 function pendHtml(k){
   const P=(D.tasks||[]).filter(t=>!t.done&&!t.rid&&t.day<k).sort((a,b)=>a.day<b.day?1:a.day>b.day?-1:0);if(!P.length)return '';
@@ -250,7 +263,7 @@ function viewToday(){
   const hab=!D.habits.length?'':list().map(h=>{const on=has(h,k),st=streak(h,day);
     const sub=h.intent==='build'?(st?`${st} dia${st>1?'s':''} seguido${st>1?'s':''}`:'sem sequência'):(st?`${st} dia${st>1?'s':''} sem`:(on?'registrado'+(isT?' hoje':''):''));
     return `<div class="today"><div class="dot ${on?(h.intent==='build'?'g':'r'):''}" data-a="toggle" data-h="${h.id}" data-d="${k}"></div>
-    <div class="tx" data-a="open" data-h="${h.id}">${h.name}<small>${sub}</small></div><div class="chev" data-a="open" data-h="${h.id}">›</div></div>`}).join('');
+    <div class="tx" data-a="open" data-h="${h.id}">${h.name}<small>${sub}${h.intent==='build'&&h.dur&&!on&&progOf(h,k)>0?' · '+falta(h.dur,progOf(h,k)):''}</small></div>${h.intent==='build'&&h.dur?`<div class="tkd" data-a="pgh" data-h="${h.id}" data-d="${k}">${pgBadge(h.dur,progOf(h,k),on)}</div>`:''}<div class="chev" data-a="open" data-h="${h.id}">›</div></div>`}).join('');
   return loadHtml(k)+hab+tasksHtml(day)}
 function viewWeek(){const mon=monday(S.ref),end=addD(mon,6);
   if(!D.habits.length)return empty();
@@ -302,6 +315,16 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     <div class="sh"><button class="lnk" data-a="back">‹ Voltar</button><b>Remover</b><span style="width:50px"></span></div>
     ${D.habits.length?`<div class="sr" data-a="rmall" style="color:var(--r)"><span style="color:var(--r)">${S.confirm==='all'?'Toque de novo para apagar tudo':'Apagar tudo'}</span><span class="trash ${S.confirm==='all'?'c':''}">🗑</span></div>`:'<div class="empty">Nenhum hábito.</div>'}
     ${D.habits.map(h=>`<div class="sr" data-a="rm" data-h="${h.id}"><span style="color:var(--txt)">${h.name}</span><span class="trash ${S.confirm===h.id?'c':''}">${S.confirm===h.id?'Confirmar':'🗑'}</span></div>`).join('')}</div></div>`;
+  if(sh.pg){const it=pgItem();if(!it)return '';const n=parseInt(S.pn,10)||0;
+    return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
+    <div class="sh"><b>Progresso</b><button class="lnk" data-a="close">Fechar</button></div>
+    <div class="note" style="padding:0 0 6px">${escH(it.name)}</div>
+    <div class="sub">FEITO · META: ${it.dur.n} ${it.dur.u==='p'?'POMODOROS':'MIN'}</div>
+    <div class="durr"><div class="opt" data-a="pgm">−</div><input type="text" id="pn" inputmode="numeric" maxlength="3" value="${n}"><div class="opt" data-a="pgp">+</div></div>
+    <div class="note" id="pgst" style="padding:0 0 14px;font-size:13px;color:var(--txt)">${pgStatus(it,n)}</div>
+    <button class="btn" data-a="pgsave">Salvar</button>
+    ${it.prog?'<button class="btn" style="background:var(--bg);color:var(--txt);margin-top:10px;border:1px solid var(--line)" data-a="pgzero">Zerar progresso</button>':''}
+    ${sh.pg.t==='t'?'<button class="btn" style="background:var(--bg);color:var(--txt);margin-top:10px;border:1px solid var(--line)" data-a="pgdur">Alterar duração</button>':''}</div></div>`}
   if(sh.recs)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><button class="lnk" data-a="back">‹ Voltar</button><b>Tarefas recorrentes</b><button class="lnk" data-a="close">Fechar</button></div>
     ${(D.rec||[]).length?D.rec.map(r=>`<div class="sr" data-a="redit" data-r="${r.id}"><span style="color:var(--txt)${r.paused?';opacity:.5':''}">${escH(r.text)}<small class="tks">${ruleLabel(r)}${r.paused?' · pausada':''}</small></span><span>›</span></div>`).join(''):'<div class="note" style="padding:0">Nenhuma recorrência ainda. Na tela Hoje, escreva a tarefa e toque em ↻.</div>'}</div></div>`;
@@ -381,6 +404,7 @@ function render(){
   if(tv){const n=document.querySelector('main .tin');if(n)n.value=tv}
   if(S.refocusEdit){S.refocusEdit=false;const n=document.querySelector('main .tedit');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}}
   if(S.refocus){S.refocus=false;const n=document.querySelector('main .tin');if(n)n.focus()}
+  const pn=document.getElementById('pn');if(pn)pn.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,3);S.pn=e.target.value;const it=pgItem(),st=document.getElementById('pgst');if(it&&st)st.textContent=pgStatus(it,parseInt(S.pn,10)||0)});
   const dn=document.getElementById('dn');if(dn)dn.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,3);S.dn=e.target.value});
   const nm=document.getElementById('nm');if(nm)nm.addEventListener('input',e=>S.draft=e.target.value);
   document.querySelectorAll('.rin').forEach(i=>['input','change'].forEach(ev=>i.addEventListener(ev,e=>{if(!S.rf)return;const f=e.target.dataset.f;let v=e.target.value;
@@ -408,6 +432,12 @@ document.addEventListener('click',e=>{
   else if(a==='import'){document.getElementById('imp').click();return}
   else if(a==='thist'){S.sheet={thist:true}}
   else if(a==='dunit'){S.du=el.dataset.v}
+  else if(a==='pgt'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){S.sheet={pg:{t:'t',id:t.id}};S.pn=String(t.prog||0)}}
+  else if(a==='pgh'){const hb=D.habits.find(x=>x.id===h);if(hb){S.sheet={pg:{t:'h',id:hb.id,day:el.dataset.d}};S.pn=String(progOf(hb,el.dataset.d))}}
+  else if(a==='pgm'||a==='pgp'){const it=pgItem();if(it){const st=it.dur.u==='p'?1:5,n=parseInt(S.pn,10)||0;S.pn=String(Math.max(0,Math.min(it.dur.n,a==='pgp'?n+st:n-st)))}}
+  else if(a==='pgsave'){setProg(parseInt(S.pn,10)||0);S.sheet=null}
+  else if(a==='pgzero'){setProg(0);S.sheet=null}
+  else if(a==='pgdur'){const g=S.sheet.pg,t=D.tasks.find(x=>x.id===g.id);if(t){S.sheet={tdur:t.id};S.dn=t.dur?String(t.dur.n):'';S.du=t.dur?t.dur.u:'m'}}
   else if(a==='rlist'){S.sheet={recs:true};S.confirm=null}
   else if(a==='rnew'){const inp=document.querySelector('main .tin'),v=(inp?inp.value:'').trim(),pd=parseDur(v,false),text=pd&&v.slice(0,pd.i).trim()?v.slice(0,pd.i).trim():v;
     S.rf={text,every:'1',unit:'d',wd:[],md:'',start:key(S.day)<key(TODAY)?key(TODAY):key(S.day),end:'',fi:v?1:0};S.dn=pd&&text!==v?String(pd.n):'';S.du=pd&&text!==v?pd.u:'m';S.sheet={rec:true};S.confirm=null}
@@ -430,8 +460,8 @@ document.addEventListener('click',e=>{
     else{r=Object.assign({id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)},base);D.rec.push(r);if(f.fi){const i=document.querySelector('main .tin');if(i)i.value=''}}
     ensureDay(key(S.day));save();S.confirm=null;S.sheet=f.id?{recs:true}:null}
   else if(a==='tdur'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){S.sheet={tdur:t.id};S.dn=t.dur?String(t.dur.n):'';S.du=t.dur?t.dur.u:'m'}}
-  else if(a==='tdursave'){const t=D.tasks.find(x=>x.id===S.sheet.tdur),n=parseInt(S.dn,10);if(t){if(n>0)t.dur={n,u:S.du};else delete t.dur;save()}S.sheet=null}
-  else if(a==='tdurclear'){const t=D.tasks.find(x=>x.id===S.sheet.tdur);if(t){delete t.dur;save()}S.sheet=null}
+  else if(a==='tdursave'){const t=D.tasks.find(x=>x.id===S.sheet.tdur),n=parseInt(S.dn,10);if(t){if(n>0){if(t.dur&&t.dur.u!==S.du)delete t.prog;t.dur={n,u:S.du};if(t.prog>n)t.prog=n}else{delete t.dur;delete t.prog}save()}S.sheet=null}
+  else if(a==='tdurclear'){const t=D.tasks.find(x=>x.id===S.sheet.tdur);if(t){delete t.dur;delete t.prog;save()}S.sheet=null}
   else if(a==='durfill'){const c=D.habits.filter(h=>!h.dur&&h.intent==='build'&&parseDur(h.name,true));
     if(!c.length)alert('Nenhum hábito com duração no nome, como "(2 pomodoros)" ou "(30 min)".');
     else if(confirm('Encontrei duração no nome de '+c.length+' hábito(s). Preencher o campo de duração com esses valores? Os nomes não mudam.')){c.forEach(h=>{const d=parseDur(h.name,true);h.dur={n:d.n,u:d.u}});save()}}
@@ -449,7 +479,7 @@ document.addEventListener('click',e=>{
   else if(a==='goreorder'){S.sheet={reorder:true}}
   else if(a==='goremove'){S.sheet={remove:true};S.confirm=null}
   else if(a==='ws'){D.weekStart=WS()===0?1:0;save()}
-  else if(a==='rm'){if(S.confirm===h){D.habits=D.habits.filter(x=>x.id!==h);Object.keys(D.entries).forEach(k=>{if(k.startsWith(h+'|'))delete D.entries[k]});save();S.confirm=null}else S.confirm=h}
+  else if(a==='rm'){if(S.confirm===h){D.habits=D.habits.filter(x=>x.id!==h);Object.keys(D.entries).forEach(k=>{if(k.startsWith(h+'|'))delete D.entries[k]});Object.keys(D.prog||{}).forEach(k=>{if(k.startsWith(h+'|'))delete D.prog[k]});save();S.confirm=null}else S.confirm=h}
   else if(a==='rmall'){if(S.confirm==='all'){D.habits=[];D.entries={};save();S.confirm=null}else S.confirm='all'}
   else if(a==='tab'){nav0=1;S.tab=el.dataset.v;S.ref=TODAY;S.day=TODAY;S.anim=''}
   else if(a==='toggle'){const k=h+'|'+el.dataset.d;D.entries[k]?delete D.entries[k]:D.entries[k]=1;save()}
@@ -463,7 +493,7 @@ document.addEventListener('click',e=>{
   else if(a==='intent'){S.intent=el.dataset.v}
   else if(a==='saveh'){const name=(S.draft||'').trim();if(!name)return;
     const dn=parseInt(S.dn,10),dur=dn>0?{n:dn,u:S.du}:null;
-    if(S.sheet.edit){const x=H(S.sheet.edit);x.name=name;x.intent=S.intent;if(dur)x.dur=dur;else delete x.dur}
+    if(S.sheet.edit){const x=H(S.sheet.edit);x.name=name;x.intent=S.intent;if((!dur||(x.dur&&x.dur.u!==dur.u))&&D.prog)Object.keys(D.prog).forEach(k=>{if(k.startsWith(x.id+'|'))delete D.prog[k]});if(dur)x.dur=dur;else delete x.dur}
     else D.habits.push(Object.assign({id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),name,intent:S.intent,created:key(TODAY)},dur?{dur}:{}));
     save();S.sheet=null}
   else if(a==='delh'){const id=S.sheet.edit;D.habits=D.habits.filter(x=>x.id!==id);
@@ -567,7 +597,7 @@ document.getElementById('imp').addEventListener('change',async e=>{
   try{const j=JSON.parse(await f.text());
     if(!Array.isArray(j.habits)||typeof j.entries!=='object'||!j.habits.every(h=>h&&h.id&&h.name&&(h.intent==='build'||h.intent==='break')))throw 0;
     if(!confirm('Importar vai SUBSTITUIR todos os dados atuais ('+D.habits.length+' hábitos) por '+j.habits.length+' hábitos do arquivo. Continuar?'))return;
-    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],rec:Array.isArray(j.rec)?j.rec:[],sync:D.sync};save();S.sheet=null;render();
+    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],rec:Array.isArray(j.rec)?j.rec:[],prog:j.prog&&typeof j.prog==='object'?j.prog:{},sync:D.sync};save();S.sheet=null;render();
   }catch(_){alert('Arquivo inválido. Use um backup exportado pelo Rastro.')}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&svT)flush();if(!document.hidden&&key(new Date())!==key(TODAY))location.reload();if(!document.hidden)sync()});
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{})}
@@ -576,7 +606,8 @@ var SY={cfg:null,run:0,again:0,err:'',msg:'',last:0,t:0,cache:null};
 const jstr=JSON.stringify;
 function flat(){const r={};
   for(const k in D.entries)if(D.entries[k])r['e|'+k]=1;
-  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur,rid:t.rid}});
+  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur,rid:t.rid,prog:t.prog}});
+  for(const k in (D.prog||{}))if(D.prog[k])r['p|'+k]=D.prog[k];
   (D.rec||[]).forEach(x=>{r['r|'+x.id]={text:x.text,dur:x.dur,rule:x.rule,start:x.start,end:x.end,paused:x.paused,skip:x.skip}});
   D.habits.forEach(h=>{r['h|'+h.id]={name:h.name,intent:h.intent,created:h.created,dur:h.dur}});
   r['o|']=D.habits.map(h=>h.id);
@@ -586,14 +617,14 @@ function flat(){const r={};
 function stamp(){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   for(const k in S2){if(S2[k].v!==null&&!(k in r))S2[k]={v:null,ts:now}}}
-function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[];let ord=[],sort,ws;
+function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={};let ord=[],sort,ws;
   for(const k in S2){const c=S2[k];if(c.v===null)continue;const p=k.slice(0,2),id=k.slice(2);
-    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='h|')Hs[id]=Object.assign({id},c.v);
+    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
     else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v}
   const ids=ord.filter(i=>Hs[i]);Object.keys(Hs).sort().forEach(i=>{if(!ids.includes(i))ids.push(i)});
   D.habits=ids.map(i=>Hs[i]);
   D.entries={};for(const k in E)if(Hs[k.split('|')[0]])D.entries[k]=1;
-  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];
   if(sort===undefined||sort===null)delete D.sort;else D.sort=sort;
   if(ws===undefined||ws===null)delete D.weekStart;else D.weekStart=ws}
 function mergeIn(rem){const S2=D.sync||(D.sync={});let ch=0;
@@ -655,7 +686,7 @@ addEventListener('online',()=>sync());
 setInterval(()=>{if(!document.hidden)sync()},45000);
 (async()=>{try{const d=await DB.get();if(d&&Array.isArray(d.habits))D=d}catch(e){}
   try{SY.cfg=(await DB.get('cfg'))||null}catch(e){}
-  if(!Array.isArray(D.tasks))D.tasks=[];if(!Array.isArray(D.rec))D.rec=[];
+  if(!Array.isArray(D.tasks))D.tasks=[];if(!Array.isArray(D.rec))D.rec=[];if(!D.prog||typeof D.prog!=='object')D.prog={};
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   render();if(SY.cfg)sync()})();
 </script>
