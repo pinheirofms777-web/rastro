@@ -100,7 +100,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;display:block;box-sizin
 input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .wdr{display:flex;gap:6px;margin:8px 0 16px}.wdr .opt{flex:1;padding:11px 0;font-size:13px}
 .evr{display:flex;gap:6px;align-items:center}.evr input{width:64px;margin:8px 0 14px;flex:none}.evr .opt{flex:1;padding:12px 2px;margin-bottom:6px;font-size:13px}
-.load{padding:12px 20px 0;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.load b{color:var(--txt);font-size:14px}
+.load{padding:12px 20px 0;font-size:12px;line-height:1.5;color:var(--mut)}.load b{color:var(--txt);font-size:14px}
 .tkd{font-size:12px;color:var(--mut);padding:6px 4px;white-space:nowrap;cursor:pointer}
 .durr{display:flex;gap:8px;align-items:center}.durr input{width:84px;margin:8px 0 14px;flex:none}.durr .opt{flex:1;margin-bottom:6px}
 .tks{display:block;color:var(--mut);font-size:11px;margin-top:3px}.tkm{font-size:12px;padding:8px 10px;border-radius:8px;background:var(--panel);cursor:pointer;white-space:nowrap}
@@ -245,8 +245,8 @@ function dayLoad(k){let P=0,M=0,Pd=0,Md=0,miss=0;
 function loadHtml(k){const L=dayLoad(k);if(!L.tot)return '';
   const ms=L.miss?' · '+L.miss+' sem tempo':'';
   if(k>key(TODAY))return `<div class="load"><b>${fmtT(L.tot)}</b> planejado${ms}</div>`;
-  const rest=L.tot-L.fe;
-  return `<div class="load"><b>${fmtT(L.tot)}</b>${L.fe?' · feito '+fmtT(L.fe):''} · ${rest>0?'falta '+fmtT(rest):'concluído'}${ms}</div>`}
+  const rest=L.tot-L.fe,pct=Math.floor(L.fe*100/L.tot);
+  return `<div class="load"><b>${pct}%</b> de <b>${fmtT(L.tot)}</b>${L.fe&&rest>0?' · feito '+fmtT(L.fe):''} · ${rest>0?'falta '+fmtT(rest):'concluído'}${ms}</div>`}
 function tasksHtml(day){
   const k=key(day),isT=k===key(TODAY),L=tasksOf(k);
   return `<div class="tk"><div class="tkh"><span>${isT?'TAREFAS DE HOJE':'TAREFAS · '+pad(day.getDate())+' '+MS[day.getMonth()]}</span><span data-a="thist">Histórico ›</span></div>
