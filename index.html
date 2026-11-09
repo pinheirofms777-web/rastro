@@ -188,7 +188,7 @@ const dlabel=d=>WD[d.getDay()].slice(0,3)+' · '+pad(d.getDate())+' '+MS[d.getMo
 function parseDur(s,paren){const r=paren?/\((\d+)\s*(pomodoros?|pomos?|min(?:utos?)?|h)\)/i:/\s(\d+)\s*(pomodoros?|pomos?|p|min(?:utos?)?|m|h)$/i,m=s.match(r);if(!m)return null;const n=+m[1],u=m[2].toLowerCase();if(!n)return null;const d=/^p/.test(u)?{n,u:'p'}:u==='h'?{n:n*60,u:'m'}:{n,u:'m'};d.i=m.index;return d}
 const fmtDur=d=>d.u==='p'?d.n+' pomo':d.n+' min';
 const fmtT=m=>m<60?m+'min':Math.floor(m/60)+'h'+pad(m%60);
-const cyc=p=>{let t=p*25;for(let i=1;i<p;i++)t+=i%3?5:10;return t};
+const cyc=p=>p*30;
 function dayLoad(k){let P=0,M=0,Pd=0,Md=0,miss=0;
   const add=(d,done)=>{if(!d||!(d.n>0)){miss++;return}if(d.u==='p'){P+=d.n;if(done)Pd+=d.n}else{M+=d.n;if(done)Md+=d.n}};
   D.habits.filter(h=>h.intent==='build').forEach(h=>add(h.dur,has(h,k)));
