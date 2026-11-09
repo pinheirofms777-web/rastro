@@ -193,6 +193,7 @@ function pendHtml(k){
   return `<div class="tkh" style="margin-top:14px"><span>PENDENTES DE DIAS ANTERIORES</span><span data-a="tall">Trazer todas</span></div>`+P.map(t=>`<div class="tkr"><div class="tkt">${t.text.replace(/</g,'&lt;')}<small class="tks">${lab(t.day)}</small></div><div class="tkm" data-a="tmove" data-t="${t.id}">Trazer para hoje</div></div>`).join('')}
 function viewToday(){
   const day=S.day,k=key(day),isT=k===key(TODAY);
+  if(k>key(TODAY))return tasksHtml(day);
   const hab=!D.habits.length?'':list().map(h=>{const on=has(h,k),st=streak(h,day);
     const sub=h.intent==='build'?(st?`${st} dia${st>1?'s':''} seguido${st>1?'s':''}`:'sem sequência'):(st?`${st} dia${st>1?'s':''} sem`:(on?'registrado'+(isT?' hoje':''):''));
     return `<div class="today"><div class="dot ${on?(h.intent==='build'?'g':'r'):''}" data-a="toggle" data-h="${h.id}" data-d="${k}"></div>
@@ -265,7 +266,7 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
   <div class="note">Toque em uma célula para marcar ou desmarcar o dia.</div></div></div>`}
 
 function canNext(){
-  if(S.tab==='today')return key(S.day)<key(TODAY);
+  if(S.tab==='today')return key(S.day)<key(addD(TODAY,365));
   if(S.tab==='week')return key(monday(S.ref))<key(monday(TODAY));
   const ym=d=>d.getFullYear()*12+d.getMonth();
   if(S.tab==='month')return ym(S.ref)<ym(TODAY);
@@ -283,7 +284,7 @@ function pagerHtml(){
   return `<div class="pager"><div>${[0,1,2,3].map(i=>`<i class="${i===on?'on':''}"></i>`).join('')}</div></div>`}
 function parts(){
   const r=S.ref,t=S.tab;let sub='',title='',v='';
-  if(t==='today'){const d=S.day,isT=key(d)===key(TODAY);sub=WD[d.getDay()]+(isT?' · '+pad(d.getDate())+' '+MS[d.getMonth()].toLowerCase():'');title=isT?'Hoje':d.getDate()+' '+MS[d.getMonth()].toLowerCase();v=viewToday()}
+  if(t==='today'){const d=S.day,isT=key(d)===key(TODAY);const fut=key(d)>key(TODAY);sub=WD[d.getDay()]+(isT?' · '+pad(d.getDate())+' '+MS[d.getMonth()].toLowerCase():fut?' · planejado'+(d.getFullYear()!==TODAY.getFullYear()?' '+d.getFullYear():''):'');title=isT?'Hoje':fut&&key(d)===key(addD(TODAY,1))?'Amanhã':d.getDate()+' '+MS[d.getMonth()].toLowerCase();v=viewToday()}
   if(t==='week'){const mon=monday(r);const m2=addD(mon,6).getMonth();sub=MES[mon.getMonth()]+(m2!==mon.getMonth()?' / '+MES[m2]:'');title='Semana '+weekNum(mon);v=viewWeek()}
   if(t==='month'){sub=r.getFullYear();title=MES[r.getMonth()];v=viewMonth()}
   if(t==='year'){sub='';title=r.getFullYear();v=viewYear()}
