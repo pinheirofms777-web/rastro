@@ -291,16 +291,16 @@ function waterHtml(){wInit();const w=D.water,k=key(TODAY),has=Object.keys(D.wl).
 var FOODS=null,FN=null,FERR=0;
 const FMEALS=['Café da manhã','Almoço','Lanche','Jantar','Ceia'],GRE=/(\d+(?:[.,]\d+)?)\s*g\s*$/i;
 const nrm=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-const r1=n=>Math.round(n*10)/10;
+const r1=n=>Math.round(n*10)/10,r2=n=>Math.round(n*100)/100;
 function fInit(){if(!D.food||typeof D.food!=='object')D.food={};const f=D.food;if(!f.goal||!(f.goal.k>0))f.goal={k:1823,c:228,p:137,f:41};if(!D.fl||typeof D.fl!=='object')D.fl={};if(!D.fgd||typeof D.fgd!=='object')D.fgd={};if(!D.cf||typeof D.cf!=='object')D.cf={}}
 function loadFoods(){if(FOODS)return;fetch('taco.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{FOODS=j.f;FERR=0;if(S.sheet&&S.sheet.fadd&&!S.sheet.fadd.sel&&!document.activeElement.id)render();else{const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()}}).catch(()=>{FERR=1;const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()})}
-function fDay(k){const o={k:0,p:0,l:0,c:0,n:0};for(const x in D.fl)if(x.startsWith(k+'|')){const e=D.fl[x];o.k+=e[3];o.p+=e[4];o.l+=e[5];o.c+=e[6];o.n++}o.p=r1(o.p);o.l=r1(o.l);o.c=r1(o.c);return o}
+function fDay(k){const o={k:0,p:0,l:0,c:0,n:0};for(const x in D.fl)if(x.startsWith(k+'|')){const e=D.fl[x];o.k+=e[3];o.p+=e[4];o.l+=e[5];o.c+=e[6];o.n++}o.k=Math.round(o.k);o.p=r1(o.p);o.l=r1(o.l);o.c=r1(o.c);return o}
 function fGoal(k){return k>=key(TODAY)?D.food.goal:(D.fgd[k]||D.food.goal)}
 function fgUpd(){try{fInit();const t=key(TODAY),d=fDay(t);if(d.n>0){if(JSON.stringify(D.fgd[t])!==JSON.stringify(D.food.goal))D.fgd[t]=Object.assign({},D.food.goal)}else if(D.fgd[t])delete D.fgd[t]}catch(e){}}
-function fAdd(m,name,g,per){const f=g/100;D.fl[key(TODAY)+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=[m,name,g,Math.round(per[0]*f),r1(per[1]*f),r1(per[2]*f),r1(per[3]*f)];save()}
+function fAdd(m,name,g,per){const f=g/100;D.fl[key(TODAY)+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=[m,name,g,r1(per[0]*f),r2(per[1]*f),r2(per[2]*f),r2(per[3]*f)];save()}
 function fSel(r){if(!r)return null;if(r.t==='t'){const x=FOODS&&FOODS[r.i];return x?{name:x[1],per:[x[3],x[4],x[5],x[6]]}:null}const c=D.cf[r.i];return c?{name:c.n,per:[c.k,c.p,c.l,c.c]}:null}
 function fPrev(sel,gs){const g=parseFloat(String(gs).replace(',','.'));if(!(g>0))return 'Informe a quantidade em gramas.';const f=g/100;return Math.round(sel.per[0]*f)+' kcal · C '+r1(sel.per[3]*f)+' g · P '+r1(sel.per[1]*f)+' g · G '+r1(sel.per[2]*f)+' g'}
-function fConfirm(){const a=S.sheet&&S.sheet.fadd,sel=a&&fSel(a.sel);if(!sel)return;const g=parseFloat(String(S.fgv).replace(',','.'));if(!(g>0))return;fAdd(a.m,sel.name,r1(Math.min(5000,g)),sel.per);S.fq='';S.sheet={food:true};render()}
+function fConfirm(){const a=S.sheet&&S.sheet.fadd,sel=a&&fSel(a.sel);if(!sel)return;const g=parseFloat(String(S.fgv).replace(',','.'));if(!(g>0))return;fAdd(a.m,sel.name,r2(Math.min(5000,g)),sel.per);S.fq='';S.sheet={food:true};render()}
 function fResHtml(){
   const q=S.fq||'',gm=q.match(GRE),tk=nrm(gm?q.slice(0,gm.index):q).split(/\s+/).filter(Boolean);
   let L=[];
@@ -314,8 +314,8 @@ function foodTop(){fInit();const k=key(TODAY),d=fDay(k),g=fGoal(k),p=Math.floor(
   <div class="note" style="padding:8px 0 0;font-size:13px;color:var(--txt)">${d.k>=g.k?'Meta batida'+(d.k>g.k?' · +'+(d.k-g.k)+' kcal além da meta':''):'Falta '+(g.k-d.k)+' kcal ('+Math.max(0,100-p)+'%)'}</div>
   ${row('Carboidratos',d.c,g.c)}${row('Proteína',d.p,g.p)}${row('Gordura',d.l,g.f)}`}
 function foodMeals(){const k=key(TODAY),E=Object.keys(D.fl).filter(x=>x.startsWith(k+'|')).sort();
-  return FMEALS.map((n,m)=>{const L=E.filter(x=>D.fl[x][0]===m),t=L.reduce((a,x)=>a+D.fl[x][3],0);
-    return '<div class="fmh"><span>'+n+'</span><span>'+t+' kcal</span></div>'+L.map(x=>{const e=D.fl[x];return '<div class="fer"><div class="fet">'+escH(e[1])+'<small>'+e[2]+' g · C '+e[6]+' · P '+e[4]+' · G '+e[5]+'</small></div><div class="fek">'+e[3]+'</div><div class="tkx" data-a="fdel" data-k="'+x+'">×</div></div>'}).join('')+'<div class="fad" data-a="faddopen" data-m="'+m+'">+ alimento</div>'}).join('')}
+  return FMEALS.map((n,m)=>{const L=E.filter(x=>D.fl[x][0]===m),t=Math.round(L.reduce((a,x)=>a+D.fl[x][3],0));
+    return '<div class="fmh"><span>'+n+'</span><span>'+t+' kcal</span></div>'+L.map(x=>{const e=D.fl[x];return '<div class="fer"><div class="fet">'+escH(e[1])+'<small>'+e[2]+' g · C '+e[6]+' · P '+e[4]+' · G '+e[5]+'</small></div><div class="fek">'+Math.round(e[3])+'</div><div class="tkx" data-a="fdel" data-k="'+x+'">×</div></div>'}).join('')+'<div class="fad" data-a="faddopen" data-m="'+m+'">+ alimento</div>'}).join('')}
 function fWeeks(){
   fInit();const t=key(TODAY),days=[...new Set(Object.keys(D.fl).map(x=>x.split('|')[0]))].filter(k=>k<=t).sort();
   if(!days.length)return '<div class="note" style="padding:0">Ainda sem registros. Toque em “+ alimento” em uma refeição para começar.</div>';
@@ -340,13 +340,13 @@ function faddHtml(a){const sel=fSel(a.sel);
   if(sel)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>${hd}
     <div class="note" style="padding:0 0 10px;font-size:14px;color:var(--txt)">${escH(sel.name)}</div>
     <div class="sub">QUANTIDADE (G)</div>
-    <div class="wrow" style="margin:8px 0 12px"><input type="text" id="fg" inputmode="decimal" maxlength="6" value="${escH(S.fgv)}"><div class="opt" data-a="fok">Adicionar</div></div>
+    <div class="wrow" style="margin:8px 0 12px"><input type="text" id="fg" inputmode="decimal" maxlength="8" value="${escH(S.fgv)}"><div class="opt" data-a="fok">Adicionar</div></div>
     <div class="note" id="fprev" style="padding:0;font-size:13px;color:var(--txt)">${fPrev(sel,S.fgv)}</div></div></div>`;
   return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>${hd}
     <input type="text" id="fq" class="rin" placeholder="Buscar · ex.: arroz cozido 150g" autocomplete="off" autocorrect="off" value="${escH(S.fq||'')}">
     <div id="fres" style="margin-top:6px">${fResHtml()}</div>
     <div class="fad" data-a="fnew" style="padding-top:14px">+ Novo alimento (valores do rótulo)</div></div></div>`}
-function fnewHtml(m){const d=S.cfd||{};const f=(l,k,h)=>`<div class="sub" style="margin-top:12px">${l}</div><input type="text" class="fcf rin" data-f="${k}" ${k==='n'?'maxlength="60"':'inputmode="decimal" maxlength="6"'} value="${escH(d[k]||'')}" ${h?'placeholder="'+h+'"':''}>`;
+function fnewHtml(m){const d=S.cfd||{};const f=(l,k,h)=>`<div class="sub" style="margin-top:12px">${l}</div><input type="text" class="fcf rin" data-f="${k}" ${k==='n'?'maxlength="60"':'inputmode="decimal" maxlength="8"'} value="${escH(d[k]||'')}" ${h?'placeholder="'+h+'"':''}>`;
   return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><button class="lnk" data-a="faddopen" data-m="${m}">‹ Voltar</button><b>Novo alimento</b><button class="lnk" data-a="close">Fechar</button></div>
     <div class="note" style="padding:0">Informe os valores por 100 g (ou 100 ml), como no rótulo.</div>
@@ -608,7 +608,7 @@ document.addEventListener('click',e=>{
   else if(a==='fnewsave'){const d=S.cfd||{},n=(d.n||'').trim(),num=v=>{const x=parseFloat(String(v||'').replace(',','.'));return x>=0?x:0},k=num(d.k);
     if(!n){alert('Dê um nome ao alimento.');return}
     if(!(k>0)){alert('Informe as calorias por 100 g.');return}
-    fInit();const id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,4);D.cf[id]={n,k:Math.round(k),p:r1(num(d.p)),l:r1(num(d.l)),c:r1(num(d.c))};save();
+    fInit();const id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,4);D.cf[id]={n,k:r2(k),p:r2(num(d.p)),l:r2(num(d.l)),c:r2(num(d.c))};save();
     S.sheet={fadd:{m:S.sheet.fnew.m,sel:{t:'c',i:id}}};S.fgv='100';S.fgFocus=1}
   else if(a==='water'){S.sheet={water:true};S.hw=null}
   else if(a==='wadd'){wAdd(parseInt(el.dataset.v,10))}
@@ -808,7 +808,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v33',KNOWN=/^([etpkwxrhfyc]\||o\|$|s\|(sort|ws|wg|wc|fg)$)/;
+const VER='v34',KNOWN=/^([etpkwxrhfyc]\||o\|$|s\|(sort|ws|wg|wc|fg)$)/;
 function stamp(){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
