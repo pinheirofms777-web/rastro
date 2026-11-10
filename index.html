@@ -965,10 +965,12 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v42',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
-function stamp(){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
+const VER='v43',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
-  for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
+  if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
+/* após atualizar o app, adota registros que a versão antiga recebeu mas não sabia ler, antes de qualquer exclusão */
+function migrate(){if(D.sv===VER||!D.sync)return false;stamp(true);rebuild();D.sv=VER;return true}
 function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={};let ord=[],sort,ws,wg,wc,fg,ht;
   for(const k in S2){const c=S2[k];if(c.v===null)continue;const p=k.slice(0,2),id=k.slice(2);
     if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='z|')BC[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
@@ -1001,6 +1003,7 @@ async function sync(){
   if(SY.run){SY.again=1;return}
   SY.run=1;let changed=false;
   try{
+    if(migrate())changed=true;
     for(let n=0;n<3;n++){
       stamp();
       const {sha,rem}=await pull();
