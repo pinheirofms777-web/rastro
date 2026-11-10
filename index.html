@@ -334,7 +334,7 @@ function foodHtml(){fInit();const g=D.food.goal;
   <div class="fgl"><div><div class="sub">CALORIAS (KCAL)</div><input type="text" class="fcfg" data-f="k" inputmode="numeric" maxlength="5" value="${g.k}"></div><div><div class="sub">CARBOIDRATOS (G)</div><input type="text" class="fcfg" data-f="c" inputmode="numeric" maxlength="4" value="${g.c}"></div><div><div class="sub">PROTEÍNA (G)</div><input type="text" class="fcfg" data-f="p" inputmode="numeric" maxlength="4" value="${g.p}"></div><div><div class="sub">GORDURA (G)</div><input type="text" class="fcfg" data-f="f" inputmode="numeric" maxlength="4" value="${g.f}"></div></div>
   <div class="sub" style="margin-top:22px">HISTÓRICO SEMANAL</div>
   <div id="fhist" style="margin-top:6px">${fWeeks()}</div>
-  <div class="note" style="padding:16px 0 0">Valores calculados com a TACO (4ª ed., NEPA/UNICAMP, 2011), por 100 g de parte comestível. Carboidrato total.</div>`}
+  <div class="note" style="padding:16px 0 0">Valores calculados com a TACO (4ª ed., NEPA/UNICAMP, 2011), por 100 g de parte comestível. Carboidrato total. Itens marcados (TBCA): TBCA – Tabela Brasileira de Composição de Alimentos (USP/FoRC).</div>`}
 function faddHtml(a){const sel=fSel(a.sel);
   const hd=`<div class="sh"><button class="lnk" data-a="${sel?'fback':'food'}">‹ Voltar</button><b>${FMEALS[a.m]}</b><button class="lnk" data-a="close">Fechar</button></div>`;
   if(sel)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>${hd}
@@ -808,7 +808,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v34',KNOWN=/^([etpkwxrhfyc]\||o\|$|s\|(sort|ws|wg|wc|fg)$)/;
+const VER='v35',KNOWN=/^([etpkwxrhfyc]\||o\|$|s\|(sort|ws|wg|wc|fg)$)/;
 function stamp(){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
