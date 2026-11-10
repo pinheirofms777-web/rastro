@@ -113,7 +113,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .fmh{display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 4px;font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--mut);text-transform:uppercase}
 .fer{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.fet{flex:1;min-width:0;font-size:14px;line-height:1.3}.fet small{display:block;font-size:11px;color:var(--mut);margin-top:2px}.fek{font-size:13px;color:var(--mut);white-space:nowrap}
 .fad{padding:11px 0 4px;font-size:13px;color:var(--g);cursor:pointer}
-.sheet.tall{height:88%}.scv{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3}.scv video{width:100%;height:100%;object-fit:cover;display:block}.scv i{position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--g);opacity:.85}
+.sheet.tall{height:88%}.mch{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}.mch .mc{flex:none;margin:0;padding:8px 11px;font-size:13px;font-weight:500}.mch .mc.on{border-color:var(--g);color:var(--g)}.scv{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3}.scv video{width:100%;height:100%;object-fit:cover;display:block}.scv i{position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--g);opacity:.85}
 .fres{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.3;cursor:pointer}.fres small{color:var(--mut);white-space:nowrap;font-size:12px}
 .fgl{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:8px}.fgl .sub{font-size:11px}.fgl input{width:100%;margin:6px 0 0}
 .apd{display:grid;grid-template-columns:46px 1fr 122px;gap:6px;align-items:center;font-size:12px;color:var(--mut);padding:6px 0}.apd .apb{margin:0}.apd b{color:var(--txt);font-weight:500;text-align:right}
@@ -301,7 +301,7 @@ function fgUpd(){try{fInit();const t=key(TODAY),d=fDay(t);if(d.n>0){if(JSON.stri
 function fAdd(m,name,g,per){const f=g/100;D.fl[key(TODAY)+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=[m,name,g,r1(per[0]*f),r2(per[1]*f),r2(per[2]*f),r2(per[3]*f)];save()}
 function fSel(r){if(!r)return null;if(r.t==='t'){const x=FOODS&&FOODS[r.i];return x?{name:x[1],per:[x[3],x[4],x[5],x[6]]}:null}const c=D.cf[r.i];return c?{name:c.n,per:[c.k,c.p,c.l,c.c]}:null}
 function fPrev(sel,gs){const g=parseFloat(String(gs).replace(',','.'));if(!(g>0))return 'Informe a quantidade em gramas.';const f=g/100;return Math.round(sel.per[0]*f)+' kcal · C '+r1(sel.per[3]*f)+' g · P '+r1(sel.per[1]*f)+' g · G '+r1(sel.per[2]*f)+' g'}
-function fConfirm(){const a=S.sheet&&S.sheet.fadd,sel=a&&fSel(a.sel);if(!sel)return;const g=parseFloat(String(S.fgv).replace(',','.'));if(!(g>0))return;fAdd(a.m,sel.name,r2(Math.min(5000,g)),sel.per);S.fq='';S.sheet={food:true};render()}
+function fConfirm(){const a=S.sheet&&S.sheet.fadd,sel=a&&fSel(a.sel);if(!sel)return;const g=parseFloat(String(S.fgv).replace(',','.'));if(!(g>0))return;const lab=fMsLab();fAdd(a.m,(sel.name+(lab?' · '+lab:'')).slice(0,90),r2(Math.min(5000,g)),sel.per);S.fq='';S.fms=null;S.sheet={food:true};render()}
 function fResHtml(){
   const q=S.fq||'',gm=q.match(GRE),tk=nrm(gm?q.slice(0,gm.index):q).split(/\s+/).filter(Boolean);
   let L=[];
@@ -309,6 +309,16 @@ function fResHtml(){
   if(FOODS&&tk.length){if(!FN)FN=FOODS.map(x=>nrm(x[1]));const R=[];FOODS.forEach((x,i)=>{const n=FN[i];if(tk.every(t=>n.includes(t)))R.push({t:'t',i,n:x[1],k:x[3],s:(n.startsWith(tk[0])?0:1)*100+n.length})});R.sort((a,b)=>a.s-b.s);L=L.concat(R.slice(0,40))}
   if(!L.length)return !FOODS&&!FERR?'<div class="note" style="padding:10px 0">Carregando a base TACO…</div>':!FOODS?'<div class="note" style="padding:10px 0">Não consegui carregar a base TACO. Verifique a conexão e reabra.</div>':'<div class="note" style="padding:10px 0">'+(tk.length?'Nada encontrado. Use “+ Novo alimento” abaixo.':'Digite o nome do alimento. Ex.: arroz cozido 150g')+'</div>';
   return L.map(x=>'<div class="fres" data-a="fpick" data-t="'+x.t+'" data-i="'+escH(x.i)+'"><span>'+escH(x.n)+(x.my?' <small>· meu</small>':'')+'</span><small>'+Math.round(x.k)+' kcal'+(x.my?' <span data-a="fcdel" data-i="'+escH(x.i)+'" style="padding:0 6px">×</span>':'')+'</small></div>').join('')}
+let MEAS=null;
+function loadMeas(){if(MEAS!==null)return;MEAS=0;fetch('medidas.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{MEAS=j;const e=document.getElementById('fmch');if(e)e.innerHTML=fMeasHtml()}).catch(()=>{MEAS=null})}
+const selKey=r=>r?r.t+':'+r.i:'';
+function fMeasList(r){if(!MEAS||!r||r.t!=='t'||!FOODS||!FOODS[r.i])return [];const id=FOODS[r.i][0],L=MEAS.m[id]||(MEAS.a&&MEAS.a[id]&&MEAS.m[MEAS.a[id]])||[];return L.map(x=>[MEAS.n[x[0]],x[1]])}
+const fmtG=g=>String(r2(g)).replace('.',',');
+function fMsCur(){const a=S.sheet&&S.sheet.fadd;return a&&S.fms&&S.fms.k===selKey(a.sel)?S.fms:null}
+function fMeasHtml(){const a=S.sheet&&S.sheet.fadd;if(!a||!a.sel)return '';const L=fMeasList(a.sel);if(!L.length)return '';const ms=fMsCur(),cur=ms&&L[ms.i];
+  return '<div class="sub" style="margin-top:16px">MEDIDAS CASEIRAS · TOQUE PARA SOMAR</div><div class="mch">'+L.map((x,i)=>'<span class="opt mc'+(ms&&ms.i===i?' on':'')+'" data-a="fmeas" data-i="'+i+'">'+escH(x[0])+' · '+fmtG(x[1])+' g</span>').join('')+'</div>'+
+  '<div class="note" style="padding:8px 0 0;font-size:13px;color:var(--txt)">'+(cur?ms.n+' × '+escH(cur[0].toLowerCase())+' = '+fmtG(cur[1]*ms.n)+' g':'Pesos médios do IBGE. Ajuste os gramas se precisar.')+'</div>'}
+function fMsLab(){const a=S.sheet&&S.sheet.fadd,ms=fMsCur();if(!ms)return '';const x=fMeasList(a.sel)[ms.i];if(!x)return '';const g=parseFloat(String(S.fgv).replace(',','.'));return Math.abs(g-x[1]*ms.n)<0.01?ms.n+'× '+x[0].toLowerCase():''}
 const OFFU='https://world.openfoodfacts.org',OFFF='code,product_name,product_name_pt,brands,nutriments';
 function offNorm(p){if(!p)return null;const n=p.nutriments||{},num=v=>{const x=parseFloat(v);return x>=0?x:null};let k=num(n['energy-kcal_100g']);if(k==null&&num(n.energy_100g)!=null)k=num(n.energy_100g)/4.184;
   const nm=String(p.product_name_pt||p.product_name||'').trim()||'Produto '+p.code,br=String(p.brands||'').split(',')[0].trim();
@@ -381,14 +391,14 @@ function foodHtml(){fInit();const g=D.food.goal;
   <div class="fgl"><div><div class="sub">CALORIAS (KCAL)</div><input type="text" class="fcfg" data-f="k" inputmode="numeric" maxlength="5" value="${g.k}"></div><div><div class="sub">CARBOIDRATOS (G)</div><input type="text" class="fcfg" data-f="c" inputmode="numeric" maxlength="4" value="${g.c}"></div><div><div class="sub">PROTEÍNA (G)</div><input type="text" class="fcfg" data-f="p" inputmode="numeric" maxlength="4" value="${g.p}"></div><div><div class="sub">GORDURA (G)</div><input type="text" class="fcfg" data-f="f" inputmode="numeric" maxlength="4" value="${g.f}"></div></div>
   <div class="sub" style="margin-top:22px">HISTÓRICO SEMANAL</div>
   <div id="fhist" style="margin-top:6px">${fWeeks()}</div>
-  <div class="note" style="padding:16px 0 0">Valores calculados com a TACO (4ª ed., NEPA/UNICAMP, 2011), por 100 g de parte comestível. Carboidrato total. Itens marcados (TBCA): TBCA – Tabela Brasileira de Composição de Alimentos (USP/FoRC). Itens marcados (IBGE): IBGE, POF 2008-2009, Tabelas de Composição Nutricional dos Alimentos Consumidos no Brasil (2011).</div>`}
+  <div class="note" style="padding:16px 0 0">Valores calculados com a TACO (4ª ed., NEPA/UNICAMP, 2011), por 100 g de parte comestível. Carboidrato total. Itens marcados (TBCA): TBCA – Tabela Brasileira de Composição de Alimentos (USP/FoRC). Itens marcados (IBGE): IBGE, POF 2008-2009, Tabelas de Composição Nutricional dos Alimentos Consumidos no Brasil (2011). Medidas caseiras: IBGE, POF 2008-2009, Tabela de Medidas Referidas para os Alimentos Consumidos no Brasil (2011).</div>`}
 function faddHtml(a){const sel=fSel(a.sel);
   const hd=`<div class="sh"><button class="lnk" data-a="${sel?'fback':'food'}">‹ Voltar</button><b>${FMEALS[a.m]}</b><button class="lnk" data-a="close">Fechar</button></div>`;
   if(sel)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>${hd}
     <div class="note" style="padding:0 0 10px;font-size:14px;color:var(--txt)">${escH(sel.name)}</div>
     <div class="sub">QUANTIDADE (G)</div>
     <div class="wrow" style="margin:8px 0 12px"><input type="text" id="fg" inputmode="decimal" maxlength="8" value="${escH(S.fgv)}"><div class="opt" data-a="fok">Adicionar</div></div>
-    <div class="note" id="fprev" style="padding:0;font-size:13px;color:var(--txt)">${fPrev(sel,S.fgv)}</div></div></div>`;
+    <div class="note" id="fprev" style="padding:0;font-size:13px;color:var(--txt)">${fPrev(sel,S.fgv)}</div><div id="fmch">${fMeasHtml()}</div></div></div>`;
   return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>${hd}
     <input type="text" id="fq" class="rin" placeholder="Buscar · ex.: arroz cozido 150g" autocomplete="off" autocorrect="off" value="${escH(S.fq||'')}">
     <div class="fad" data-a="fscan" data-m="${a.m}" style="padding:4px 0 2px">Escanear código de barras</div>
@@ -616,7 +626,7 @@ function render(){
   const fq=document.getElementById('fq');if(fq){fq.addEventListener('input',e=>{S.fq=e.target.value;const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml();offRes()});if(S.fqFocus){S.fqFocus=0;fq.focus()}}
   const scv=document.getElementById('scv');if(scv){if(SC.v!==scv){scStop();scStart(scv)}}else if(SC.v||SC.st||SC.rd)scStop();
   const scc=document.getElementById('scc');if(scc){scc.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'')});scc.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();offCode(scc.value)}})}
-  const fgi=document.getElementById('fg');if(fgi){fgi.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'');S.fgv=e.target.value;const pv=document.getElementById('fprev'),sl=fSel(S.sheet.fadd.sel);if(pv&&sl)pv.textContent=fPrev(sl,S.fgv)});fgi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fConfirm()}});if(S.fgFocus){S.fgFocus=0;fgi.focus();fgi.select()}}
+  const fgi=document.getElementById('fg');if(fgi){fgi.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'');S.fgv=e.target.value;const pv=document.getElementById('fprev'),sl=fSel(S.sheet.fadd.sel);if(pv&&sl)pv.textContent=fPrev(sl,S.fgv);if(fMsCur()){S.fms=null;const mc=document.getElementById('fmch');if(mc)mc.innerHTML=fMeasHtml()}});fgi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fConfirm()}});if(S.fgFocus){S.fgFocus=0;if(!fMeasList(S.sheet.fadd.sel).length){fgi.focus();fgi.select()}}}
   document.querySelectorAll('.fcf').forEach(i=>i.addEventListener('input',e=>{if(!S.cfd)S.cfd={};S.cfd[e.target.dataset.f]=e.target.value}));
   document.querySelectorAll('.fcfg').forEach(i=>{i.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'')});
     i.addEventListener('change',e=>{fInit();const f=e.target.dataset.f,v=parseInt(e.target.value,10)||0;D.food.set=1;D.food.goal[f]=Math.max(1,Math.min(f==='k'?20000:2000,v||D.food.goal[f]));e.target.value=D.food.goal[f];
@@ -649,7 +659,8 @@ document.addEventListener('click',e=>{
   else if(a==='thist'){S.sheet={thist:true}}
   else if(a==='aprov'){S.sheet={aprov:true};S.hw=null}
   else if(a==='food'){S.sheet={food:true};S.hw=null;S.fq=''}
-  else if(a==='faddopen'){S.sheet={fadd:{m:+el.dataset.m,sel:null}};S.fqFocus=1;loadFoods()}
+  else if(a==='faddopen'){S.sheet={fadd:{m:+el.dataset.m,sel:null}};S.fqFocus=1;loadFoods();loadMeas()}
+  else if(a==='fmeas'){const ad=S.sheet&&S.sheet.fadd;if(!ad)return;const L=fMeasList(ad.sel),i=+el.dataset.i,x=L[i];if(!x)return;const ms=fMsCur();if(ms&&ms.i===i)ms.n=Math.min(50,ms.n+1);else S.fms={k:selKey(ad.sel),i,n:1};S.fgv=fmtG(x[1]*S.fms.n);const gi=document.getElementById('fg'),pv=document.getElementById('fprev'),mc=document.getElementById('fmch'),sl=fSel(ad.sel);if(gi)gi.value=S.fgv;if(pv&&sl)pv.textContent=fPrev(sl,S.fgv);if(mc)mc.innerHTML=fMeasHtml();return}
   else if(a==='fpick'){const gm=(S.fq||'').match(GRE);S.sheet.fadd.sel={t:el.dataset.t,i:el.dataset.t==='t'?+el.dataset.i:el.dataset.i};S.fgv=gm?gm[1]:'100';S.fgFocus=1}
   else if(a==='fscan'){scStop();S.sheet={fscan:{m:+el.dataset.m}}}
   else if(a==='scgo'){const i=document.getElementById('scc');offCode(i&&i.value);return}
@@ -864,7 +875,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v37',KNOWN=/^([etpkwxrhfyc]\||o\|$|s\|(sort|ws|wg|wc|fg)$)/;
+const VER='v38',KNOWN=/^([etpkwxrhfyc]\||o\|$|s\|(sort|ws|wg|wc|fg)$)/;
 function stamp(){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
