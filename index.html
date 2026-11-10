@@ -113,6 +113,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .fmh{display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 4px;font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--mut);text-transform:uppercase}
 .fer{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.fet{flex:1;min-width:0;font-size:14px;line-height:1.3}.fet small{display:block;font-size:11px;color:var(--mut);margin-top:2px}.fek{font-size:13px;color:var(--mut);white-space:nowrap}
 .fad{padding:11px 0 4px;font-size:13px;color:var(--g);cursor:pointer}
+.sheet.tall{height:88%}.scv{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3}.scv video{width:100%;height:100%;object-fit:cover;display:block}.scv i{position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--g);opacity:.85}
 .fres{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.3;cursor:pointer}.fres small{color:var(--mut);white-space:nowrap;font-size:12px}
 .fgl{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:8px}.fgl .sub{font-size:11px}.fgl input{width:100%;margin:6px 0 0}
 .apd{display:grid;grid-template-columns:46px 1fr 122px;gap:6px;align-items:center;font-size:12px;color:var(--mut);padding:6px 0}.apd .apb{margin:0}.apd b{color:var(--txt);font-weight:500;text-align:right}
@@ -308,6 +309,52 @@ function fResHtml(){
   if(FOODS&&tk.length){if(!FN)FN=FOODS.map(x=>nrm(x[1]));const R=[];FOODS.forEach((x,i)=>{const n=FN[i];if(tk.every(t=>n.includes(t)))R.push({t:'t',i,n:x[1],k:x[3],s:(n.startsWith(tk[0])?0:1)*100+n.length})});R.sort((a,b)=>a.s-b.s);L=L.concat(R.slice(0,40))}
   if(!L.length)return !FOODS&&!FERR?'<div class="note" style="padding:10px 0">Carregando a base TACO…</div>':!FOODS?'<div class="note" style="padding:10px 0">Não consegui carregar a base TACO. Verifique a conexão e reabra.</div>':'<div class="note" style="padding:10px 0">'+(tk.length?'Nada encontrado. Use “+ Novo alimento” abaixo.':'Digite o nome do alimento. Ex.: arroz cozido 150g')+'</div>';
   return L.map(x=>'<div class="fres" data-a="fpick" data-t="'+x.t+'" data-i="'+escH(x.i)+'"><span>'+escH(x.n)+(x.my?' <small>· meu</small>':'')+'</span><small>'+Math.round(x.k)+' kcal'+(x.my?' <span data-a="fcdel" data-i="'+escH(x.i)+'" style="padding:0 6px">×</span>':'')+'</small></div>').join('')}
+const OFFU='https://world.openfoodfacts.org',OFFF='code,product_name,product_name_pt,brands,nutriments';
+function offNorm(p){if(!p)return null;const n=p.nutriments||{},num=v=>{const x=parseFloat(v);return x>=0?x:null};let k=num(n['energy-kcal_100g']);if(k==null&&num(n.energy_100g)!=null)k=num(n.energy_100g)/4.184;
+  const nm=String(p.product_name_pt||p.product_name||'').trim()||'Produto '+p.code,br=String(p.brands||'').split(',')[0].trim();
+  return {code:String(p.code||''),n:(nm+(br&&!nrm(nm).includes(nrm(br))?' – '+br:'')).slice(0,54),k:k==null?null:r2(k),p:r2(num(n.proteins_100g)||0),l:r2(num(n.fat_100g)||0),c:r2(num(n.carbohydrates_100g)||0)}}
+function offSave(o){fInit();for(const id in D.cf)if(o.code&&D.cf[id].b===o.code)return id;const id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,4);D.cf[id]={n:o.n+' (OFF)',k:o.k,p:o.p,l:o.l,c:o.c,b:o.code};save();return id}
+const offQ=()=>(S.fq||'').replace(GRE,'').trim();
+function offSearch(){const q=offQ();if(q.length<2)return;S.off={q,st:'load',L:[]};offRes();
+  fetch(OFFU+'/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=24&fields='+OFFF+'&tagtype_0=countries&tag_contains_0=contains&tag_0=brazil').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{if(!S.off||S.off.q!==q)return;S.off.L=(j.products||[]).map(offNorm).filter(o=>o&&o.k>0);S.off.st='ok';offRes()}).catch(()=>{if(S.off&&S.off.q===q){S.off.st='err';offRes()}})}
+function offHtml(){const q=offQ(),o=S.off;
+  if(!o||o.q!==q)return q.length>=2?'<div class="fad" data-a="offs" style="padding-top:14px">Buscar “'+escH(q)+'” em produtos de marca (Open Food Facts)</div>':'';
+  if(o.st==='load')return '<div class="note" style="padding:12px 0">Buscando no Open Food Facts…</div>';
+  if(o.st==='err')return '<div class="note" style="padding:12px 0">Não consegui acessar o Open Food Facts. Verifique a conexão. <span data-a="offs" style="text-decoration:underline">Tentar de novo</span></div>';
+  if(!o.L.length)return '<div class="note" style="padding:12px 0">Nenhum produto de marca encontrado para “'+escH(q)+'”.</div>';
+  return '<div class="sub" style="margin-top:14px">PRODUTOS DE MARCA · OPEN FOOD FACTS</div>'+o.L.map((x,i)=>'<div class="fres" data-a="offpick" data-i="'+i+'"><span>'+escH(x.n)+'</span><small>'+Math.round(x.k)+' kcal</small></div>').join('')}
+function offRes(){const r=document.getElementById('foff');if(r)r.innerHTML=offHtml()}
+const SC={tok:0,st:null,rd:null,v:null,t:0};
+function scStop(){SC.tok++;clearTimeout(SC.t);try{if(SC.rd)SC.rd.reset()}catch(e){}SC.rd=null;if(SC.st){SC.st.getTracks().forEach(t=>t.stop());SC.st=null}SC.v=null}
+function scMsg(t){const e=document.getElementById('scmsg');if(e)e.textContent=t}
+function zxLoad(){return window.ZXing?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';s.integrity='sha384-BzBxP10ZE72aitqj5UMmUsbKFliP/DZqA8Wq+BNNhlIJDGoEd1tpkMYXOg9+n6sB';s.crossOrigin='anonymous';s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function scStart(v){const tk=SC.tok;SC.v=v;
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw 0;
+    let native=false;if('BarcodeDetector' in window){try{native=(await BarcodeDetector.getSupportedFormats()).includes('ean_13')}catch(e){}}
+    if(native){const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});if(tk!==SC.tok){st.getTracks().forEach(t=>t.stop());return}SC.st=st;v.srcObject=st;await v.play();
+      const bd=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});scMsg('Aponte a câmera para o código de barras.');
+      const tick=async()=>{if(tk!==SC.tok)return;try{const r=await bd.detect(v);if(r.length&&tk===SC.tok){scFound(r[0].rawValue);return}}catch(e){}SC.t=setTimeout(tick,250)};tick();return}
+    await zxLoad();if(tk!==SC.tok)return;
+    const hn=new Map();hn.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.UPC_A,ZXing.BarcodeFormat.UPC_E]);
+    const rd=new ZXing.BrowserMultiFormatReader(hn);SC.rd=rd;
+    await rd.decodeFromConstraints({video:{facingMode:'environment'},audio:false},v,res=>{if(res&&tk===SC.tok)scFound(res.getText())});
+    if(tk===SC.tok)scMsg('Aponte a câmera para o código de barras.')
+  }catch(e){if(tk===SC.tok){scStop();scMsg('Não consegui usar a câmera. Permita o acesso à câmera ou digite o código abaixo.')}}}
+function scFound(code){scStop();offCode(code)}
+function offCode(code){code=String(code||'').replace(/\D/g,'');const f=S.sheet&&S.sheet.fscan;if(!f)return;if(code.length<6){scMsg('Código inválido. Confira os números.');return}
+  const m=f.m,go=id=>{scStop();S.sheet={fadd:{m,sel:{t:'c',i:id}}};S.fgv='100';S.fgFocus=1;render()};
+  for(const id in D.cf)if(D.cf[id].b===code){go(id);return}
+  scMsg('Buscando o produto '+code+'…');
+  fetch(OFFU+'/api/v2/product/'+code+'.json?fields='+OFFF).then(r=>r.json()).then(j=>{if(!S.sheet||!S.sheet.fscan)return;const o=j&&j.status===1?offNorm(j.product):null;
+    if(o&&o.k>0)go(offSave(o));else{scStop();S.sheet.fscan.miss={code,o};render()}}).catch(()=>{if(S.sheet&&S.sheet.fscan){scStop();S.sheet.fscan.err=1;render()}})}
+function fscanHtml(f){const hd=`<div class="sh"><button class="lnk" data-a="faddopen" data-m="${f.m}">‹ Voltar</button><b>Código de barras</b><button class="lnk" data-a="close">Fechar</button></div>`,b2='class="btn" style="background:var(--bg);color:var(--txt);margin-top:10px;border:1px solid var(--line)"';let body;
+  if(f.miss)body=`<div class="note" style="padding:4px 0 14px;font-size:14px;color:var(--txt)">${f.miss.o?escH(f.miss.o.n)+' está no Open Food Facts, mas sem calorias cadastradas.':'O código '+f.miss.code+' não foi encontrado no Open Food Facts.'} Cadastre uma vez pelo rótulo e ele fica salvo para as próximas.</div><button class="btn" data-a="fnewoff">Cadastrar pelo rótulo</button><button ${b2} data-a="fscan" data-m="${f.m}">Escanear outro</button>`;
+  else if(f.err)body=`<div class="note" style="padding:4px 0 14px;font-size:14px;color:var(--txt)">Não consegui acessar o Open Food Facts. Verifique a conexão.</div><button class="btn" data-a="fscan" data-m="${f.m}">Tentar de novo</button>`;
+  else body=`<div class="scv"><video id="scv" playsinline muted autoplay></video><i></i></div><div class="note" id="scmsg" style="padding:10px 0;font-size:13px;color:var(--txt)">Abrindo a câmera…</div>
+    <div class="sub">OU DIGITE O CÓDIGO</div><div class="wrow" style="margin:8px 0"><input type="text" id="scc" inputmode="numeric" maxlength="14" placeholder="Ex.: 7891000…" autocomplete="off"><div class="opt" data-a="scgo">Buscar</div></div>
+    <div class="note" style="padding:6px 0 0">Dados do Open Food Facts (base aberta, preenchida por usuários). Confira com o rótulo quando puder.</div>`;
+  return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>${hd}${body}</div></div>`}
 function foodTop(){fInit();const k=key(TODAY),d=fDay(k),g=fGoal(k),p=Math.floor(d.k*100/g.k);
   const row=(lab,v,go)=>{const q=Math.floor(v*100/go),f=r1(go-v);return '<div class="fmr"><span>'+lab+'</span><b>'+v+' / '+go+' g · '+q+'%</b></div><div class="wbar" style="height:8px"><i style="width:'+Math.min(100,q)+'%"></i></div><div class="fms">'+(f>0?'falta '+f+' g ('+Math.max(0,100-q)+'%)':'meta batida'+(f<0?' · +'+r1(-f)+' g':''))+'</div>'};
   return `<div class="wbig"><b>${p}%</b><span>${d.k} / ${g.k} kcal</span></div><div class="wbar"><i style="width:${Math.min(100,p)}%"></i></div>
@@ -342,9 +389,10 @@ function faddHtml(a){const sel=fSel(a.sel);
     <div class="sub">QUANTIDADE (G)</div>
     <div class="wrow" style="margin:8px 0 12px"><input type="text" id="fg" inputmode="decimal" maxlength="8" value="${escH(S.fgv)}"><div class="opt" data-a="fok">Adicionar</div></div>
     <div class="note" id="fprev" style="padding:0;font-size:13px;color:var(--txt)">${fPrev(sel,S.fgv)}</div></div></div>`;
-  return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>${hd}
+  return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>${hd}
     <input type="text" id="fq" class="rin" placeholder="Buscar · ex.: arroz cozido 150g" autocomplete="off" autocorrect="off" value="${escH(S.fq||'')}">
-    <div id="fres" style="margin-top:6px">${fResHtml()}</div>
+    <div class="fad" data-a="fscan" data-m="${a.m}" style="padding:4px 0 2px">Escanear código de barras</div>
+    <div id="fres" style="margin-top:6px">${fResHtml()}</div><div id="foff">${offHtml()}</div>
     <div class="fad" data-a="fnew" style="padding-top:14px">+ Novo alimento (valores do rótulo)</div></div></div>`}
 function fnewHtml(m){const d=S.cfd||{};const f=(l,k,h)=>`<div class="sub" style="margin-top:12px">${l}</div><input type="text" class="fcf rin" data-f="${k}" ${k==='n'?'maxlength="60"':'inputmode="decimal" maxlength="8"'} value="${escH(d[k]||'')}" ${h?'placeholder="'+h+'"':''}>`;
   return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
@@ -473,6 +521,7 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     <div class="sh"><b>Alimentação</b><button class="lnk" data-a="close">Fechar</button></div>${foodHtml()}</div></div>`;
   if(sh.fadd)return faddHtml(sh.fadd);
   if(sh.fnew)return fnewHtml(sh.fnew.m);
+  if(sh.fscan)return fscanHtml(sh.fscan);
   if(sh.water)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Água</b><button class="lnk" data-a="close">Fechar</button></div>${waterHtml()}</div></div>`;
   if(sh.aprov)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
@@ -564,7 +613,9 @@ function render(){
       else{const ix=+e.target.dataset.i;D.water.cups[ix]=Math.max(10,Math.min(5000,v||D.water.cups[ix]));e.target.value=D.water.cups[ix]}
       save();const a=document.getElementById('wtop'),b=document.getElementById('whist');if(a)a.innerHTML=wTop();if(b)b.innerHTML=wWeeks()})});
   const wn=document.getElementById('wn');if(wn){wn.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'')});wn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const n=parseInt(wn.value,10)||0;if(n>0){wAdd(n);render()}}})}
-  const fq=document.getElementById('fq');if(fq){fq.addEventListener('input',e=>{S.fq=e.target.value;const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()});if(S.fqFocus){S.fqFocus=0;fq.focus()}}
+  const fq=document.getElementById('fq');if(fq){fq.addEventListener('input',e=>{S.fq=e.target.value;const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml();offRes()});if(S.fqFocus){S.fqFocus=0;fq.focus()}}
+  const scv=document.getElementById('scv');if(scv){if(SC.v!==scv){scStop();scStart(scv)}}else if(SC.v||SC.st||SC.rd)scStop();
+  const scc=document.getElementById('scc');if(scc){scc.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'')});scc.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();offCode(scc.value)}})}
   const fgi=document.getElementById('fg');if(fgi){fgi.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'');S.fgv=e.target.value;const pv=document.getElementById('fprev'),sl=fSel(S.sheet.fadd.sel);if(pv&&sl)pv.textContent=fPrev(sl,S.fgv)});fgi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fConfirm()}});if(S.fgFocus){S.fgFocus=0;fgi.focus();fgi.select()}}
   document.querySelectorAll('.fcf').forEach(i=>i.addEventListener('input',e=>{if(!S.cfd)S.cfd={};S.cfd[e.target.dataset.f]=e.target.value}));
   document.querySelectorAll('.fcfg').forEach(i=>{i.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'')});
@@ -600,6 +651,11 @@ document.addEventListener('click',e=>{
   else if(a==='food'){S.sheet={food:true};S.hw=null;S.fq=''}
   else if(a==='faddopen'){S.sheet={fadd:{m:+el.dataset.m,sel:null}};S.fqFocus=1;loadFoods()}
   else if(a==='fpick'){const gm=(S.fq||'').match(GRE);S.sheet.fadd.sel={t:el.dataset.t,i:el.dataset.t==='t'?+el.dataset.i:el.dataset.i};S.fgv=gm?gm[1]:'100';S.fgFocus=1}
+  else if(a==='fscan'){scStop();S.sheet={fscan:{m:+el.dataset.m}}}
+  else if(a==='scgo'){const i=document.getElementById('scc');offCode(i&&i.value);return}
+  else if(a==='offs'){offSearch();return}
+  else if(a==='offpick'){const o=S.off&&S.off.L[+el.dataset.i];if(!o||!S.sheet.fadd)return;const gm=(S.fq||'').match(GRE);S.sheet.fadd.sel={t:'c',i:offSave(o)};S.fgv=gm?gm[1]:'100';S.fgFocus=1}
+  else if(a==='fnewoff'){const f=S.sheet.fscan,o=f&&f.miss&&f.miss.o;S.cfd={n:o?o.n:'',k:'',p:o&&o.p?String(o.p):'',l:o&&o.l?String(o.l):'',c:o&&o.c?String(o.c):''};S.sheet={fnew:{m:f?f.m:0}}}
   else if(a==='fback'){S.sheet.fadd.sel=null;S.fqFocus=1}
   else if(a==='fok'){fConfirm();return}
   else if(a==='fdel'){delete D.fl[el.dataset.k];save()}
@@ -808,7 +864,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v36',KNOWN=/^([etpkwxrhfyc]\||o\|$|s\|(sort|ws|wg|wc|fg)$)/;
+const VER='v37',KNOWN=/^([etpkwxrhfyc]\||o\|$|s\|(sort|ws|wg|wc|fg)$)/;
 function stamp(){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
