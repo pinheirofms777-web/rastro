@@ -115,7 +115,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .fad{padding:11px 0 4px;font-size:13px;color:var(--g);cursor:pointer}
 .sheet.tall{height:88%}.mch{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}.mch .mc{flex:none;margin:0;padding:8px 11px;font-size:13px;font-weight:500}.mch .mc.on{border-color:var(--g);color:var(--g)}.scv{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3}.scv video{width:100%;height:100%;object-fit:cover;display:block}.scv i{position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--g);opacity:.85}
 .fres{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.3;cursor:pointer}.fres small{color:var(--mut);white-space:nowrap;font-size:12px}
-.fgl{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:8px}.fgl.k3{grid-template-columns:1fr 1fr 1fr}.fmode{display:flex;gap:6px;margin:10px 0 4px}.fmode .opt{flex:1;padding:10px 0;font-size:13px;cursor:pointer}.fmode .opt.on{background:var(--txt);color:#111;border-color:var(--txt);font-weight:600}.fkr{font-size:13px;line-height:1.6;color:var(--mut);margin-top:12px}.fkr b{color:var(--txt);font-weight:500}.fwarn{font-size:13px;line-height:1.5;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.bwr{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}.bwr span{flex:1}.bwr small{color:var(--mut);font-size:12px;min-width:56px;text-align:right}.bwr b{font-weight:500}.fgl .sub{font-size:11px}.fgl input{width:100%;margin:6px 0 0}
+.fgl{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:8px}.fgl.k3{grid-template-columns:1fr 1fr 1fr}.bcch{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px}.bcch .opt{flex:none;padding:8px 11px;font-size:12px;cursor:pointer;white-space:nowrap}.bcch .opt.on{background:var(--txt);color:#111;border-color:var(--txt);font-weight:600}.bcr{display:grid;grid-template-columns:1fr auto 52px 52px;gap:6px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.bcr b{font-weight:500;text-align:right;white-space:nowrap}.bcr small{color:var(--mut);font-size:11px;text-align:right}.bcr.h{color:var(--mut);font-size:11px;border:0;padding-bottom:0}.bch{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}.bch span{flex:1;color:var(--mut);line-height:1.4}.bch b{font-weight:500;color:var(--txt)}.fmode{display:flex;gap:6px;margin:10px 0 4px}.fmode .opt{flex:1;padding:10px 0;font-size:13px;cursor:pointer}.fmode .opt.on{background:var(--txt);color:#111;border-color:var(--txt);font-weight:600}.fkr{font-size:13px;line-height:1.6;color:var(--mut);margin-top:12px}.fkr b{color:var(--txt);font-weight:500}.fwarn{font-size:13px;line-height:1.5;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.bwr{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}.bwr span{flex:1}.bwr small{color:var(--mut);font-size:12px;min-width:56px;text-align:right}.bwr b{font-weight:500}.fgl .sub{font-size:11px}.fgl input{width:100%;margin:6px 0 0}
 .apd{display:grid;grid-template-columns:46px 1fr 122px;gap:6px;align-items:center;font-size:12px;color:var(--mut);padding:6px 0}.apd .apb{margin:0}.apd b{color:var(--txt);font-weight:500;text-align:right}
 .durr{display:flex;gap:8px;align-items:center}.durr input{width:84px;margin:8px 0 14px;flex:none}.durr .opt{flex:1;margin-bottom:6px}
 .tks{display:block;color:var(--mut);font-size:11px;margin-top:3px}.tkm{font-size:12px;padding:8px 10px;border-radius:8px;background:var(--panel);cursor:pointer;white-space:nowrap}
@@ -293,7 +293,7 @@ var FOODS=null,FN=null,FERR=0;
 const FMEALS=['Café da manhã','Almoço','Lanche','Jantar','Ceia'],GRE=/(\d+(?:[.,]\d+)?)\s*g\s*$/i;
 const nrm=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const r1=n=>Math.round(n*10)/10,r2=n=>Math.round(n*100)/100;
-function fInit(){bwInit();if(!D.food||typeof D.food!=='object')D.food={};const f=D.food;if(!f.goal||!(f.goal.k>0))f.goal={k:1823,c:228,p:137,f:41};if(!D.fl||typeof D.fl!=='object')D.fl={};if(!D.fgd||typeof D.fgd!=='object')D.fgd={};if(!D.cf||typeof D.cf!=='object')D.cf={}}
+function fInit(){bwInit();if(!D.bc||typeof D.bc!=='object')D.bc={};if(!D.food||typeof D.food!=='object')D.food={};const f=D.food;if(!f.goal||!(f.goal.k>0))f.goal={k:1823,c:228,p:137,f:41};if(!D.fl||typeof D.fl!=='object')D.fl={};if(!D.fgd||typeof D.fgd!=='object')D.fgd={};if(!D.cf||typeof D.cf!=='object')D.cf={}}
 function loadFoods(){if(FOODS)return;fetch('taco.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{FOODS=j.f;FERR=0;if(S.sheet&&S.sheet.fadd&&!S.sheet.fadd.sel&&!document.activeElement.id)render();else{const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()}}).catch(()=>{FERR=1;const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()})}
 function fDay(k){const o={k:0,p:0,l:0,c:0,n:0};for(const x in D.fl)if(x.startsWith(k+'|')){const e=D.fl[x];o.k+=e[3];o.p+=e[4];o.l+=e[5];o.c+=e[6];o.n++}o.k=Math.round(o.k);o.p=r1(o.p);o.l=r1(o.l);o.c=r1(o.c);return o}
 function fGoal(k){return k>=key(TODAY)?D.food.goal:(D.fgd[k]||D.food.goal)}
@@ -314,6 +314,36 @@ function fKgHtml(){const g=D.food.goal,L=bwLast();
   return h+'</div>'}
 function fKgRefresh(){const a=document.getElementById('ftop'),b=document.getElementById('fhist'),c=document.getElementById('fkgr');if(a)a.innerHTML=foodTop();if(b)b.innerHTML=fWeeks();if(c)c.innerHTML=fKgHtml()}
 function bwAdd(d,v){bwInit();const g=D.food.goal;D.bw[d]=r2(v);if(g.m==='kg'&&!g.w){const L=bwLast();if(L)fKgApply(L.v)}save()}
+/* ---------- composição corporal ---------- */
+const BCV=[['w','Peso','kg',1],['i','IMC','',1],['f','Gordura','%',1],['fk','Massa gorda','kg',1],['lk','Massa livre de gordura','kg',1],['m','Músculo','%',1],['mk','Massa muscular','kg',1],['r','TMB','kcal',0],['a','Idade metabólica','anos',0],['v','Gordura visceral','',0]];
+function bcRow(k){const b=D.bc[k];if(!b)return null;const w=D.bw[k],o=Object.assign({},b);if(w!=null){o.w=w;if(b.f!=null){o.fk=r1(w*b.f/100);o.lk=r1(w-o.fk)}if(b.m!=null)o.mk=r1(w*b.m/100)}return o}
+const f1=v=>(Math.round(v*10)/10).toFixed(1).replace('.',','),bcF=(v,d)=>v==null?'—':(d?f1(v):fint(v));
+function bcD(a,b,d){if(a==null||b==null)return '';const x=a-b;if(Math.abs(x)<(d?0.05:0.5))return '=';return (x>0?'+':'−')+(d?f1(Math.abs(x)):fint(Math.abs(x)))}
+function bcLoad(k){const b=D.bc[k]||{},g=x=>x!=null?fmtG(x):'';S.bcf={d:k,w:D.bw[k]!=null&&D.bc[k]?fmtG(D.bw[k]):'',i:g(b.i),f:g(b.f),m:g(b.m),r:g(b.r),a:g(b.a),v:g(b.v)}}
+function bcImc(){const F=S.bcf||{},w=pnum(F.w),h=D.ht;return h&&w>0?r1(w/Math.pow(h/100,2)):null}
+function bcChart(id){const ks=Object.keys(D.bc).sort(),pts=ks.map(k=>[k,(bcRow(k)||{})[id]]).filter(p=>p[1]!=null),V=BCV.find(x=>x[0]===id)||BCV[0];
+  if(pts.length<2)return '<div class="note" style="padding:10px 0 0">O gráfico aparece a partir de 2 medições com esse dado.</div>';
+  const W=320,H=140,pl=8,pr=8,pt=18,pb=20,ys=pts.map(p=>p[1]);let mn=Math.min(...ys),mx=Math.max(...ys);if(mx-mn<1e-9){mn-=1;mx+=1}const pd=(mx-mn)*.18;mn-=pd;mx+=pd;
+  const t0=dparse(pts[0][0]).getTime(),t1=dparse(pts[pts.length-1][0]).getTime(),sx=t=>pl+(W-pl-pr)*(t1>t0?(t-t0)/(t1-t0):.5),sy=v=>pt+(H-pt-pb)*(1-(v-mn)/(mx-mn));
+  const xy=pts.map(p=>[sx(dparse(p[0]).getTime()),sy(p[1])]),L=xy.length-1,lab=(i,an)=>`<text x="${xy[i][0].toFixed(1)}" y="${(xy[i][1]-7).toFixed(1)}" fill="var(--txt)" font-size="11" text-anchor="${an}">${bcF(pts[i][1],V[3])}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:10px"><line x1="${pl}" y1="${H-pb}" x2="${W-pr}" y2="${H-pb}" stroke="var(--line)"/><polyline fill="none" stroke="var(--g)" stroke-width="2" stroke-linejoin="round" points="${xy.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}"/>${xy.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="var(--g)"/>`).join('')}${lab(0,'start')}${lab(L,'end')}<text x="${pl}" y="${H-5}" fill="var(--mut)" font-size="10">${dfmt(pts[0][0])}</text><text x="${W-pr}" y="${H-5}" fill="var(--mut)" font-size="10" text-anchor="end">${dfmt(pts[L][0])}</text></svg>`}
+function bcHtml(){fInit();const t=key(TODAY),ks=Object.keys(D.bc).sort();if(!S.bcf)bcLoad(t);const F=S.bcf,ex=!!D.bc[F.d],im=bcImc();
+  const inp=(f,l,mode,ml)=>`<div><div class="sub">${l}</div><input type="text" class="bci" data-f="${f}" inputmode="${mode}" maxlength="${ml}" value="${escH(F[f]||'')}"></div>`;
+  let h=`<div class="note" style="padding:0 0 10px">Para a tendência ser confiável, meça sempre nas mesmas condições (ex.: em jejum, ao acordar, após urinar).</div>
+  <div class="wrow" style="margin-bottom:14px"><span class="sub" style="flex:1">ALTURA (CM)${D.ht?' · IMC calculado':' · para calcular o IMC'}</span><input type="text" id="bht" inputmode="decimal" maxlength="5" placeholder="cm" value="${D.ht?fmtG(D.ht):''}" style="flex:none;width:90px"></div>
+  <div class="sub">MEDIÇÃO</div><input type="date" id="bcd" value="${F.d}" max="${t}" style="margin:8px 0 6px">
+  ${ex?'<div class="note" style="padding:0 0 6px">Já existe medição nessa data: salvar substitui.</div>':''}
+  <div class="fgl">${inp('w','PESO (KG)','decimal',6)}${D.ht?`<div><div class="sub">IMC</div><div id="bcimc" style="padding:20px 2px 0;font-size:16px">${im!=null?fmtG(im):'—'}</div></div>`:inp('i','IMC','decimal',5)}${inp('f','GORDURA (%)','decimal',5)}${inp('m','MÚSCULO (%)','decimal',5)}${inp('r','TMB (KCAL)','numeric',5)}${inp('a','IDADE METABÓLICA','numeric',3)}${inp('v','GORDURA VISCERAL','decimal',4)}</div>
+  <button class="btn" style="margin-top:14px" data-a="bcsave">Salvar medição</button>
+`;
+  if(ks.length){const L=bcRow(ks[ks.length-1]),P=ks.length>1?bcRow(ks[ks.length-2]):null,I=ks.length>1?bcRow(ks[0]):null;
+    h+=`<div class="sub" style="margin-top:24px">ÚLTIMA MEDIÇÃO · ${dfmt(ks[ks.length-1])}</div><div class="bcr h"><span></span><b></b><small>vs ant.</small><small>vs início</small></div>`+
+      BCV.map(([id,l,u,d])=>`<div class="bcr"><span>${l}</span><b>${bcF(L[id],d)}${L[id]!=null&&u?' '+u:''}</b><small>${P?bcD(L[id],P[id],d):''}</small><small>${I?bcD(L[id],I[id],d):''}</small></div>`).join('');
+    const cv=S.bcv||'w';
+    h+=`<div class="sub" style="margin-top:24px">EVOLUÇÃO</div><div class="bcch">${BCV.map(([id,l])=>`<div class="opt ${id===cv?'on':''}" data-a="bcv" data-v="${id}">${l}</div>`).join('')}</div><div id="bcchart">${bcChart(cv)}</div>`;
+    h+=`<div class="sub" style="margin-top:24px">HISTÓRICO</div>`+ks.slice().reverse().map(k=>{const r=bcRow(k);return `<div class="bch" data-a="bcedit" data-k="${k}"><span><b>${dfmt(k)}</b> · ${bcF(r.w,1)} kg · G ${bcF(r.f,1)}% · M ${bcF(r.m,1)}% · V ${bcF(r.v,0)}</span><div class="tkx" data-a="bcdel" data-k="${k}">×</div></div>`}).join('')+'<div class="note" style="padding:6px 0 0">Toque numa medição para editar.</div>'}
+  h+='<div class="note" style="padding:16px 0 0">Massa gorda, massa livre de gordura e massa muscular em kg são calculadas a partir do peso e das porcentagens da balança.</div>';
+  return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div><div class="sh"><b>Composição corporal</b><button class="lnk" data-a="close">Fechar</button></div>${h}</div></div>`}
 function bwHistHtml(){bwInit();const ks=Object.keys(D.bw).sort().reverse(),t=key(TODAY);
   const list=ks.map((k,i)=>{const v=D.bw[k],pv=ks[i+1]!==undefined?D.bw[ks[i+1]]:null,dl=pv===null?'':(v-pv>=0?'+':'−')+fmtG(r2(Math.abs(v-pv)));return '<div class="bwr"><span>'+dfmt(k)+'</span><b>'+fmtG(v)+' kg</b><small>'+dl+'</small><div class="tkx" data-a="bwdel" data-k="'+k+'">×</div></div>'}).join('');
   const tot=ks.length>1?D.bw[ks[0]]-D.bw[ks[ks.length-1]]:null;
@@ -518,7 +548,7 @@ year:'<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><g>'+[
 function menuHtml(){if(!S.menu)return '';
   const m=D.sort||'green',it=(v,t)=>`<div class="mi" data-a="setsort" data-v="${v}"><i>${m===v?'✓':''}</i>${t}</div>`;
   return `<div class="shade mshade" data-a="closemenu"><div class="menu" data-stop>
-  <div class="mi" data-a="add"><i>+</i>Adicionar</div><div class="mi" data-a="thist"><i>☑</i>Histórico de tarefas</div><div class="mi" data-a="aprov"><i>%</i>Aproveitamento semanal</div><div class="mi" data-a="food"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 3v6a2.5 2.5 0 005 0V3M7.5 3v18M17 21V3c-2.5 2-4 5-4 8h4"/></svg></i>Alimentação</div><div class="mi" data-a="water"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><path d="M12 2.5S5 10 5 15a7 7 0 0014 0c0-5-7-12.5-7-12.5z"/></svg></i>Água</div><div class="mi" data-a="settings"><i>⚙</i>Configurações</div>
+  <div class="mi" data-a="add"><i>+</i>Adicionar</div><div class="mi" data-a="thist"><i>☑</i>Histórico de tarefas</div><div class="mi" data-a="aprov"><i>%</i>Aproveitamento semanal</div><div class="mi" data-a="food"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 3v6a2.5 2.5 0 005 0V3M7.5 3v18M17 21V3c-2.5 2-4 5-4 8h4"/></svg></i>Alimentação</div><div class="mi" data-a="bcopen"><i>◐</i>Composição corporal</div><div class="mi" data-a="water"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><path d="M12 2.5S5 10 5 15a7 7 0 0014 0c0-5-7-12.5-7-12.5z"/></svg></i>Água</div><div class="mi" data-a="settings"><i>⚙</i>Configurações</div>
   <div class="ml">Ordenar:</div>${it('green','Verdes primeiro')}${it('red','Vermelhos primeiro')}${it('date','Data de criação')}${it('manual','Manual')}</div></div>`}
 function sheetHtml(){const sh=S.sheet;if(!sh)return '';
   if(sh.thist){const days=[...new Set((D.tasks||[]).map(t=>t.day))].sort().reverse();
@@ -560,6 +590,7 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     ${it.prog?'<button class="btn" style="background:var(--bg);color:var(--txt);margin-top:10px;border:1px solid var(--line)" data-a="pgzero">Zerar progresso</button>':''}
     ${sh.pg.t==='t'?'<button class="btn" style="background:var(--bg);color:var(--txt);margin-top:10px;border:1px solid var(--line)" data-a="pgdur">Alterar duração</button>':''}</div></div>`}
   if(sh.bwh)return bwHistHtml();
+  if(sh.bc)return bcHtml();
   if(sh.food)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Alimentação</b><button class="lnk" data-a="close">Fechar</button></div>${foodHtml()}</div></div>`;
   if(sh.fadd)return faddHtml(sh.fadd);
@@ -662,6 +693,9 @@ function render(){
   const fgi=document.getElementById('fg');if(fgi){fgi.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'');S.fgv=e.target.value;const pv=document.getElementById('fprev'),sl=fSel(S.sheet.fadd.sel);if(pv&&sl)pv.textContent=fPrev(sl,S.fgv);if(fMsCur()){S.fms=null;const mc=document.getElementById('fmch');if(mc)mc.innerHTML=fMeasHtml()}});fgi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fConfirm()}});if(S.fgFocus){S.fgFocus=0;if(!fMeasList(S.sheet.fadd.sel).length){fgi.focus();fgi.select()}}}
   document.querySelectorAll('.fcf').forEach(i=>i.addEventListener('input',e=>{if(!S.cfd)S.cfd={};S.cfd[e.target.dataset.f]=e.target.value}));
   const bwn=document.getElementById('bwn');if(bwn){bwn.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'')});bwn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.querySelector('[data-a="bwadd"]').click()}})}
+  document.querySelectorAll('.bci').forEach(i=>i.addEventListener('input',e=>{const f=e.target.dataset.f;e.target.value=e.target.value.replace(f==='r'||f==='a'?/\D/g:/[^\d.,]/g,'');if(!S.bcf)S.bcf={d:key(TODAY)};S.bcf[f]=e.target.value;if(f==='w'){const m=document.getElementById('bcimc');if(m){const v=bcImc();m.textContent=v!=null?fmtG(v):'—'}}}));
+  const bcd=document.getElementById('bcd');if(bcd)bcd.addEventListener('change',e=>{const d=e.target.value;if(!/^\d{4}-\d\d-\d\d$/.test(d))return;if(D.bc[d])bcLoad(d);else S.bcf.d=d;render()});
+  const bht=document.getElementById('bht');if(bht){bht.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'')});bht.addEventListener('change',e=>{const v=pnum(e.target.value);if(e.target.value===''){delete D.ht;save();render();return}if(!(v>=100&&v<=250)){alert('Informe a altura em centímetros (100 a 250).');e.target.value=D.ht?fmtG(D.ht):'';return}D.ht=r1(v);save();render()})}
   const bwv=document.getElementById('bwv');if(bwv)bwv.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'')});
   document.querySelectorAll('.fkg').forEach(i=>{i.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'')});
     i.addEventListener('change',e=>{fInit();const g=D.food.goal,f=e.target.dataset.f,v=pnum(e.target.value);if(v>=0&&v<=20)g[f]=r2(v);e.target.value=g[f]!=null?fmtG(g[f]):'';const L=bwLast();if(g.w||L)fKgApply(g.w||L.v);save();fKgRefresh()})});
@@ -713,6 +747,16 @@ document.addEventListener('click',e=>{
   else if(a==='bwadd2'){const d=(document.getElementById('bwd')||{}).value,v=pnum((document.getElementById('bwv')||{}).value);if(!/^\d{4}-\d\d-\d\d$/.test(d||'')||d>key(TODAY)){alert('Escolha uma data até hoje.');return}if(!(v>=20&&v<=400)){alert('Informe um peso entre 20 e 400 kg.');return}bwAdd(d,v)}
   else if(a==='bwdel'){if(confirm('Apagar o peso de '+dfmt(el.dataset.k)+'?')){delete D.bw[el.dataset.k];save()}else return}
   else if(a==='bwhist'){S.sheet={bwh:true}}
+  else if(a==='bcopen'){fInit();S.sheet={bc:true};S.hw=null;bcLoad(key(TODAY))}
+  else if(a==='bcv'){S.bcv=el.dataset.v;document.querySelectorAll('.bcch .opt').forEach(o=>o.classList.toggle('on',o.dataset.v===S.bcv));const c=document.getElementById('bcchart');if(c)c.innerHTML=bcChart(S.bcv);return}
+  else if(a==='bcedit'){bcLoad(el.dataset.k);render();const sh=document.querySelector('.sheet');if(sh)sh.scrollTop=0;return}
+  else if(a==='bcdel'){e.stopPropagation();if(confirm('Apagar a medição de '+dfmt(el.dataset.k)+'? O peso dessa data continua no histórico de peso.')){delete D.bc[el.dataset.k];if(S.bcf&&S.bcf.d===el.dataset.k)bcLoad(key(TODAY));save()}else return}
+  else if(a==='bcsave'){fInit();const F=S.bcf||{},d=F.d,t=key(TODAY);if(!/^\d{4}-\d\d-\d\d$/.test(d||'')||d>t){alert('Escolha uma data até hoje.');return}
+    const w=pnum(F.w);if(!(w>=20&&w<=400)){alert('Informe o peso (20 a 400 kg).');return}
+    const R={i:[10,80,'IMC'],f:[1,75,'Gordura (%)'],m:[5,70,'Músculo (%)'],r:[500,6000,'TMB'],a:[10,110,'Idade metabólica'],v:[1,60,'Gordura visceral']},o={};
+    for(const k in R){if(k==='i'&&D.ht)continue;const s2=String(F[k]||'').trim();if(!s2)continue;const v=pnum(s2);if(!(v>=R[k][0]&&v<=R[k][1])){alert(R[k][2]+': valor fora do esperado ('+R[k][0]+' a '+R[k][1]+').');return}o[k]=k==='r'||k==='a'?Math.round(v):r1(v)}
+    if(D.ht)o.i=r1(w/Math.pow(D.ht/100,2));
+    D.bc[d]=o;bwAdd(d,w);bcLoad(t);S.bcf.saved=1}
   else if(a==='fnew'){const q=S.fq||'',gm=q.match(GRE);S.cfd={n:(gm?q.slice(0,gm.index):q).trim(),k:'',p:'',l:'',c:''};S.sheet={fnew:{m:S.sheet.fadd.m}}}
   else if(a==='fcdel'){if(confirm('Apagar este alimento da sua lista? Os registros já feitos continuam.')){delete D.cf[el.dataset.i];save()}else return}
   else if(a==='fnewsave'){const d=S.cfd||{},n=(d.n||'').trim(),num=v=>{const x=parseFloat(String(v||'').replace(',','.'));return x>=0?x:0},k=num(d.k);
@@ -893,7 +937,7 @@ document.getElementById('imp').addEventListener('change',async e=>{
   try{const j=JSON.parse(await f.text());
     if(!Array.isArray(j.habits)||typeof j.entries!=='object'||!j.habits.every(h=>h&&h.id&&h.name&&(h.intent==='build'||h.intent==='break')))throw 0;
     if(!confirm('Importar vai SUBSTITUIR todos os dados atuais ('+D.habits.length+' hábitos) por '+j.habits.length+' hábitos do arquivo. Continuar?'))return;
-    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],rec:Array.isArray(j.rec)?j.rec:[],prog:j.prog&&typeof j.prog==='object'?j.prog:{},snap:j.snap&&typeof j.snap==='object'?j.snap:{},water:j.water,wl:j.wl,wgd:j.wgd,food:j.food,fl:j.fl,fgd:j.fgd,cf:j.cf,bw:j.bw,sync:D.sync};wInit();fInit();save();S.sheet=null;render();
+    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],rec:Array.isArray(j.rec)?j.rec:[],prog:j.prog&&typeof j.prog==='object'?j.prog:{},snap:j.snap&&typeof j.snap==='object'?j.snap:{},water:j.water,wl:j.wl,wgd:j.wgd,food:j.food,fl:j.fl,fgd:j.fgd,cf:j.cf,bw:j.bw,bc:j.bc,ht:j.ht,sync:D.sync};wInit();fInit();save();S.sheet=null;render();
   }catch(_){alert('Arquivo inválido. Use um backup exportado pelo Rastro.')}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&svT)flush();if(!document.hidden&&key(new Date())!==key(TODAY))location.reload();if(!document.hidden)sync()});
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{})}
@@ -912,6 +956,8 @@ function flat(){const r={};
   for(const k in (D.fgd||{}))r['y|'+k]=D.fgd[k];
   for(const k in (D.cf||{}))r['c|'+k]=D.cf[k];
   for(const k in (D.bw||{}))r['b|'+k]=D.bw[k];
+  for(const k in (D.bc||{}))r['z|'+k]=D.bc[k];
+  if(D.ht)r['s|ht']=D.ht;
   if(D.food&&D.food.set)r['s|fg']=D.food.goal;
   (D.rec||[]).forEach(x=>{r['r|'+x.id]={text:x.text,dur:x.dur,rule:x.rule,start:x.start,end:x.end,paused:x.paused,skip:x.skip}});
   D.habits.forEach(h=>{r['h|'+h.id]={name:h.name,intent:h.intent,created:h.created,dur:h.dur}});
@@ -919,18 +965,18 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v39',KNOWN=/^([etpkwxrhfycb]\||o\|$|s\|(sort|ws|wg|wc|fg)$)/;
+const VER='v40',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
-function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={};let ord=[],sort,ws,wg,wc,fg;
+function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={};let ord=[],sort,ws,wg,wc,fg,ht;
   for(const k in S2){const c=S2[k];if(c.v===null)continue;const p=k.slice(0,2),id=k.slice(2);
-    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
-    else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v;else if(k==='s|wg')wg=c.v;else if(k==='s|wc')wc=c.v;else if(k==='s|fg')fg=c.v}
+    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='z|')BC[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
+    else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v;else if(k==='s|wg')wg=c.v;else if(k==='s|wc')wc=c.v;else if(k==='s|fg')fg=c.v;else if(k==='s|ht')ht=c.v}
   const ids=ord.filter(i=>Hs[i]);Object.keys(Hs).sort().forEach(i=>{if(!ids.includes(i))ids.push(i)});
   D.habits=ids.map(i=>Hs[i]);
   D.entries={};for(const k in E)if(Hs[k.split('|')[0]])D.entries[k]=1;
-  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.cf=CF;D.bw=BW;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
+  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.cf=CF;D.bw=BW;D.bc=BC;if(ht>0)D.ht=ht;else delete D.ht;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
   if(sort===undefined||sort===null)delete D.sort;else D.sort=sort;
   if(ws===undefined||ws===null)delete D.weekStart;else D.weekStart=ws}
 function mergeIn(rem){const S2=D.sync||(D.sync={});let ch=0;
