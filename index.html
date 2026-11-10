@@ -149,9 +149,9 @@ const DB={open(){return new Promise((ok,no)=>{const r=indexedDB.open('rastro',1)
   async get(k='data'){const db=await this.open();return new Promise((ok,no)=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})},
   async set(v,k='data'){const db=await this.open();return new Promise((ok,no)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>ok();t.onerror=()=>no(t.error)})}};
 let svT=0;const persist=()=>{try{stamp()}catch(e){}return DB.set(JSON.parse(JSON.stringify(D))).catch(()=>{})};
-const flush=()=>{clearTimeout(svT);svT=0;snapUpd();wgUpd();fgUpd();persist();if(SY.cfg){clearTimeout(SY.t);SY.t=setTimeout(sync,2500)}};
+const flush=()=>{clearTimeout(svT);svT=0;snapUpd();wgUpd();fgUpd();persist();if(SY.cfg){clearTimeout(SY.t);SY.t=setTimeout(sync,1200)}};
 const save=()=>{if(!svT)svT=setTimeout(flush,400)};
-addEventListener('pagehide',()=>{if(svT)flush()});
+addEventListener('pagehide',()=>{if(svT)flush();if(SY.cfg){clearTimeout(SY.t);sync()}});
 const WD=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
 const S={tab:'today',day:TODAY,ref:TODAY,anim:'',sheet:null,draft:'',intent:'build'};
 const H=id=>D.habits.find(h=>h.id===id);
@@ -939,7 +939,7 @@ document.getElementById('imp').addEventListener('change',async e=>{
     if(!confirm('Importar vai SUBSTITUIR todos os dados atuais ('+D.habits.length+' hábitos) por '+j.habits.length+' hábitos do arquivo. Continuar?'))return;
     D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],rec:Array.isArray(j.rec)?j.rec:[],prog:j.prog&&typeof j.prog==='object'?j.prog:{},snap:j.snap&&typeof j.snap==='object'?j.snap:{},water:j.water,wl:j.wl,wgd:j.wgd,food:j.food,fl:j.fl,fgd:j.fgd,cf:j.cf,bw:j.bw,bc:j.bc,ht:j.ht,sync:D.sync};wInit();fInit();save();S.sheet=null;render();
   }catch(_){alert('Arquivo inválido. Use um backup exportado pelo Rastro.')}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&svT)flush();if(!document.hidden&&key(new Date())!==key(TODAY))location.reload();if(!document.hidden)sync()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(svT)flush();if(SY.cfg){clearTimeout(SY.t);sync()}}if(!document.hidden&&key(new Date())!==key(TODAY))location.reload();if(!document.hidden)sync()});
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{})}
 /* ---------- sincronização (GitHub, repositório privado) ---------- */
 var SY={cfg:null,run:0,again:0,err:'',msg:'',last:0,t:0,cache:null};
@@ -965,7 +965,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v43',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v44',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
@@ -1042,6 +1042,7 @@ setInterval(()=>{if(!document.hidden)sync()},45000);
 (async()=>{try{const d=await DB.get();if(d&&Array.isArray(d.habits))D=d}catch(e){}
   try{SY.cfg=(await DB.get('cfg'))||null}catch(e){}
   if(!Array.isArray(D.tasks))D.tasks=[];if(!Array.isArray(D.rec))D.rec=[];if(!D.prog||typeof D.prog!=='object')D.prog={};if(!D.snap||typeof D.snap!=='object')D.snap={};wInit();fInit();
+  try{if(migrate())await DB.set(JSON.parse(JSON.stringify(D)))}catch(e){}
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   render();if(SY.cfg)sync()})();
 </script>
