@@ -247,10 +247,11 @@ const pgLab=t=>t.dur&&!t.done&&t.prog>0?'<small class="tks">'+falta(t.dur,t.prog
 function pgItem(){const g=S.sheet&&S.sheet.pg;if(!g)return null;
   if(g.t==='t'){const t=D.tasks.find(x=>x.id===g.id);return t&&t.dur?{name:t.text,dur:t.dur,prog:t.prog||0}:null}
   const hb=D.habits.find(x=>x.id===g.id);return hb&&hb.dur?{name:hb.name,dur:hb.dur,prog:progOf(hb,g.day)}:null}
-const pgStatus=(it,n)=>{const m=it.dur.n-n;return m<=0?'Meta atingida. Marque como feito na bolinha.':'Falta '+m+' '+(it.dur.u==='p'?(m===1?'pomodoro':'pomodoros')+' ('+fmtT(m*30)+')':'min')};
+const pgStatus=(it,n)=>{const m=it.dur.n-n;return m<=0?'Meta atingida. Ao salvar, fica marcado como feito.':'Falta '+m+' '+(it.dur.u==='p'?(m===1?'pomodoro':'pomodoros')+' ('+fmtT(m*30)+')':'min')};
 function setProg(n){const g=S.sheet.pg,it=pgItem();n=Math.max(0,Math.min(it?it.dur.n:999,n|0));
-  if(g.t==='t'){const t=D.tasks.find(x=>x.id===g.id);if(t){if(n>0)t.prog=n;else delete t.prog}}
-  else{if(!D.prog)D.prog={};const k=g.id+'|'+g.day;if(n>0)D.prog[k]=n;else delete D.prog[k]}
+  const full=!!it&&n>=it.dur.n;
+  if(g.t==='t'){const t=D.tasks.find(x=>x.id===g.id);if(t){if(n>0)t.prog=n;else delete t.prog;if(full)t.done=true;else if(t.done&&it)t.done=false}}
+  else{if(!D.prog)D.prog={};const k=g.id+'|'+g.day;if(n>0)D.prog[k]=n;else delete D.prog[k];if(full)D.entries[k]=1;else if(it)delete D.entries[k]}
   save()}
 /* ---------- água ---------- */
 const WML=n=>n>=1000?(n/1000).toFixed(2).replace(/\.?0+$/,'').replace('.',',')+' L':n+' ml';
@@ -965,7 +966,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v44',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v45',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
