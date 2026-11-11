@@ -116,6 +116,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .fad{padding:11px 0 4px;font-size:13px;color:var(--g);cursor:pointer}
 .sheet.tall{height:88%}.mch{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}.mch .mc{flex:none;margin:0;padding:8px 11px;font-size:13px;font-weight:500}.mch .mc.on{border-color:var(--g);color:var(--g)}.scv{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3}.scv video{width:100%;height:100%;object-fit:cover;display:block}.scv i{position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--g);opacity:.85}
 .fres{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.3;cursor:pointer}.fres small{color:var(--mut);white-space:nowrap;font-size:12px}
+.sta{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:16px;padding:12px;border-radius:10px;margin:8px 0 6px;min-height:110px;resize:vertical}.stiv{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}.stiv span{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;padding-right:6px}.stiv input{width:52px;margin:0;border:0;background:transparent;text-align:center;padding:10px 4px}.stiv b{font-weight:400;color:var(--mut);font-size:16px;padding:6px 4px;cursor:pointer}.stiv .add{padding:10px 12px;color:var(--g);font-size:13px;cursor:pointer}.stq{display:flex;gap:8px;margin-top:16px}.stq .opt{flex:1;padding:12px 0;cursor:pointer}.stql{margin:8px 0 0;padding-left:20px;font-size:15px;line-height:1.5}.stql li{margin-bottom:8px}
 .stl{font-size:12px;color:var(--mut);margin:10px 0 2px}.str{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}.str small{display:block;font-size:12px;color:var(--mut);margin-top:2px}.str .r{text-align:right;flex:none}.str .lt{color:var(--r)}.str .ok{color:var(--g)}.stlk{color:var(--g);font-size:13px;word-break:break-all}
 .sub.hl{color:var(--txt);font-size:14px}
 .fgxh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-top:10px;cursor:pointer}.fgxh b{font-weight:500;font-size:15px}.fgxh small{display:block;font-size:12px;color:var(--mut);margin-top:2px}.fgxh svg{flex:none;transition:transform .2s}.fgxh.o svg{transform:rotate(180deg)}
@@ -234,42 +235,55 @@ const SIV=[1,3,7,14,30,60],SMT=90,STB='<svg width="11" height="11" viewBox="0 0 
 function stInit(){if(!Array.isArray(D.st))D.st=[];D.st.forEach(s=>{if(!Array.isArray(s.rv))s.rv=[]})}
 function stIv(s){return Array.isArray(s.iv)&&s.iv.length?s.iv:SIV}
 function stMt(s){return s.mt==null?SMT:s.mt}
-function stGap(s,i){const iv=stIv(s);return i<iv.length?iv[i]:stMt(s)}
+function stStage(s,u){let g=0;const L=s.rv,n=u==null?L.length:u;for(let i=0;i<n;i++){const r=L[i];g+=!r||r.x?1:r.q==='h'?0:r.q==='e'?2:1}return g}
+function stGap(s,g){const iv=stIv(s);return g<iv.length?iv[g]:stMt(s)}
 function stBase(s,i){return i===0?s.d0:s.rv[i-1].d}
-function stDue(s){const i=s.rv.length,g=stGap(s,i);return g>0?key(addD(dparse(stBase(s,i)),g)):null}
-function stPlan(s,n){const o=[];let i=s.rv.length,b=stBase(s,i);for(let j=0;j<n;j++){const g=stGap(s,i);if(!(g>0))break;b=key(addD(dparse(b),g));o.push([i,b]);i++}return o}
+function stDue(s){const i=s.rv.length,g=stGap(s,stStage(s));return g>0?key(addD(dparse(stBase(s,i)),g)):null}
+function stPlan(s,n){const o=[];let i=s.rv.length,st=stStage(s),b=stBase(s,i);for(let j=0;j<n;j++){const g=stGap(s,st);if(!(g>0))break;b=key(addD(dparse(b),g));o.push([i,b]);i++;st++}return o}
 function stTid(s,i){return 'v'+s.id+'_'+i}
-function stName(s,i){const n=stIv(s).length;return i<n?'Revisão '+(i+1):'Manutenção '+(i-n+1)}
+function stName(s,i){const n=stIv(s).length;if(stStage(s,i)<n)return 'Revisão '+(i+1);let m=0;for(let j=0;j<=i;j++)if(stStage(s,j)>=n)m++;return 'Manutenção '+m}
 function stDd(a,b){return Math.round((dparse(b)-dparse(a))/864e5)}
 function stRel(k){const d=stDd(key(TODAY),k);return d===0?'hoje':d===1?'amanhã':d>0?'em '+d+' d':'atrasada '+(-d)+' d'}
 function ensureStudy(){stInit();if(!D.st.length)return 0;if(SY.cfg&&navigator.onLine&&!SY.last&&!SY.err)return 0;let c=0;
-  D.st.forEach(s=>{const due=stDue(s);if(!due)return;const id=stTid(s,s.rv.length);if(!D.tasks.some(t=>t.id===id)){D.tasks.push({id,day:due,text:'Revisar: '+s.n,sid:s.id,si:s.rv.length});c=1}});if(c)save();return c}
-function stDone(t){const s=(D.st||[]).find(x=>x.id===t.sid);if(!s)return;
-  if(t.done){if(s.rv.length===t.si){const p=stDue(s),tk=key(TODAY);s.rv.push({p,d:t.day<tk?t.day:tk})}}
+  D.st.forEach(s=>{const due=stDue(s);if(!due)return;const id=stTid(s,s.rv.length);if(!D.tasks.some(t=>t.id===id)){let day=due;if(D.stc>0&&stStage(s)>=stIv(s).length){let k=0;while(k<60&&D.tasks.filter(t=>t.sid&&!t.done&&t.day===day).length>=D.stc){day=key(addD(dparse(day),1));k++}}const t={id,day,text:'Revisar: '+s.n,sid:s.id,si:s.rv.length};if(s.m>0)t.dur=s.m;D.tasks.push(t);c=1}});if(c)save();return c}
+function stDone(t,q){const s=(D.st||[]).find(x=>x.id===t.sid);if(!s)return;
+  if(t.done){if(s.rv.length===t.si){const p=stDue(s),tk=key(TODAY),r={p,d:t.day<tk?t.day:tk};if(q==='h'||q==='e')r.q=q;s.rv.push(r)}}
   else if(s.rv.length===t.si+1&&!s.rv[t.si].x){s.rv.pop();const nid=stTid(s,t.si+1);D.tasks=D.tasks.filter(x=>!(x.id===nid&&!x.done))}}
-function stLab(t){const s=t.sid&&(D.st||[]).find(x=>x.id===t.sid);if(!s)return '';const n=stIv(s).length;
-  return '<small class="tks" data-a="stv" data-i="'+s.id+'" style="cursor:pointer">'+STB+' '+(t.si<n?'revisão '+(t.si+1)+'/'+n:'manutenção')+' · ver ciclo ›</small>'}
-function stProg(s){const n=stIv(s).length,d=Math.min(s.rv.length,n);return [d,n]}
+function stLab(t){const s=t.sid&&(D.st||[]).find(x=>x.id===t.sid);if(!s)return '';const n=stIv(s).length,g=stStage(s,Math.min(t.si,s.rv.length));
+  return '<small class="tks" data-a="'+(t.done?'stv':'strv')+'" data-i="'+s.id+'" data-t="'+t.id+'" style="cursor:pointer">'+STB+' '+(g<n?'etapa '+(g+1)+'/'+n:'manutenção')+(t.done?' · ver ciclo ›':' · revisar ›')+'</small>'}
+function stProg(s){const n=stIv(s).length,d=Math.min(stStage(s),n);return [d,n]}
 function stCard(s){const [d,n]=stProg(s),due=stDue(s),t=D.tasks.find(x=>x.id===stTid(s,s.rv.length)&&!x.done),k=t?t.day:due,p=Math.round(d/n*100);
-  return '<div class="apw" data-a="stv" data-i="'+s.id+'"><div class="aph"><span>'+escH(s.n)+'</span><b>'+d+'/'+n+'</b></div><div class="apb"><i style="width:'+p+'%"></i></div><div class="aps">'+(s.a?escH(s.a)+' · ':'')+(k?(s.rv.length>=n?'manutenção · ':'')+'próxima '+dfmt(k)+' ('+stRel(k)+')':'ciclo concluído')+'</div></div>'}
+  return '<div class="apw" data-a="stv" data-i="'+s.id+'"><div class="aph"><span>'+escH(s.n)+'</span><b>'+d+'/'+n+'</b></div><div class="apb"><i style="width:'+p+'%"></i></div><div class="aps">'+(s.a?escH(s.a)+' · ':'')+(k?(stStage(s)>=n?'manutenção · ':'')+'próxima '+dfmt(k)+' ('+stRel(k)+')':'ciclo concluído')+'</div></div>'}
 function stListSheet(){stInit();const tk=key(TODAY),L=D.st.slice().sort((a,b)=>{const x=stDue(a)||'9',y=stDue(b)||'9';return x<y?-1:x>y?1:0}),
   T=D.tasks.filter(t=>t.sid&&!t.done),late=T.filter(t=>t.day<tk).length,
-  ld=[0,1,2,3,4,5,6].map(j=>{const k=key(addD(TODAY,j));return (j===0?'hoje':WDS[dparse(k).getDay()])+' '+T.filter(t=>t.day===k).length}).join(' · ');
+  ld=[0,1,2,3,4,5,6].map(j=>{const k=key(addD(TODAY,j));const D_=T.filter(t=>t.day===k),mn=D_.reduce((a,t)=>a+(t.dur||0),0);return (j===0?'hoje':WDS[dparse(k).getDay()])+' '+D_.length+(mn?' ('+mn+' min)':'')}).join(' · ');
   return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
   <div class="sh"><span style="width:50px"></span><b>Estudo</b><button class="lnk" data-a="close">Fechar</button></div>
   <div class="note" style="padding:0">Cada conteúdo coloca a próxima revisão nas tarefas do dia certo. Marcar a tarefa como feita registra a revisão e agenda a seguinte, contada a partir do dia em que você revisou.</div>
   ${D.st.length?`<div class="sub hl" style="margin-top:16px">PRÓXIMOS 7 DIAS</div><div class="aps" style="margin-top:6px">${ld}${late?' · <span style="color:var(--r)">'+late+' atrasada'+(late>1?'s':'')+'</span>':''}</div>`:''}
   <div class="sub hl" style="margin-top:16px">CONTEÚDOS</div>
   ${L.map(stCard).join('')||'<div class="empty">Nenhum conteúdo ainda.</div>'}
-  <div class="fad" data-a="sted" data-i="">+ Novo conteúdo</div></div></div>`}
+  <div class="fad" data-a="sted" data-i="">+ Novo conteúdo</div>
+  ${D.st.length?`<div class="sub" style="margin-top:20px">LIMITE DE REVISÕES POR DIA (0 = SEM LIMITE)</div><input type="text" class="stcap" inputmode="numeric" maxlength="2" value="${D.stc||0}"><div class="note" style="padding:0">Se o dia estiver cheio, só as revisões de manutenção passam para o dia seguinte. As do ciclo nunca são adiadas.</div>`:''}</div></div>`}
+function stRevSheet(tid){const t=D.tasks.find(x=>x.id===tid),s=t&&(D.st||[]).find(x=>x.id===t.sid);if(!s)return stListSheet();const qs=(s.qs||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
+  <div class="sh"><span style="width:50px"></span><b>${stName(s,t.si)}</b><button class="lnk" data-a="close">Fechar</button></div>
+  <div style="font-size:17px;font-weight:600">${escH(s.n)}</div>${s.a?`<div class="stl">${escH(s.a)}</div>`:''}
+  ${qs.length?`<div class="sub hl" style="margin-top:16px">TENTE RESPONDER ANTES DE ABRIR O MATERIAL</div><ol class="stql">${qs.map(q=>'<li>'+escH(q)+'</li>').join('')}</ol>`:`<div class="note" style="padding:12px 0 0">Sem perguntas de recordação. Em Editar você pode cadastrar 3 a 5 perguntas-chave: tentar lembrar antes de reler fixa muito mais.</div>`}
+  ${s.u?`<a class="stlk" style="display:block;margin-top:12px" href="${escH(s.u)}" target="_blank" rel="noopener">Abrir material ›</a>`:''}
+  <div class="sub hl" style="margin-top:20px">COMO FOI?</div>
+  <div class="stq"><div class="opt" data-a="stq" data-v="h" data-t="${t.id}">Difícil</div><div class="opt" data-a="stq" data-v="o" data-t="${t.id}">Ok</div><div class="opt" data-a="stq" data-v="e" data-t="${t.id}">Fácil</div></div>
+  <div class="note" style="padding:8px 0 0">Difícil repete o intervalo atual, ok segue o próximo e fácil pula um. Marcar a tarefa direto no Hoje conta como ok.</div>
+  <div class="fad" style="text-align:center;margin-top:10px" data-a="stv" data-i="${s.id}">Ver ciclo completo ›</div></div></div>`}
 function stViewSheet(id){const s=(D.st||[]).find(x=>x.id===id);if(!s)return stListSheet();const [d,n]=stProg(s),iv=stIv(s),mt=stMt(s),tk=key(TODAY),
-  done=s.rv.map((r,i)=>{const late=r.p?stDd(r.p,r.d):0;return '<div class="str"><div>'+stName(s,i)+'<small>prevista '+(r.p?dfmt(r.p):'–')+'</small></div><div class="r">'+(r.x?'<span class="lt">pulada '+dfmt(r.d)+'</span>':'<span class="ok">feita '+dfmt(r.d)+'</span>')+'<small>'+(r.x?'':late>0?'+'+late+' d de atraso':late<0?(-late)+' d antes':'no dia')+'</small></div></div>'}).reverse().join(''),
+  done=s.rv.map((r,i)=>{const late=r.p?stDd(r.p,r.d):0;return '<div class="str"><div>'+stName(s,i)+'<small>prevista '+(r.p?dfmt(r.p):'–')+'</small></div><div class="r">'+(r.x?'<span class="lt">pulada '+dfmt(r.d)+'</span>':'<span class="ok">feita '+dfmt(r.d)+'</span>')+'<small>'+(r.q==='h'?'difícil · ':r.q==='e'?'fácil · ':'')+(r.x?'':late>0?'+'+late+' d de atraso':late<0?(-late)+' d antes':'no dia')+'</small></div></div>'}).reverse().join(''),
   plan=stPlan(s,4).map(([i,k],j)=>{const t=j===0&&D.tasks.find(x=>x.id===stTid(s,i)&&!x.done),kk=t?t.day:k;return '<div class="str"><div>'+stName(s,i)+'<small>'+(j===0?'na agenda de tarefas':'prevista (recalcula quando a anterior for feita)')+'</small></div><div class="r">'+dfmt(kk)+'<small'+(kk<tk?' class="lt"':'')+'>'+stRel(kk)+'</small></div></div>'}).join('');
   return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
   <div class="sh"><button class="lnk" data-a="st">‹ Voltar</button><b>${escH(s.n)}</b><button class="lnk" data-a="close">Fechar</button></div>
   ${s.a?`<div class="stl">${escH(s.a)}</div>`:''}${s.u?`<a class="stlk" href="${escH(s.u)}" target="_blank" rel="noopener">${escH(s.u)}</a>`:''}
   <div class="aph" style="margin-top:12px"><span>Ciclo</span><b>${d}/${n}</b></div><div class="apb"><i style="width:${Math.round(d/n*100)}%"></i></div>
-  <div class="aps">Intervalos: ${iv.join(' · ')} dias${mt>0?' · depois, manutenção a cada '+mt+' d':' · sem manutenção'}</div>
+  <div class="aps">${n} revisões no ciclo · intervalos: ${iv.join(' · ')} dias${s.m>0?' · '+s.m+' min cada':''}${mt>0?' · depois, manutenção a cada '+mt+' d':' · sem manutenção'}</div>
+  ${(s.qs||'').trim()?`<div class="sub hl" style="margin-top:18px">PERGUNTAS DE RECORDAÇÃO</div><ol class="stql">${s.qs.split('\n').map(x=>x.trim()).filter(Boolean).map(q=>'<li>'+escH(q)+'</li>').join('')}</ol>`:''}
   <div class="sub hl" style="margin-top:18px">PROGRAMADAS</div>${plan||'<div class="note" style="padding:8px 0">Ciclo concluído, sem revisões programadas.</div>'}
   <div class="sub hl" style="margin-top:18px">HISTÓRICO</div>${done}<div class="str"><div>Estudo inicial</div><div class="r">${dfmt(s.d0)}</div></div>
   <button class="btn" style="margin-top:18px" data-a="sted" data-i="${s.id}">Editar</button>
@@ -279,8 +293,10 @@ function stEditSheet(){const f=S.stf;if(!f)return '';const fl=(l,k,ph,t)=>`<div 
   <div class="sh"><button class="lnk" data-a="stback">‹ Voltar</button><b>${f.id?'Editar conteúdo':'Novo conteúdo'}</b><button class="lnk" data-a="close">Fechar</button></div>
   ${fl('CONTEÚDO','n','Ex.: Aula 3 – Intervalo de confiança')}${fl('ÁREA (OPCIONAL)','a','Ex.: Pós – Interpretando Evidências')}${fl('LINK (OPCIONAL)','u','Nota do Obsidian, PDF…')}
   ${fl('DATA DO ESTUDO INICIAL','d0','','date')}
-  <div class="sub" style="margin-top:12px">INTERVALOS EM DIAS, ENTRE CADA REVISÃO</div><input type="text" class="stf rin" data-f="iv" inputmode="numeric" placeholder="1, 3, 7, 14, 30, 60" value="${escH(f.iv)}">
+  <div class="sub" style="margin-top:12px">REVISÕES DO CICLO · DIAS APÓS A ANTERIOR (${f.iv.length})</div><div class="stiv">${f.iv.map((v,i)=>`<span><input type="text" class="stivi" data-i="${i}" inputmode="numeric" maxlength="4" value="${escH(v)}"><b data-a="stivdel" data-i="${i}">×</b></span>`).join('')}<div class="add" data-a="stivadd">+ revisão</div></div>
   <div class="sub" style="margin-top:12px">MANUTENÇÃO DEPOIS DO CICLO, A CADA (DIAS · 0 = NENHUMA)</div><input type="text" class="stf rin" data-f="mt" inputmode="numeric" maxlength="4" value="${escH(f.mt)}">
+  <div class="sub" style="margin-top:12px">TEMPO POR REVISÃO (MIN, OPCIONAL)</div><input type="text" class="stf rin" data-f="m" inputmode="numeric" maxlength="3" value="${escH(f.m)}">
+  <div class="sub" style="margin-top:12px">PERGUNTAS DE RECORDAÇÃO (UMA POR LINHA, OPCIONAL)</div><textarea class="stf sta" data-f="qs" placeholder="Ex.: O que muda na interpretação quando o IC cruza o 1?">${escH(f.qs)}</textarea>
   <div class="note" style="padding:8px 0 0">Cada intervalo conta a partir do dia em que a revisão anterior foi feita. Mudar os intervalos recalcula só as revisões futuras; o histórico fica.</div>
   <button class="btn" style="margin-top:18px" data-a="stsave">Salvar</button></div></div>`}
 function recLab(t){const r=t.rid&&(D.rec||[]).find(x=>x.id===t.rid);return r?'<small class="tks" data-a="ropt" data-t="'+t.id+'" style="cursor:pointer">↻ '+ruleLabel(r)+' · opções ›</small>':''}
@@ -682,6 +698,7 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
   if(sh.st)return stListSheet();
   if(sh.stv)return stViewSheet(sh.stv);
   if(sh.sted)return stEditSheet();
+  if(sh.strv)return stRevSheet(sh.strv);
   if(sh.thist){const days=[...new Set((D.tasks||[]).map(t=>t.day))].sort().reverse();
     return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Histórico de tarefas</b><button class="lnk" data-a="close">Fechar</button></div>
@@ -851,6 +868,8 @@ function render(){
   const scv=document.getElementById('scv');if(scv){if(SC.v!==scv){scStop();scStart(scv)}}else if(SC.v||SC.st||SC.rd)scStop();
   const scc=document.getElementById('scc');if(scc){scc.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'')});scc.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();offCode(scc.value)}})}
   const fgi=document.getElementById('fg');if(fgi){fgi.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'');S.fgv=e.target.value;const pv=document.getElementById('fprev'),sl=fSel(S.sheet.fadd.sel);if(pv&&sl)pv.textContent=fPrev(sl,S.fgv);if(fMsCur()){S.fms=null;const mc=document.getElementById('fmch');if(mc)mc.innerHTML=fMeasHtml()}});fgi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fConfirm()}});if(S.fgFocus){S.fgFocus=0;if(!fMeasList(S.sheet.fadd.sel).length){fgi.focus();fgi.select()}}}
+  document.querySelectorAll('.stivi').forEach(i=>i.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'');if(S.stf)S.stf.iv[+e.target.dataset.i]=e.target.value}));
+  document.querySelectorAll('.stcap').forEach(i=>{i.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'')});i.addEventListener('change',e=>{const v=Math.min(50,parseInt(e.target.value,10)||0);if(v)D.stc=v;else delete D.stc;save();render()})});
   document.querySelectorAll('.stf').forEach(i=>['input','change'].forEach(ev=>i.addEventListener(ev,e=>{if(S.stf)S.stf[e.target.dataset.f]=e.target.value})));
   document.querySelectorAll('.fgq').forEach(i=>i.addEventListener('input',e=>{if(S.fgq){S.fgq[e.target.dataset.f]=e.target.value;const x=document.getElementById('pkgq');if(x)x.textContent=pkgLive(S.fgq,S.fgq.start)}}));
   document.querySelectorAll('.fgi').forEach(i=>i.addEventListener('input',e=>{if(S.fgo){S.fgo[e.target.dataset.f]=e.target.value;const x=document.getElementById('pkgo');if(x)x.textContent=pkgLive(S.fgo,S.fgo.d)}}));
@@ -1013,14 +1032,18 @@ document.addEventListener('click',e=>{
   else if(a==='close'){S.sheet=null;S.fday=null}
   else if(a==='st'){S.sheet={st:true}}
   else if(a==='stv'){S.sheet={stv:el.dataset.i}}
-  else if(a==='sted'){stInit();const s=el.dataset.i&&D.st.find(x=>x.id===el.dataset.i);S.stf=s?{id:s.id,n:s.n||'',a:s.a||'',u:s.u||'',d0:s.d0,iv:stIv(s).join(', '),mt:String(stMt(s))}:{id:'',n:'',a:'',u:'',d0:key(TODAY),iv:SIV.join(', '),mt:String(SMT)};S.sheet={sted:true}}
+  else if(a==='sted'){stInit();const s=el.dataset.i&&D.st.find(x=>x.id===el.dataset.i);S.stf=s?{id:s.id,n:s.n||'',a:s.a||'',u:s.u||'',d0:s.d0,iv:stIv(s).map(String),mt:String(stMt(s)),m:s.m?String(s.m):'',qs:s.qs||''}:{id:'',n:'',a:'',u:'',d0:key(TODAY),iv:SIV.map(String),mt:String(SMT),m:'',qs:''};S.sheet={sted:true}}
+  else if(a==='strv'){S.sheet={strv:el.dataset.t}}
+  else if(a==='stq'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t&&!t.done){t.done=true;stDone(t,el.dataset.v);save()}S.sheet=null}
+  else if(a==='stivadd'){const f=S.stf;if(f){const l=parseInt(f.iv[f.iv.length-1],10)||0;f.iv.push(String(l?Math.min(3650,l*2):1))}}
+  else if(a==='stivdel'){const f=S.stf;if(f&&f.iv.length>1)f.iv.splice(+el.dataset.i,1)}
   else if(a==='stback'){S.sheet=S.stf&&S.stf.id?{stv:S.stf.id}:{st:true}}
   else if(a==='stdel'){const s=(D.st||[]).find(x=>x.id===el.dataset.i);if(!s||!confirm('Excluir "'+s.n+'"? O histórico de revisões deste conteúdo será apagado.'))return;D.st=D.st.filter(x=>x!==s);D.tasks=D.tasks.filter(t=>!(t.sid===s.id&&!t.done));save();S.sheet={st:true}}
   else if(a==='stsave'){stInit();const f=S.stf;if(!f)return;const n=f.n.trim();if(!n){alert('Informe o conteúdo.');return}if(!/^\d{4}-\d{2}-\d{2}$/.test(f.d0)){alert('Informe a data do estudo inicial.');return}
-    const iv=(String(f.iv).match(/\d+/g)||[]).map(Number).filter(x=>x>0&&x<=3650);if(!iv.length){alert('Informe ao menos um intervalo em dias.');return}const mt=Math.min(3650,parseInt(f.mt,10)||0);
+    const iv=f.iv.map(x=>parseInt(x,10)).filter(x=>x>0&&x<=3650);if(!iv.length){alert('Informe ao menos um intervalo em dias.');return}const mt=Math.min(3650,parseInt(f.mt,10)||0);
     let s=f.id&&D.st.find(x=>x.id===f.id);if(!s){s={id:Date.now().toString(36)+Math.random().toString(36).slice(2,4),rv:[]};D.st.push(s)}
-    Object.assign(s,{n:n.slice(0,120),a:f.a.trim().slice(0,80),u:f.u.trim().slice(0,300),d0:f.d0,iv,mt});if(!s.a)delete s.a;if(!s.u)delete s.u;
-    const t=D.tasks.find(x=>x.id===stTid(s,s.rv.length)&&!x.done),due=stDue(s);if(t){if(due){t.day=due;t.text='Revisar: '+s.n}else D.tasks=D.tasks.filter(x=>x!==t)}
+    const m=Math.min(600,parseInt(f.m,10)||0),qs=String(f.qs||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,20).join('\n').slice(0,2000);Object.assign(s,{n:n.slice(0,120),a:f.a.trim().slice(0,80),u:f.u.trim().slice(0,300),d0:f.d0,iv,mt,m,qs});['a','u','m','qs'].forEach(k=>{if(!s[k])delete s[k]});
+    const t=D.tasks.find(x=>x.id===stTid(s,s.rv.length)&&!x.done),due=stDue(s);if(t){if(due){t.day=due;t.text='Revisar: '+s.n;if(s.m)t.dur=s.m;else delete t.dur}else D.tasks=D.tasks.filter(x=>x!==t)}
     save();S.stf=null;S.sheet={stv:s.id}}
   else if(a==='fgoed'){const k=el.dataset.k,o=k&&D.fgo[k],b=D.food.goal,v=o||b;const kg=o&&o.m==='kg',rv=o?fgRes(o,k):b;S.fgo={orig:k||'',d:k||key(addD(TODAY,1)),m:kg?'kg':'g',gc:rv.c,gp:rv.p,gf:rv.f,gk:rv.k,lock:!!S.fgLock,msg:''};S.sheet={fgo:true}}
   else if(a==='fgqed'){const r=el.dataset.i&&(D.fgr||[]).find(x=>x.id===el.dataset.i),b=D.food.goal,v=r||b,rr=r?fgRes(r,r.start):b;S.fgq={id:r?r.id:'',every:String(r?r.rule.every:1),unit:r?r.rule.unit:'w',wd:r?(r.rule.wd||[]).slice():[],md:r?(r.rule.md||[]).join(', '):'',start:r?r.start:key(TODAY),end:r&&r.end?r.end:'',m:r&&r.m==='kg'?'kg':'g',gc:rr.c,gp:rr.p,gf:rr.f,gk:rr.k,lock:!!S.fgLock,msg:''};S.sheet={fgq:true}}
@@ -1196,11 +1219,11 @@ function flat(){const r={};
   for(const k in (D.fgd||{}))r['y|'+k]=D.fgd[k];
   for(const k in (D.fgo||{}))r['g|'+k]=D.fgo[k];
   (D.fgr||[]).forEach(x=>{r['q|'+x.id]=Object.assign({rule:x.rule,start:x.start,end:x.end,k:x.k,c:x.c,p:x.p,f:x.f},x.m==='kg'?{m:'kg',kc:x.kc,kp:x.kp,kf:x.kf,kk:x.kk}:{})});
-  (D.st||[]).forEach(x=>{r['v|'+x.id]={n:x.n,a:x.a,u:x.u,d0:x.d0,iv:x.iv,mt:x.mt,rv:x.rv}});
+  (D.st||[]).forEach(x=>{r['v|'+x.id]={n:x.n,a:x.a,u:x.u,d0:x.d0,iv:x.iv,mt:x.mt,rv:x.rv,m:x.m,qs:x.qs}});
   for(const k in (D.cf||{}))r['c|'+k]=D.cf[k];
   for(const k in (D.bw||{}))r['b|'+k]=D.bw[k];
   for(const k in (D.bc||{}))r['z|'+k]=D.bc[k];
-  if(D.ht)r['s|ht']=D.ht;
+  if(D.ht)r['s|ht']=D.ht;if(D.stc)r['s|sc']=D.stc;
   if(D.food&&D.food.set)r['s|fg']=D.food.goal;
   (D.rec||[]).forEach(x=>{r['r|'+x.id]={text:x.text,dur:x.dur,rule:x.rule,start:x.start,end:x.end,paused:x.paused,skip:x.skip,p:x.p}});
   D.habits.forEach(h=>{r['h|'+h.id]={name:h.name,intent:h.intent,created:h.created,dur:h.dur}});
@@ -1208,20 +1231,20 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v60',KNOWN=/^([etpkwxrhfycbgqzv]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v61',KNOWN=/^([etpkwxrhfycbgqzv]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
 /* após atualizar o app, adota registros que a versão antiga recebeu mas não sabia ler, antes de qualquer exclusão */
 function migrate(){if(D.sv===VER||!D.sync)return false;stamp(true);rebuild();D.sv=VER;return true}
-function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={},GO={},FQ=[],ST=[];let ord=[],sort,ws,wg,wc,fg,ht;
+function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={},GO={},FQ=[],ST=[];let ord=[],sort,ws,wg,wc,fg,ht,sc;
   for(const k in S2){const c=S2[k];if(c.v===null)continue;const p=k.slice(0,2),id=k.slice(2);
     if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='g|')GO[id]=c.v;else if(p==='q|')FQ.push(Object.assign({id},c.v));else if(p==='v|')ST.push(Object.assign({id},c.v));else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='z|')BC[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
-    else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v;else if(k==='s|wg')wg=c.v;else if(k==='s|wc')wc=c.v;else if(k==='s|fg')fg=c.v;else if(k==='s|ht')ht=c.v}
+    else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v;else if(k==='s|wg')wg=c.v;else if(k==='s|wc')wc=c.v;else if(k==='s|fg')fg=c.v;else if(k==='s|ht')ht=c.v;else if(k==='s|sc')sc=c.v}
   const ids=ord.filter(i=>Hs[i]);Object.keys(Hs).sort().forEach(i=>{if(!ids.includes(i))ids.push(i)});
   D.habits=ids.map(i=>Hs[i]);
   D.entries={};for(const k in E)if(Hs[k.split('|')[0]])D.entries[k]=1;
-  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.fgo=GO;D.fgr=FQ.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.st=ST.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.cf=CF;D.bw=BW;D.bc=BC;if(ht>0)D.ht=ht;else delete D.ht;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
+  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.fgo=GO;D.fgr=FQ.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.st=ST.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.cf=CF;D.bw=BW;D.bc=BC;if(ht>0)D.ht=ht;else delete D.ht;if(sc>0)D.stc=sc;else delete D.stc;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
   if(sort===undefined||sort===null)delete D.sort;else D.sort=sort;
   if(ws===undefined||ws===null)delete D.weekStart;else D.weekStart=ws}
 function mergeIn(rem){const S2=D.sync||(D.sync={});let ch=0;
