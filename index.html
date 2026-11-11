@@ -968,7 +968,7 @@ var SY={cfg:null,run:0,again:0,err:'',msg:'',last:0,t:0,cache:null};
 const jstr=JSON.stringify;
 function flat(){const r={};
   for(const k in D.entries)if(D.entries[k])r['e|'+k]=1;
-  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur,rid:t.rid,prog:t.prog}});
+  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur,rid:t.rid,prog:t.prog,p:t.p}});
   for(const k in (D.prog||{}))if(D.prog[k])r['p|'+k]=D.prog[k];
   for(const k in (D.snap||{}))r['k|'+k]=D.snap[k];
   for(const k in (D.wl||{}))r['w|'+k]=D.wl[k];
@@ -981,13 +981,13 @@ function flat(){const r={};
   for(const k in (D.bc||{}))r['z|'+k]=D.bc[k];
   if(D.ht)r['s|ht']=D.ht;
   if(D.food&&D.food.set)r['s|fg']=D.food.goal;
-  (D.rec||[]).forEach(x=>{r['r|'+x.id]={text:x.text,dur:x.dur,rule:x.rule,start:x.start,end:x.end,paused:x.paused,skip:x.skip}});
+  (D.rec||[]).forEach(x=>{r['r|'+x.id]={text:x.text,dur:x.dur,rule:x.rule,start:x.start,end:x.end,paused:x.paused,skip:x.skip,p:x.p}});
   D.habits.forEach(h=>{r['h|'+h.id]={name:h.name,intent:h.intent,created:h.created,dur:h.dur}});
   r['o|']=D.habits.map(h=>h.id);
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v47',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v48',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
