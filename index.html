@@ -365,7 +365,13 @@ function fAdd(m,name,g,per){const f=g/100,dk=S.fday||key(TODAY);if(dk<key(TODAY)
 function fSel(r){if(!r)return null;if(r.t==='t'){const x=FOODS&&FOODS[r.i];return x?{name:x[1],per:[x[3],x[4],x[5],x[6]]}:null}const c=D.cf[r.i];return c?{name:c.n,per:[c.k,c.p,c.l,c.c]}:null}
 function fPrev(sel,gs){const g=parseFloat(String(gs).replace(',','.'));if(!(g>0))return 'Informe a quantidade em gramas.';const f=g/100;return Math.round(sel.per[0]*f)+' kcal · C '+r1(sel.per[3]*f)+' g · P '+r1(sel.per[1]*f)+' g · G '+r1(sel.per[2]*f)+' g'}
 function fConfirm(){const a=S.sheet&&S.sheet.fadd,sel=a&&fSel(a.sel);if(!sel)return;const g=parseFloat(String(S.fgv).replace(',','.'));if(!(g>0))return;const lab=fMsLab();fAdd(a.m,(sel.name+(lab?' · '+lab:'')).slice(0,90),r2(Math.min(5000,g)),sel.per);S.fq='';S.fms=null;S.sheet=S.fday?{dayf:S.fday}:{food:true};render()}
-function fResHtml(){
+function fFreq(m){fInit();const lim=key(addD(TODAY,-60)),G={};
+  for(const x in D.fl){if(x.split('|')[0]<lim)continue;const e=D.fl[x],b=String(e[1]).split(' · ')[0].trim().toLowerCase(),o=G[b]||(G[b]={n:0,nm:0,gs:{}});o.n++;if(e[0]===m)o.nm++;const g=o.gs[e[2]]||(o.gs[e[2]]={c:0,k:''});g.c++;if(x>g.k)g.k=x}
+  return Object.values(G).filter(o=>o.n>=2).map(o=>{let bg=null;for(const g of Object.values(o.gs))if(!bg||g.c>bg.c||(g.c===bg.c&&g.k>bg.k))bg=g;return {k:bg.k,n:o.n,nm:o.nm}}).sort((a,b)=>b.nm-a.nm||b.n-a.n).slice(0,8)}
+function fFreqHtml(m){const L=fFreq(m);if(!L.length)return '';
+  return '<div class="sub" style="margin:4px 0 2px">FREQUENTES · TOQUE PARA LANÇAR</div>'+L.map(x=>{const e=D.fl[x.k];return '<div class="fres" data-a="ffreq" data-k="'+escH(x.k)+'"><span>'+escH(e[1])+'</span><small>'+e[2]+' g · '+Math.round(e[3])+' kcal <span style="color:var(--g);padding:0 4px;font-size:16px">+</span></small></div>'}).join('')+'<div class="sub" style="margin:12px 0 2px">TODOS</div>'}
+function fResHtml(){const a=S.sheet&&S.sheet.fadd;return (a&&!(S.fq||'').trim()?fFreqHtml(a.m):'')+fResHtml0()}
+function fResHtml0(){
   const q=S.fq||'',gm=q.match(GRE),tk=nrm(gm?q.slice(0,gm.index):q).split(/\s+/).filter(Boolean);
   let L=[];
   for(const id in D.cf){const c=D.cf[id];if(!tk.length||tk.every(t=>nrm(c.n).includes(t)))L.push({t:'c',i:id,n:c.n,k:c.k,my:1})}
@@ -881,6 +887,7 @@ document.addEventListener('click',e=>{
   else if(a==='prev'||a==='next'){slide(a==='next'?1:-1);return}
   else if(a==='open'){S.sheet={id:h,mode:S.tab==='week'?'week':S.tab==='month'?'month':'year',ref:S.tab==='today'?TODAY:S.ref}}
   else if(a==='close'){S.sheet=null;S.fday=null}
+  else if(a==='ffreq'){const e0=D.fl[el.dataset.k],a0=S.sheet&&S.sheet.fadd;if(e0&&a0){const dk=S.fday||key(TODAY);if(dk<key(TODAY)&&!D.fgd[dk])D.fgd[dk]=Object.assign({},D.food.goal);D.fl[dk+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=[a0.m].concat(e0.slice(1));S.fq='';S.fms=null;S.sheet=S.fday?{dayf:S.fday}:{food:true};save()}}
   else if(a==='fcedit'){const c=D.cf[el.dataset.i];if(c){S.cfd={n:c.n,k:String(c.k),p:String(c.p),l:String(c.l),c:String(c.c)};S.sheet={fnew:{m:S.sheet.fadd.m,edit:el.dataset.i}}}}
   else if(a==='fedit'){const e0=D.fl[el.dataset.k];if(e0){S.fe={m:e0[0],n:e0[1],g:String(e0[2]),g0:e0[2],kc:String(e0[3]),p:String(e0[4]),l:String(e0[5]),c:String(e0[6])};S.sheet={fedit:{id:el.dataset.k,back:S.sheet&&S.sheet.dayf?{dayf:S.sheet.dayf}:{food:true}}}}}
   else if(a==='fedback'){S.sheet=S.sheet.fedit.back;S.fe=null}
@@ -1036,7 +1043,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v50',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v51',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
