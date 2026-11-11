@@ -299,10 +299,11 @@ var FOODS=null,FN=null,FERR=0;
 const FMEALS=['Café da manhã','Almoço','Lanche','Jantar','Ceia'],GRE=/(\d+(?:[.,]\d+)?)\s*g\s*$/i;
 const nrm=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const r1=n=>Math.round(n*10)/10,r2=n=>Math.round(n*100)/100;
-function fInit(){bwInit();if(!D.bc||typeof D.bc!=='object')D.bc={};if(!D.food||typeof D.food!=='object')D.food={};const f=D.food;if(!f.goal||!(f.goal.k>0))f.goal={k:1823,c:228,p:137,f:41};if(!D.fl||typeof D.fl!=='object')D.fl={};if(!D.fgd||typeof D.fgd!=='object')D.fgd={};if(!D.cf||typeof D.cf!=='object')D.cf={};if(!D.fgo||typeof D.fgo!=='object')D.fgo={}}
+function fInit(){bwInit();if(!D.bc||typeof D.bc!=='object')D.bc={};if(!D.food||typeof D.food!=='object')D.food={};const f=D.food;if(!f.goal||!(f.goal.k>0))f.goal={k:1823,c:228,p:137,f:41};if(!D.fl||typeof D.fl!=='object')D.fl={};if(!D.fgd||typeof D.fgd!=='object')D.fgd={};if(!D.cf||typeof D.cf!=='object')D.cf={};if(!D.fgo||typeof D.fgo!=='object')D.fgo={};if(!Array.isArray(D.fgr))D.fgr=[]}
 function loadFoods(){if(FOODS)return;fetch('taco.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{FOODS=j.f;FERR=0;if(S.sheet&&S.sheet.fadd&&!S.sheet.fadd.sel&&!document.activeElement.id)render();else{const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()}}).catch(()=>{FERR=1;const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()})}
 function fDay(k){const o={k:0,p:0,l:0,c:0,n:0};for(const x in D.fl)if(x.startsWith(k+'|')){const e=D.fl[x];o.k+=e[3];o.p+=e[4];o.l+=e[5];o.c+=e[6];o.n++}o.k=Math.round(o.k);o.p=r1(o.p);o.l=r1(o.l);o.c=r1(o.c);return o}
-function fGoal(k){const o=D.fgo&&D.fgo[k];return o?Object.assign({},D.food.goal,o):(k>=key(TODAY)?D.food.goal:(D.fgd[k]||D.food.goal))}
+function fgRule(k){const L=D.fgr||[];for(let i=L.length-1;i>=0;i--)if(L[i].rule&&occurs(L[i],k))return L[i];return null}
+function fGoal(k){const o=D.fgo&&D.fgo[k]||fgRule(k);return o?Object.assign({},D.food.goal,{k:o.k,c:o.c,p:o.p,f:o.f}):(k>=key(TODAY)?D.food.goal:(D.fgd[k]||D.food.goal))}
 function bwInit(){if(!D.bw||typeof D.bw!=='object')D.bw={}}
 function bwLast(){bwInit();const t=key(TODAY),ks=Object.keys(D.bw).filter(k=>k<=t).sort();return ks.length?{d:ks[ks.length-1],v:D.bw[ks[ks.length-1]]}:null}
 const pnum=v=>{const x=parseFloat(String(v==null?'':v).replace(',','.'));return isFinite(x)?x:NaN};
@@ -455,7 +456,20 @@ function fWeeks(){
       return '<div class="apd" '+(k<=t?'data-a="fday" data-k="'+k+'" ':'')+'style="grid-template-columns:46px 1fr 138px'+(k<=t?';cursor:pointer':'')+'"><span>'+WDS[dt.getDay()]+' '+pad(dt.getDate())+'</span>'+(v?'<div class="apb"><i style="width:'+Math.min(100,Math.floor(v[0]*100/v[1]))+'%"></i></div><b>'+Math.floor(v[0]*100/v[1])+'% · '+v[0]+'/'+v[1]+'</b>':'<div></div><b style="color:var(--mut)">—</b>')+'</div>'}).join('')+'</div>'}
     return '<div class="apw" data-a="wkx" data-w="'+w.w+'"><div class="aph"><span>'+wkLab(w.w)+(w.w===cw?' · em andamento':'')+'</span><b>'+p+'%</b></div><div class="apb"><i style="width:'+Math.min(100,p)+'%"></i></div><div class="aps">total '+w.k+' kcal · média '+av(w.k)+' kcal/dia (÷'+w.n+')'+(w.lg<w.n?' · só dos '+w.lg+' dia'+(w.lg===1?'':'s')+' registrado'+(w.lg===1?'':'s')+': '+Math.round(w.k/Math.max(1,w.lg))+' kcal/dia':'')+' · C '+av(w.c)+' · P '+av(w.p)+' · G '+av(w.l)+' g · meta em '+w.hit+' de '+w.n+' dia'+(w.n>1?'s':'')+dl+'</div>'+dd+'</div>'}).join('')}
 function fgoHtml(){fInit();const t=key(TODAY),L=Object.keys(D.fgo).filter(k=>k>=t).sort();
-  return L.map(k=>{const o=D.fgo[k];return '<div class="fer"><div class="fet" data-a="fgoed" data-k="'+k+'">'+WDS[dparse(k).getDay()]+' '+dfmt(k)+'<small>'+o.k+' kcal · C '+o.c+' · P '+o.p+' · G '+o.f+'</small></div><div class="tkx" data-a="fgodel" data-k="'+k+'">×</div></div>'}).join('')+'<div class="fad" data-a="fgoed" data-k="">+ Definir meta para um dia</div>'}
+  return L.map(k=>{const o=D.fgo[k];return '<div class="fer"><div class="fet" data-a="fgoed" data-k="'+k+'">'+WDS[dparse(k).getDay()]+' '+dfmt(k)+'<small>'+o.k+' kcal · C '+o.c+' · P '+o.p+' · G '+o.f+'</small></div><div class="tkx" data-a="fgodel" data-k="'+k+'">×</div></div>'}).join('')+'<div class="fad" data-a="fgoed" data-k="">+ Definir meta para um dia</div>'+(D.fgr||[]).filter(r=>!r.end||r.end>=t).map(r=>'<div class="fer"><div class="fet" data-a="fgqed" data-i="'+r.id+'">'+ruleLabel(r)+'<small>'+r.k+' kcal · C '+r.c+' · P '+r.p+' · G '+r.f+(r.end?' · até '+dfmt(r.end):' · sem data final')+'</small></div><div class="tkx" data-a="fgqdel" data-i="'+r.id+'">×</div></div>').join('')+'<div class="fad" data-a="fgqed" data-i="">+ Meta recorrente (ex.: toda quarta por 1 mês)</div>'}
+function fgqSheet(){const f=S.fgq;if(!f)return '';const u=f.unit,fl=(l,k)=>`<div class="sub" style="margin-top:12px">${l}</div><input type="text" class="fgq rin" data-f="${k}" inputmode="decimal" maxlength="6" value="${escH(f[k])}">`,
+    wdo=[1,2,3,4,5,6,0].map(i=>`<div class="opt ${f.wd.includes(i)?'g':''}" data-a="gwd" data-v="${i}">${WDS[i]}</div>`).join('');
+  return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
+    <div class="sh"><button class="lnk" data-a="fgoback">‹ Voltar</button><b>Meta recorrente</b><button class="lnk" data-a="close">Fechar</button></div>
+    <div class="note" style="padding:0">Enquanto a regra valer, ela substitui a meta base nos dias escolhidos. Depois do término, volta a meta base. Um dia específico definido à parte tem prioridade.</div>
+    <div class="sub" style="margin-top:12px">REPETIR A CADA</div><div class="evr"><input type="text" class="fgq rin" data-f="every" inputmode="numeric" maxlength="2" value="${escH(f.every)}"><div class="opt ${u==='d'?'g':''}" data-a="gunit" data-v="d">dia(s)</div><div class="opt ${u==='w'?'g':''}" data-a="gunit" data-v="w">semana(s)</div><div class="opt ${u==='m'?'g':''}" data-a="gunit" data-v="m">mês(es)</div></div>
+    ${u==='w'?`<div class="sub">DIAS DA SEMANA (VAZIO = DIA DO INÍCIO)</div><div class="wdr">${wdo}</div>`:''}
+    ${u==='m'?`<div class="sub">DIAS DO MÊS, EX.: 10, 25 (VAZIO = DIA DO INÍCIO)</div><input type="text" class="fgq rin" data-f="md" inputmode="numeric" placeholder="10, 25" value="${escH(f.md)}">`:''}
+    <div class="sub" style="margin-top:12px">INÍCIO</div><input type="date" class="fgq rin" data-f="start" value="${escH(f.start)}">
+    <div class="sub" style="margin-top:12px">TÉRMINO (OPCIONAL)</div><input type="date" class="fgq rin" data-f="end" value="${escH(f.end)}">
+    ${fl('CARBOIDRATOS (G)','c')}${fl('PROTEÍNA (G)','p')}${fl('GORDURA (G)','f')}${fl('CALORIAS (KCAL)','k')}
+    <button class="btn" style="margin-top:18px" data-a="fgqsave">Salvar</button>
+    ${f.id?'<button class="btn d" data-a="fgqdel" data-i="'+f.id+'">Apagar regra</button>':''}</div></div>`}
 function fgoSheet(){const f=S.fgo;if(!f)return '';const fl=(l,k)=>`<div class="sub" style="margin-top:12px">${l}</div><input type="text" class="fgi rin" data-f="${k}" inputmode="decimal" maxlength="6" value="${escH(f[k])}">`;
   return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
     <div class="sh"><button class="lnk" data-a="fgoback">‹ Voltar</button><b>Meta do dia</b><button class="lnk" data-a="close">Fechar</button></div>
@@ -473,7 +487,7 @@ function foodHtml(){fInit();const g=D.food.goal;
   ${g.m==='kg'?`<div class="fgl k3"><div><div class="sub">CHO (G/KG)</div><input type="text" class="fkg" data-f="kc" inputmode="decimal" maxlength="5" value="${g.kc!=null?fmtG(g.kc):''}"></div><div><div class="sub">PTN (G/KG)</div><input type="text" class="fkg" data-f="kp" inputmode="decimal" maxlength="5" value="${g.kp!=null?fmtG(g.kp):''}"></div><div><div class="sub">LIP (G/KG)</div><input type="text" class="fkg" data-f="kf" inputmode="decimal" maxlength="5" value="${g.kf!=null?fmtG(g.kf):''}"></div></div>`:`<div class="fgl"><div><div class="sub">CALORIAS (KCAL)</div><input type="text" class="fcfg" data-f="k" inputmode="numeric" maxlength="5" value="${g.k}"></div><div><div class="sub">CARBOIDRATOS (G)</div><input type="text" class="fcfg" data-f="c" inputmode="numeric" maxlength="4" value="${g.c}"></div><div><div class="sub">PROTEÍNA (G)</div><input type="text" class="fcfg" data-f="p" inputmode="numeric" maxlength="4" value="${g.p}"></div><div><div class="sub">GORDURA (G)</div><input type="text" class="fcfg" data-f="f" inputmode="numeric" maxlength="4" value="${g.f}"></div></div>`}
   <div id="fkgr">${fKgHtml()}</div>
   <div class="sub" style="margin-top:22px">METAS ESPECÍFICAS POR DIA</div>
-  <div class="note" style="padding:0 0 4px">Use para dias com meta diferente (ex.: véspera de treino de perna). Vale só para o dia escolhido.</div>
+  <div class="note" style="padding:0 0 4px">Use para dias com meta diferente (ex.: véspera de treino de perna), uma vez ou de forma recorrente. Fora desses dias vale a meta base.</div>
   <div id="fgoh">${fgoHtml()}</div>
   <div class="sub" style="margin-top:22px">HISTÓRICO SEMANAL</div>
   <div id="fhist" style="margin-top:6px">${fWeeks()}</div>
@@ -642,6 +656,7 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     ${FMEALS.map((n,m)=>{const L=E.filter(x=>D.fl[x][0]===m),t=Math.round(L.reduce((a,x)=>a+D.fl[x][3],0));
       return '<div class="fmh"><span>'+n+'</span><span>'+t+' kcal</span></div>'+L.map(x=>{const e=D.fl[x];return '<div class="fer"><div class="fet" data-a="fedit" data-k="'+x+'">'+escH(e[1])+'<small>C '+e[6]+' · P '+e[4]+' · G '+e[5]+'</small></div><input type="text" class="rin dfin" inputmode="decimal" maxlength="6" data-k="'+x+'" value="'+e[2]+'" style="width:72px;margin:0"><span style="color:var(--mut)">g</span><div class="fek">'+Math.round(e[3])+'</div><div class="tkx" data-a="fdel" data-k="'+x+'">×</div></div>'}).join('')+'<div class="fad" data-a="faddopen" data-m="'+m+'" data-d="'+k+'">+ alimento</div>'}).join('')}</div></div>`}
   if(sh.fadd)return faddHtml(sh.fadd);
+  if(sh.fgq)return fgqSheet();
   if(sh.fgo)return fgoSheet();
   if(sh.fedit)return feditHtml();
   if(sh.fnew)return fnewHtml(sh.fnew.m,sh.fnew.edit);
@@ -751,6 +766,7 @@ function render(){
   const scv=document.getElementById('scv');if(scv){if(SC.v!==scv){scStop();scStart(scv)}}else if(SC.v||SC.st||SC.rd)scStop();
   const scc=document.getElementById('scc');if(scc){scc.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'')});scc.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();offCode(scc.value)}})}
   const fgi=document.getElementById('fg');if(fgi){fgi.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'');S.fgv=e.target.value;const pv=document.getElementById('fprev'),sl=fSel(S.sheet.fadd.sel);if(pv&&sl)pv.textContent=fPrev(sl,S.fgv);if(fMsCur()){S.fms=null;const mc=document.getElementById('fmch');if(mc)mc.innerHTML=fMeasHtml()}});fgi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fConfirm()}});if(S.fgFocus){S.fgFocus=0;if(!fMeasList(S.sheet.fadd.sel).length){fgi.focus();fgi.select()}}}
+  document.querySelectorAll('.fgq').forEach(i=>i.addEventListener('input',e=>{if(S.fgq)S.fgq[e.target.dataset.f]=e.target.value}));
   document.querySelectorAll('.fgi').forEach(i=>i.addEventListener('input',e=>{if(S.fgo)S.fgo[e.target.dataset.f]=e.target.value}));
   document.querySelectorAll('.fei').forEach(i=>i.addEventListener('input',e=>{if(S.fe)S.fe[e.target.dataset.f]=e.target.value}));
   document.querySelectorAll('.fcf').forEach(i=>i.addEventListener('input',e=>{if(!S.cfd)S.cfd={};S.cfd[e.target.dataset.f]=e.target.value}));
@@ -778,6 +794,7 @@ function step(ref,mode,dir){
   return new Date(ref.getFullYear()+dir,0,1)}
 document.addEventListener('change',e=>{const i=e.target,c=i.classList;if(!c)return;
   if(c.contains('dwin')){const v=parseInt(i.value,10);if(v>0&&v<=5000&&D.wl[i.dataset.k]!==undefined){D.wl[i.dataset.k]=v;save()}render()}
+  else if(c.contains('fgq')){const f=i.dataset.f;if(S.fgq&&(f==='c'||f==='p'||f==='f')){const n=x=>{const v=parseFloat(String(S.fgq[x]).replace(',','.'));return v>=0?v:0};S.fgq.k=String(Math.round(4*n('c')+4*n('p')+9*n('f')));render()}}
   else if(c.contains('fgi')){const f=i.dataset.f;if(S.fgo&&(f==='c'||f==='p'||f==='f')){const n=x=>{const v=parseFloat(String(S.fgo[x]).replace(',','.'));return v>=0?v:0};S.fgo.k=String(Math.round(4*n('c')+4*n('p')+9*n('f')));render()}}
   else if(c.contains('fei')){if(i.dataset.f==='g'&&S.fe){const n=parseFloat(String(i.value).replace(',','.')),o=S.fe.g0;if(n>0&&o>0){const r=n/o;['kc','c','p','l'].forEach(f=>{const x=parseFloat(String(S.fe[f]).replace(',','.'));if(x>=0)S.fe[f]=String(r2(x*r))});S.fe.g=i.value;S.fe.g0=n;render()}}}
   else if(c.contains('dfin')){const g=parseFloat(String(i.value).replace(',','.')),e0=D.fl[i.dataset.k];if(g>0&&g<=5000&&e0&&e0[2]>0){const r=g/e0[2];D.fl[i.dataset.k]=[e0[0],e0[1],r2(g),r1(e0[3]*r),r2(e0[4]*r),r2(e0[5]*r),r2(e0[6]*r)].concat(e0.slice(7));save()}render()}});
@@ -903,8 +920,22 @@ document.addEventListener('click',e=>{
   else if(a==='open'){S.sheet={id:h,mode:S.tab==='week'?'week':S.tab==='month'?'month':'year',ref:S.tab==='today'?TODAY:S.ref}}
   else if(a==='close'){S.sheet=null;S.fday=null}
   else if(a==='fgoed'){const k=el.dataset.k,o=k&&D.fgo[k],b=D.food.goal,v=o||b;S.fgo={orig:k||'',d:k||key(addD(TODAY,1)),c:String(v.c),p:String(v.p),f:String(v.f),k:String(v.k)};S.sheet={fgo:true}}
+  else if(a==='fgqed'){const r=el.dataset.i&&(D.fgr||[]).find(x=>x.id===el.dataset.i),b=D.food.goal,v=r||b;S.fgq={id:r?r.id:'',every:String(r?r.rule.every:1),unit:r?r.rule.unit:'w',wd:r?(r.rule.wd||[]).slice():[],md:r?(r.rule.md||[]).join(', '):'',start:r?r.start:key(TODAY),end:r&&r.end?r.end:'',c:String(v.c),p:String(v.p),f:String(v.f),k:String(v.k)};S.sheet={fgq:true}}
+  else if(a==='gunit'){S.fgq.unit=el.dataset.v}
+  else if(a==='gwd'){const i=+el.dataset.v,w=S.fgq.wd,p=w.indexOf(i);if(p<0)w.push(i);else w.splice(p,1)}
+  else if(a==='fgqdel'){if(confirm('Apagar esta meta recorrente? Os dias passam a usar a meta base.')){D.fgr=(D.fgr||[]).filter(x=>x.id!==el.dataset.i);if(S.sheet&&S.sheet.fgq){S.sheet={food:true};S.fgq=null}save()}else return}
+  else if(a==='fgqsave'){const f=S.fgq,n=x=>{const v=parseFloat(String(x).replace(',','.'));return v>=0?v:0},ev=parseInt(f.every,10)||0;
+    if(ev<1){alert('Informe de quanto em quanto tempo repete (1 ou mais).');return}
+    if((f.start||'').length!==10){alert('Informe a data de início.');return}
+    if(f.end&&f.end<f.start){alert('O término precisa ser depois do início.');return}
+    if(!(n(f.k)>0)){alert('Informe as calorias do dia.');return}
+    const rule={every:ev,unit:f.unit};if(f.unit==='w')rule.wd=f.wd.slice().sort((a,b)=>a-b);
+    if(f.unit==='m')rule.md=[...new Set((f.md||'').split(/\D+/).filter(Boolean).map(Number).filter(x=>x>=1&&x<=31))].sort((a,b)=>a-b);
+    const o={rule,start:f.start,k:Math.round(n(f.k)),c:Math.round(n(f.c)),p:Math.round(n(f.p)),f:Math.round(n(f.f))};if(f.end)o.end=f.end;
+    if(f.id){const r=D.fgr.find(x=>x.id===f.id);if(!r)return;delete r.end;Object.assign(r,o)}else D.fgr.push(Object.assign({id:'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)},o));
+    S.sheet={food:true};S.fgq=null;save()}
   else if(a==='fgodel'){delete D.fgo[el.dataset.k];save()}
-  else if(a==='fgoback'){S.sheet={food:true};S.fgo=null}
+  else if(a==='fgoback'){S.sheet={food:true};S.fgo=null;S.fgq=null}
   else if(a==='fgosave'){const f=S.fgo,n=x=>{const v=parseFloat(String(x).replace(',','.'));return v>=0?v:0};
     if(!/^\d{4}-\d{2}-\d{2}$/.test(f.d||'')){alert('Escolha o dia.');return}
     if(!(n(f.k)>0)){alert('Informe as calorias do dia.');return}
@@ -1056,6 +1087,7 @@ function flat(){const r={};
   for(const k in (D.fl||{}))r['f|'+k]=D.fl[k];
   for(const k in (D.fgd||{}))r['y|'+k]=D.fgd[k];
   for(const k in (D.fgo||{}))r['g|'+k]=D.fgo[k];
+  (D.fgr||[]).forEach(x=>{r['q|'+x.id]={rule:x.rule,start:x.start,end:x.end,k:x.k,c:x.c,p:x.p,f:x.f}});
   for(const k in (D.cf||{}))r['c|'+k]=D.cf[k];
   for(const k in (D.bw||{}))r['b|'+k]=D.bw[k];
   for(const k in (D.bc||{}))r['z|'+k]=D.bc[k];
@@ -1067,20 +1099,20 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v52',KNOWN=/^([etpkwxrhfycbgz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v53',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
 /* após atualizar o app, adota registros que a versão antiga recebeu mas não sabia ler, antes de qualquer exclusão */
 function migrate(){if(D.sv===VER||!D.sync)return false;stamp(true);rebuild();D.sv=VER;return true}
-function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={},GO={};let ord=[],sort,ws,wg,wc,fg,ht;
+function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={},GO={},FQ=[];let ord=[],sort,ws,wg,wc,fg,ht;
   for(const k in S2){const c=S2[k];if(c.v===null)continue;const p=k.slice(0,2),id=k.slice(2);
-    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='g|')GO[id]=c.v;else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='z|')BC[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
+    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='g|')GO[id]=c.v;else if(p==='q|')FQ.push(Object.assign({id},c.v));else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='z|')BC[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
     else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v;else if(k==='s|wg')wg=c.v;else if(k==='s|wc')wc=c.v;else if(k==='s|fg')fg=c.v;else if(k==='s|ht')ht=c.v}
   const ids=ord.filter(i=>Hs[i]);Object.keys(Hs).sort().forEach(i=>{if(!ids.includes(i))ids.push(i)});
   D.habits=ids.map(i=>Hs[i]);
   D.entries={};for(const k in E)if(Hs[k.split('|')[0]])D.entries[k]=1;
-  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.fgo=GO;D.cf=CF;D.bw=BW;D.bc=BC;if(ht>0)D.ht=ht;else delete D.ht;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
+  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.fgo=GO;D.fgr=FQ.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.cf=CF;D.bw=BW;D.bc=BC;if(ht>0)D.ht=ht;else delete D.ht;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
   if(sort===undefined||sort===null)delete D.sort;else D.sort=sort;
   if(ws===undefined||ws===null)delete D.weekStart;else D.weekStart=ws}
 function mergeIn(rem){const S2=D.sync||(D.sync={});let ch=0;
