@@ -223,7 +223,7 @@ function ruleLabel(r){const n=r.rule.every|0||1,u=r.rule.unit,s=dparse(r.start);
     return (n===1?'Toda semana':'A cada '+n+' semanas')+' · '+wd.slice().sort((a,b)=>(a+6)%7-(b+6)%7).map(x=>WDS[x]).join(', ')}
   const md=r.rule.md&&r.rule.md.length?r.rule.md:[s.getDate()];
   return (n===1?'Todo mês':'A cada '+n+' meses')+' · dia '+md.slice().sort((a,b)=>a-b).join(', ')}
-function recLab(t){const r=t.rid&&(D.rec||[]).find(x=>x.id===t.rid);return r?'<small class="tks">↻ '+ruleLabel(r)+'</small>':''}
+function recLab(t){const r=t.rid&&(D.rec||[]).find(x=>x.id===t.rid);return r?'<small class="tks" data-a="ropt" data-t="'+t.id+'" style="cursor:pointer">↻ '+ruleLabel(r)+' · opções ›</small>':''}
 function ensureDay(k){
   if(k<key(TODAY)||!(D.rec||[]).length)return 0;
   if(SY.cfg&&navigator.onLine&&!SY.last&&!SY.err)return 0;
@@ -601,6 +601,16 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     <div class="sh"><b>Água</b><button class="lnk" data-a="close">Fechar</button></div>${waterHtml()}</div></div>`;
   if(sh.aprov)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Aproveitamento semanal</b><button class="lnk" data-a="close">Fechar</button></div>${aprovHtml()}</div></div>`;
+  if(sh.ropt){const t=D.tasks.find(x=>x.id===sh.ropt),r=t&&(D.rec||[]).find(x=>x.id===t.rid);if(!t||!r){S.sheet=null;return ''}
+    const dl=dfmt(t.day),cf=S.confirm;
+    return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
+    <div class="sh"><b>Tarefa recorrente</b><button class="lnk" data-a="close">Fechar</button></div>
+    <div style="font-size:16px;margin-bottom:4px">${escH(t.text)}</div><div class="note" style="padding:0 0 12px">↻ ${ruleLabel(r)}${r.end?' · até '+dfmt(r.end):''} · este: ${dl}</div>
+    <div class="sr" data-a="rskip1"><span>Remover só deste dia (${dl})</span><span>›</span></div>
+    <div class="sr" data-a="redit" data-r="${r.id}"><span>Editar a recorrência<small class="tks">nome, frequência, dias, duração · vale de hoje em diante</small></span><span>›</span></div>
+    <div class="sr" data-a="rend"><span style="color:var(--r)">${cf==='rend'?'Toque de novo para confirmar':'Cancelar deste dia em diante'}<small class="tks">${cf==='rend'?'Remove '+dl+' e todos os próximos. Os dias anteriores continuam no histórico.':'encerra a recorrência a partir de '+dl}</small></span><span>›</span></div>
+    <div class="sr" data-a="rdelall"><span style="color:var(--r)">${cf==='rdelall'?'Toque de novo para confirmar':'Excluir a recorrência inteira'}<small class="tks">${cf==='rdelall'?'Remove todas as ocorrências pendentes. As já concluídas ficam no histórico.':'apaga a regra e as ocorrências pendentes'}</small></span><span>›</span></div>
+    <div class="note" style="padding:12px 0 0">Para mudar só o nome deste dia, toque no texto da tarefa.</div></div></div>`}
   if(sh.recs)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><button class="lnk" data-a="back">‹ Voltar</button><b>Tarefas recorrentes</b><button class="lnk" data-a="close">Fechar</button></div>
     ${(D.rec||[]).length?D.rec.map(r=>`<div class="sr" data-a="redit" data-r="${r.id}"><span style="color:var(--txt)${r.paused?';opacity:.5':''}">${escH(r.text)}<small class="tks">${ruleLabel(r)}${r.paused?' · pausada':''}</small></span><span>›</span></div>`).join(''):'<div class="note" style="padding:0">Nenhuma recorrência ainda. Na tela Hoje, escreva a tarefa e toque em ↻.</div>'}</div></div>`;
@@ -815,6 +825,13 @@ document.addEventListener('click',e=>{
   else if(a==='tmove'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.day=key(TODAY);save()}}
   else if(a==='tall'){D.tasks.forEach(t=>{if(!t.done&&!t.rid&&t.day<key(TODAY))t.day=key(TODAY)});save()}
   else if(a==='tedit'){S.edit=el.dataset.t;S.refocusEdit=true}
+  else if(a==='ropt'){S.sheet={ropt:el.dataset.t};S.confirm=null;S.edit=null}
+  else if(a==='rskip1'){const t=D.tasks.find(x=>x.id===S.sheet.ropt),r=t&&t.rid&&D.rec.find(x=>x.id===t.rid);if(r){r.skip=r.skip||[];if(!r.skip.includes(t.day))r.skip.push(t.day)}if(t)D.tasks=D.tasks.filter(x=>x.id!==t.id);S.sheet=null;save()}
+  else if(a==='rend'){const t=D.tasks.find(x=>x.id===S.sheet.ropt),r=t&&D.rec.find(x=>x.id===t.rid);if(t&&r){if(S.confirm!=='rend'){S.confirm='rend'}else{const d=dparse(t.day);d.setDate(d.getDate()-1);const pv=key(d);
+      if(pv<r.start)D.rec=D.rec.filter(x=>x.id!==r.id);else r.end=pv;
+      D.tasks=D.tasks.filter(x=>!(x.rid===r.id&&!x.done&&x.day>=t.day));S.confirm=null;S.sheet=null;save()}}}
+  else if(a==='rdelall'){const t=D.tasks.find(x=>x.id===S.sheet.ropt),r=t&&D.rec.find(x=>x.id===t.rid);if(t&&r){if(S.confirm!=='rdelall'){S.confirm='rdelall'}else{const t0=key(TODAY)<t.day?key(TODAY):t.day;D.rec=D.rec.filter(x=>x.id!==r.id);D.tasks=D.tasks.filter(x=>!(x.rid===r.id&&!x.done&&x.day>=t0));S.confirm=null;S.sheet=null;save()}}}
+  else if(a==='tdel'&&(()=>{const t=D.tasks.find(x=>x.id===el.dataset.t);return t&&t.rid&&D.rec.some(x=>x.id===t.rid)})()){S.sheet={ropt:el.dataset.t};S.confirm=null}
   else if(a==='tdel'){const t=D.tasks.find(x=>x.id===el.dataset.t),r=t&&t.rid&&D.rec.find(x=>x.id===t.rid);if(r){r.skip=r.skip||[];if(!r.skip.includes(t.day))r.skip.push(t.day)}D.tasks=D.tasks.filter(x=>x.id!==el.dataset.t);save()}
   else if(a==='tadd'){if(!addTask(el.closest('.tk')))return;S.refocus=true}
   else if(a==='goreorder'){S.sheet={reorder:true}}
@@ -966,7 +983,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v45',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v46',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
