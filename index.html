@@ -116,6 +116,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .fad{padding:11px 0 4px;font-size:13px;color:var(--g);cursor:pointer}
 .sheet.tall{height:88%}.mch{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}.mch .mc{flex:none;margin:0;padding:8px 11px;font-size:13px;font-weight:500}.mch .mc.on{border-color:var(--g);color:var(--g)}.scv{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3}.scv video{width:100%;height:100%;object-fit:cover;display:block}.scv i{position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--g);opacity:.85}
 .fres{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.3;cursor:pointer}.fres small{color:var(--mut);white-space:nowrap;font-size:12px}
+.gxg{display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:6px;align-items:center;margin-top:10px}.gxg input{margin:0;padding:10px 4px;font-size:16px;text-align:center;min-width:0}.gxg .h{font-size:11px;color:var(--mut);text-align:center}.gxg .l{font-size:12px;color:var(--mut)}.gxg .t{font-size:15px;text-align:center;color:var(--mut)}
 .fgl{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:8px}.fgl.k3{grid-template-columns:1fr 1fr 1fr}.bcch{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px}.bcch .opt{flex:none;padding:8px 11px;font-size:12px;cursor:pointer;white-space:nowrap}.bcch .opt.on{background:var(--txt);color:#111;border-color:var(--txt);font-weight:600}.bcr{display:grid;grid-template-columns:1fr auto 52px 52px;gap:6px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.bcr b{font-weight:500;text-align:right;white-space:nowrap}.bcr small{color:var(--mut);font-size:11px;text-align:right}.bcr.h{color:var(--mut);font-size:11px;border:0;padding-bottom:0}.bch{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}.bch span{flex:1;color:var(--mut);line-height:1.4}.bch b{font-weight:500;color:var(--txt)}.fmode{display:flex;gap:6px;margin:10px 0 4px}.fmode .opt{flex:1;padding:10px 0;font-size:13px;cursor:pointer}.fmode .opt.on{background:var(--txt);color:#111;border-color:var(--txt);font-weight:600}.fkr{font-size:13px;line-height:1.6;color:var(--mut);margin-top:12px}.fkr b{color:var(--txt);font-weight:500}.fwarn{font-size:13px;line-height:1.5;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.bwr{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}.bwr span{flex:1}.bwr small{color:var(--mut);font-size:12px;min-width:56px;text-align:right}.bwr b{font-weight:500}.fgl .sub{font-size:11px}.fgl input{width:100%;margin:6px 0 0}
 .apd{display:grid;grid-template-columns:46px 1fr 122px;gap:6px;align-items:center;font-size:12px;color:var(--mut);padding:6px 0}.apd .apb{margin:0}.apd b{color:var(--txt);font-weight:500;text-align:right}
 .durr{display:flex;gap:8px;align-items:center}.durr input{width:84px;margin:8px 0 14px;flex:none}.durr .opt{flex:1;margin-bottom:6px}
@@ -457,6 +458,25 @@ function fWeeks(){
       return '<div class="apd" '+(k<=t?'data-a="fday" data-k="'+k+'" ':'')+'style="grid-template-columns:46px 1fr 138px'+(k<=t?';cursor:pointer':'')+'"><span>'+WDS[dt.getDay()]+' '+pad(dt.getDate())+'</span>'+(v?'<div class="apb"><i style="width:'+Math.min(100,Math.floor(v[0]*100/v[1]))+'%"></i></div><b>'+Math.floor(v[0]*100/v[1])+'% · '+v[0]+'/'+v[1]+'</b>':'<div></div><b style="color:var(--mut)">—</b>')+'</div>'}).join('')+'</div>'}
     return '<div class="apw" data-a="wkx" data-w="'+w.w+'"><div class="aph"><span>'+wkLab(w.w)+(w.w===cw?' · em andamento':'')+'</span><b>'+p+'%</b></div><div class="apb"><i style="width:'+Math.min(100,p)+'%"></i></div><div class="aps apsw">total '+w.k+' kcal · média '+av(w.k)+' kcal/dia (÷'+w.n+')'+(w.lg<w.n?' · só dos '+w.lg+' dia'+(w.lg===1?'':'s')+' registrado'+(w.lg===1?'':'s')+': '+Math.round(w.k/Math.max(1,w.lg))+' kcal/dia':'')+' · C '+av(w.c)+' · P '+av(w.p)+' · G '+av(w.l)+' g'+(w.nw?'<br>por kg: '+fmtG(r1(w.kw/w.nw))+' kcal/kg/dia · P '+fmtG(r1(w.pw/w.nw))+' g/kg/dia':'')+'<br>meta em '+w.hit+' de '+w.n+' dia'+(w.n>1?'s':'')+dl+'</div>'+dd+'</div>'}).join('')}
 function wAt(k){bwInit();const ks=Object.keys(D.bw).sort();if(!ks.length)return null;let v=null;for(const x of ks){if(x<=k)v=D.bw[x];else break}return v==null?D.bw[ks[0]]:v}
+const FDEF={c:.60,p:.22};
+function fgxK(f){return 4*f.gc+4*f.gp+9*f.gf}
+function fgxSet(f,u,x,v,w){f.msg='';if(!(v>=0))return;
+  if(x==='k'){const k=u==='kg'?v*w:v;if(!(k>0))return;f.gk=k;f.gc=k*FDEF.c/4;f.gp=k*FDEF.p/4;f.gf=k*(1-FDEF.c-FDEF.p)/9;return}
+  const K={gc:4,gp:4,gf:9},NM={c:'carboidrato',p:'proteína',f:'gordura'},kx='g'+x,A={c:'gf',p:'gc',f:'gc'}[x],O=['gc','gp','gf'].find(y=>y!==kx&&y!==A),per=K[kx];
+  const g=u==='g'?v:u==='kg'?v*w:v/100*f.gk/per;
+  if(u==='pc'||f.lock){const avail=Math.max(0,f.gk-K[O]*f[O]);let need=g*per;if(need>avail){need=avail;f.msg='Isso passa da meta de '+Math.round(f.gk)+' kcal: limitei '+NM[x]+' em '+Math.round(need/per)+' g. Para mais, reduza outro macro ou aumente as calorias.'}f[kx]=need/per;f[A]=(avail-need)/K[A]}
+  else{f[kx]=g;f.gk=fgxK(f)}}
+function fgxHtml(f,w,wh){const sk=fgxK(f)||1,ok=w>0,
+  cell=(x,u,val,dis)=>'<input type="text" class="gx" data-w="'+wh+'" data-f="'+x+'" data-u="'+u+'" inputmode="decimal" maxlength="7"'+(dis?' disabled placeholder="–" value=""':' value="'+val+'"')+'>',
+  row=(x,l,g,kc)=>'<div class="l">'+l+'</div>'+cell(x,'g',Math.round(g),0)+cell(x,'kg',ok?fmtG(r2(g/w)):'',!ok)+cell(x,'pc',fmtG(r1(kc*g/sk*100)),0);
+  let m='';if(f.msg)m+='<div class="fwarn">'+f.msg+'</div>';
+  if(ok){const fk=f.gf/w;if(fk<0.6)m+='<div class="fwarn">Gordura em '+fmtG(r2(fk))+' g/kg, abaixo de 0,6. '+(fk<0.5?'Muito baixa. ':'')+'Gordura baixa demais pode atrapalhar a parte hormonal.</div>'}
+  return '<div class="gxg"><div></div><div class="h">g</div><div class="h">g/kg</div><div class="h">% kcal</div>'+row('c','Carbo',f.gc,4)+row('p','Proteína',f.gp,4)+row('f','Gordura',f.gf,9)
+    +'<div class="l">Calorias</div>'+cell('k','g',Math.round(f.gk),0)+cell('k','kg',ok?fmtG(r2(f.gk/w)):'',!ok)+'<div class="t">100</div></div>'
+    +(ok?'':'<div class="fwarn">Registre seu peso para usar g/kg.</div>')+m
+    +'<div class="fmode" style="margin-top:12px"><div class="opt '+(f.lock?'':'on')+'" data-a="fglock" data-v="0">Calorias livres</div><div class="opt '+(f.lock?'on':'')+'" data-a="fglock" data-v="1">Calorias travadas</div></div>'
+    +'<div class="note" style="padding:6px 0 0;font-size:12px">Livres: mexer em um macro muda as calorias. Travadas: o macro editado é compensado em outro (carbo↔gordura; proteína compensa no carbo). Mudar as calorias redistribui em '+Math.round(FDEF.c*100)+'% C · '+Math.round(FDEF.p*100)+'% P · '+Math.round((1-FDEF.c-FDEF.p)*100)+'% G. Digite em qualquer coluna.</div>'}
+function fgxGoal(g){return{gc:g.c,gp:g.p,gf:g.f,gk:g.k,lock:!!S.fgLock,msg:S.fgbMsg||''}}
 function pkg(o,w){return w>0?'kcal/kg '+fmtG(r1(o.k/w))+' · C '+fmtG(r1(o.c/w))+' · P '+fmtG(r1(o.p/w))+' · G '+fmtG(r1(o.f/w))+' g/kg':''}
 function pkgLive(f,d){const n=x=>{const v=parseFloat(String(f[x]).replace(',','.'));return v>=0?v:0},w=wAt(d||key(TODAY));if(f.m==='kg')return w?'= '+Math.round(n('k')*w)+' kcal · C '+Math.round(n('c')*w)+' · P '+Math.round(n('p')*w)+' · G '+Math.round(n('f')*w)+' g (peso '+fmtG(w)+' kg)':'Registre seu peso para calcular os gramas.';return w?pkg({k:n('k'),c:n('c'),p:n('p'),f:n('f')},w)+' (peso '+fmtG(w)+' kg)':'Registre seu peso para ver os valores por kg.'}
 function fgoHtml(){fInit();const t=key(TODAY),L=Object.keys(D.fgo).filter(k=>k>=t).sort();
@@ -471,19 +491,17 @@ function fgqSheet(){const f=S.fgq;if(!f)return '';const u=f.unit,fl=(l,k)=>`<div
     ${u==='m'?`<div class="sub">DIAS DO MÊS, EX.: 10, 25 (VAZIO = DIA DO INÍCIO)</div><input type="text" class="fgq rin" data-f="md" inputmode="numeric" placeholder="10, 25" value="${escH(f.md)}">`:''}
     <div class="sub" style="margin-top:12px">INÍCIO</div><input type="date" class="fgq rin" data-f="start" value="${escH(f.start)}">
     <div class="sub" style="margin-top:12px">TÉRMINO (OPCIONAL)</div><input type="date" class="fgq rin" data-f="end" value="${escH(f.end)}">
-<div class="fmode" style="margin-top:12px"><div class="opt ${f.m==='kg'?'':'on'}" data-a="fgmode" data-v="g">Em gramas</div><div class="opt ${f.m==='kg'?'on':''}" data-a="fgmode" data-v="kg">Por kg de peso</div></div>
-    ${f.m==='kg'?fl('CARBOIDRATOS (G/KG)','c')+fl('PROTEÍNA (G/KG)','p')+fl('GORDURA (G/KG)','f')+fl('CALORIAS (KCAL/KG)','k'):fl('CARBOIDRATOS (G)','c')+fl('PROTEÍNA (G)','p')+fl('GORDURA (G)','f')+fl('CALORIAS (KCAL)','k')}
-    <div class="note" id="pkgq" style="padding:8px 0 0;font-size:13px;color:var(--txt)">${pkgLive(f,f.start)}</div>
+<div class="sub" style="margin-top:12px">METAS (DIGITE EM QUALQUER COLUNA)</div>${fgxHtml(f,wAt(f.start||key(TODAY)),'fgq')}
+    <div class="sub" style="margin-top:14px">SALVAR COMO</div><div class="fmode"><div class="opt ${f.m==='kg'?'':'on'}" data-a="fgmode" data-v="g">Gramas fixos</div><div class="opt ${f.m==='kg'?'on':''}" data-a="fgmode" data-v="kg">Por kg (segue o peso)</div></div>
     <button class="btn" style="margin-top:18px" data-a="fgqsave">Salvar</button>
     ${f.id?'<button class="btn d" data-a="fgqdel" data-i="'+f.id+'">Apagar regra</button>':''}</div></div>`}
 function fgoSheet(){const f=S.fgo;if(!f)return '';const fl=(l,k)=>`<div class="sub" style="margin-top:12px">${l}</div><input type="text" class="fgi rin" data-f="${k}" inputmode="decimal" maxlength="6" value="${escH(f[k])}">`;
   return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
     <div class="sh"><button class="lnk" data-a="fgoback">‹ Voltar</button><b>Meta do dia</b><button class="lnk" data-a="close">Fechar</button></div>
-    <div class="note" style="padding:0">Vale só para o dia escolhido. No modo por kg, os gramas acompanham o seu peso registrado. As calorias se recalculam ao mudar os macros (4/4/9), mas você pode ajustá-las depois.</div>
+    <div class="note" style="padding:0">Vale só para o dia escolhido. Em “Salvar como”, escolha gramas fixos ou por kg (os gramas acompanham o seu peso).</div>
     <div class="sub" style="margin-top:12px">DIA</div><input type="date" class="fgi rin" data-f="d" value="${escH(f.d)}">
-<div class="fmode" style="margin-top:12px"><div class="opt ${f.m==='kg'?'':'on'}" data-a="fgmode" data-v="g">Em gramas</div><div class="opt ${f.m==='kg'?'on':''}" data-a="fgmode" data-v="kg">Por kg de peso</div></div>
-    ${f.m==='kg'?fl('CARBOIDRATOS (G/KG)','c')+fl('PROTEÍNA (G/KG)','p')+fl('GORDURA (G/KG)','f')+fl('CALORIAS (KCAL/KG)','k'):fl('CARBOIDRATOS (G)','c')+fl('PROTEÍNA (G)','p')+fl('GORDURA (G)','f')+fl('CALORIAS (KCAL)','k')}
-    <div class="note" id="pkgo" style="padding:8px 0 0;font-size:13px;color:var(--txt)">${pkgLive(f,f.d)}</div>
+<div class="sub" style="margin-top:12px">METAS (DIGITE EM QUALQUER COLUNA)</div>${fgxHtml(f,wAt(f.d||key(TODAY)),'fgo')}
+    <div class="sub" style="margin-top:14px">SALVAR COMO</div><div class="fmode"><div class="opt ${f.m==='kg'?'':'on'}" data-a="fgmode" data-v="g">Gramas fixos</div><div class="opt ${f.m==='kg'?'on':''}" data-a="fgmode" data-v="kg">Por kg (segue o peso)</div></div>
     <button class="btn" style="margin-top:18px" data-a="fgosave">Salvar</button></div></div>`}
 function foodHtml(){fInit();const g=D.food.goal;
   return `<div id="ftop">${foodTop()}</div>${foodMeals()}
@@ -492,7 +510,7 @@ function foodHtml(){fInit();const g=D.food.goal;
   <div class="wrow" style="margin-top:8px"><input type="text" id="bwn" inputmode="decimal" maxlength="6" placeholder="Peso de hoje" value="${D.bw[key(TODAY)]!==undefined?fmtG(D.bw[key(TODAY)]):''}"><div class="opt" data-a="bwadd">Registrar</div></div>
   <div class="fms" style="margin-top:8px">${(()=>{const L=bwLast();return L?'Último: '+fmtG(L.v)+' kg em '+dfmt(L.d)+' · ':''})()}<span class="lnk" style="font-size:12px;cursor:pointer" data-a="bwhist">Histórico de peso ›</span></div>
   <div class="fmode"><div class="opt ${g.m==='kg'?'':'on'}" data-a="fmode" data-v="g">Em gramas</div><div class="opt ${g.m==='kg'?'on':''}" data-a="fmode" data-v="kg">Por kg de peso</div></div>
-  ${g.m==='kg'?`<div class="fgl k3"><div><div class="sub">CHO (G/KG)</div><input type="text" class="fkg" data-f="kc" inputmode="decimal" maxlength="5" value="${g.kc!=null?fmtG(g.kc):''}"></div><div><div class="sub">PTN (G/KG)</div><input type="text" class="fkg" data-f="kp" inputmode="decimal" maxlength="5" value="${g.kp!=null?fmtG(g.kp):''}"></div><div><div class="sub">LIP (G/KG)</div><input type="text" class="fkg" data-f="kf" inputmode="decimal" maxlength="5" value="${g.kf!=null?fmtG(g.kf):''}"></div></div>`:`<div class="fgl"><div><div class="sub">CALORIAS (KCAL)</div><input type="text" class="fcfg" data-f="k" inputmode="numeric" maxlength="5" value="${g.k}"></div><div><div class="sub">CARBOIDRATOS (G)</div><input type="text" class="fcfg" data-f="c" inputmode="numeric" maxlength="4" value="${g.c}"></div><div><div class="sub">PROTEÍNA (G)</div><input type="text" class="fcfg" data-f="p" inputmode="numeric" maxlength="4" value="${g.p}"></div><div><div class="sub">GORDURA (G)</div><input type="text" class="fcfg" data-f="f" inputmode="numeric" maxlength="4" value="${g.f}"></div></div>`}
+  ${fgxHtml(fgxGoal(g),wAt(key(TODAY)),'fgb')}
   <div id="fkgr">${fKgHtml()}</div>
   <div class="sub" style="margin-top:22px">METAS ESPECÍFICAS POR DIA</div>
   <div class="note" style="padding:0 0 4px">Use para dias com meta diferente (ex.: véspera de treino de perna), uma vez ou de forma recorrente. Fora desses dias vale a meta base.</div>
@@ -802,8 +820,11 @@ function step(ref,mode,dir){
   return new Date(ref.getFullYear()+dir,0,1)}
 document.addEventListener('change',e=>{const i=e.target,c=i.classList;if(!c)return;
   if(c.contains('dwin')){const v=parseInt(i.value,10);if(v>0&&v<=5000&&D.wl[i.dataset.k]!==undefined){D.wl[i.dataset.k]=v;save()}render()}
-  else if(c.contains('fgq')){const f=i.dataset.f;if(S.fgq&&(f==='c'||f==='p'||f==='f')){const n=x=>{const v=parseFloat(String(S.fgq[x]).replace(',','.'));return v>=0?v:0};{const v=4*n('c')+4*n('p')+9*n('f');S.fgq.k=String(S.fgq.m==='kg'?r2(v):Math.round(v))};render()}}
-  else if(c.contains('fgi')){const f=i.dataset.f;if(S.fgo&&(f==='c'||f==='p'||f==='f')){const n=x=>{const v=parseFloat(String(S.fgo[x]).replace(',','.'));return v>=0?v:0};{const v=4*n('c')+4*n('p')+9*n('f');S.fgo.k=String(S.fgo.m==='kg'?r2(v):Math.round(v))};render()}}
+  else if(c.contains('gx')){const u=i.dataset.u,x=i.dataset.f,v=parseFloat(String(i.value).replace(',','.')),wh=i.dataset.w;
+    if(wh==='fgb'){fInit();const g=D.food.goal,w=wAt(key(TODAY))||0,f=fgxGoal(g);if(v>=0)fgxSet(f,u,x,v,w);g.c=Math.max(1,Math.round(f.gc));g.p=Math.max(1,Math.round(f.gp));g.f=Math.max(1,Math.round(f.gf));g.k=Math.max(1,Math.round(f.gk));if(g.m==='kg'&&w>0){g.w=w;g.kc=r2(g.c/w);g.kp=r2(g.p/w);g.kf=r2(g.f/w)}D.food.set=1;S.fgbMsg=f.msg;save();render();return}
+    const f=wh==='fgq'?S.fgq:S.fgo;if(!f)return;if(v>=0)fgxSet(f,u,x,v,wAt(f.d||f.start||key(TODAY))||0);render()}
+  else if(c.contains('fgq')){if(S.fgq&&i.dataset.f==='start')render()}
+  else if(c.contains('fgi')){if(S.fgo&&i.dataset.f==='d')render()}
   else if(c.contains('fei')){if(i.dataset.f==='g'&&S.fe){const n=parseFloat(String(i.value).replace(',','.')),o=S.fe.g0;if(n>0&&o>0){const r=n/o;['kc','c','p','l'].forEach(f=>{const x=parseFloat(String(S.fe[f]).replace(',','.'));if(x>=0)S.fe[f]=String(r2(x*r))});S.fe.g=i.value;S.fe.g0=n;render()}}}
   else if(c.contains('dfin')){const g=parseFloat(String(i.value).replace(',','.')),e0=D.fl[i.dataset.k];if(g>0&&g<=5000&&e0&&e0[2]>0){const r=g/e0[2];D.fl[i.dataset.k]=[e0[0],e0[1],r2(g),r1(e0[3]*r),r2(e0[4]*r),r2(e0[5]*r),r2(e0[6]*r)].concat(e0.slice(7));save()}render()}});
 document.addEventListener('click',e=>{
@@ -927,9 +948,10 @@ document.addEventListener('click',e=>{
   else if(a==='prev'||a==='next'){slide(a==='next'?1:-1);return}
   else if(a==='open'){S.sheet={id:h,mode:S.tab==='week'?'week':S.tab==='month'?'month':'year',ref:S.tab==='today'?TODAY:S.ref}}
   else if(a==='close'){S.sheet=null;S.fday=null}
-  else if(a==='fgoed'){const k=el.dataset.k,o=k&&D.fgo[k],b=D.food.goal,v=o||b;const kg=o&&o.m==='kg';S.fgo={orig:k||'',d:k||key(addD(TODAY,1)),m:kg?'kg':'g',c:String(kg?o.kc:v.c),p:String(kg?o.kp:v.p),f:String(kg?o.kf:v.f),k:String(kg?o.kk:v.k)};S.sheet={fgo:true}}
-  else if(a==='fgqed'){const r=el.dataset.i&&(D.fgr||[]).find(x=>x.id===el.dataset.i),b=D.food.goal,v=r||b;S.fgq={id:r?r.id:'',every:String(r?r.rule.every:1),unit:r?r.rule.unit:'w',wd:r?(r.rule.wd||[]).slice():[],md:r?(r.rule.md||[]).join(', '):'',start:r?r.start:key(TODAY),end:r&&r.end?r.end:'',m:r&&r.m==='kg'?'kg':'g',c:String(r&&r.m==='kg'?r.kc:v.c),p:String(r&&r.m==='kg'?r.kp:v.p),f:String(r&&r.m==='kg'?r.kf:v.f),k:String(r&&r.m==='kg'?r.kk:v.k)};S.sheet={fgq:true}}
-  else if(a==='fgmode'){const f=S.sheet.fgq?S.fgq:S.fgo,v=el.dataset.v;if(!f||(f.m||'g')===v)return;const w=wAt(f.d||f.start||key(TODAY));if(!(w>0)){alert('Registre seu peso para usar a prescrição por kg.');return}const n=x=>{const q=parseFloat(String(x).replace(',','.'));return q>=0?q:0};['c','p','f','k'].forEach(x=>{const q=n(f[x]);f[x]=String(v==='kg'?r2(q/w):Math.round(q*w))});f.m=v}
+  else if(a==='fgoed'){const k=el.dataset.k,o=k&&D.fgo[k],b=D.food.goal,v=o||b;const kg=o&&o.m==='kg',rv=o?fgRes(o,k):b;S.fgo={orig:k||'',d:k||key(addD(TODAY,1)),m:kg?'kg':'g',gc:rv.c,gp:rv.p,gf:rv.f,gk:rv.k,lock:!!S.fgLock,msg:''};S.sheet={fgo:true}}
+  else if(a==='fgqed'){const r=el.dataset.i&&(D.fgr||[]).find(x=>x.id===el.dataset.i),b=D.food.goal,v=r||b,rr=r?fgRes(r,r.start):b;S.fgq={id:r?r.id:'',every:String(r?r.rule.every:1),unit:r?r.rule.unit:'w',wd:r?(r.rule.wd||[]).slice():[],md:r?(r.rule.md||[]).join(', '):'',start:r?r.start:key(TODAY),end:r&&r.end?r.end:'',m:r&&r.m==='kg'?'kg':'g',gc:rr.c,gp:rr.p,gf:rr.f,gk:rr.k,lock:!!S.fgLock,msg:''};S.sheet={fgq:true}}
+  else if(a==='fgmode'){const f=S.sheet.fgq?S.fgq:S.fgo,v=el.dataset.v;if(!f)return;if(v==='kg'&&!(wAt(f.d||f.start||key(TODAY))>0)){alert('Registre seu peso para usar a prescrição por kg.');return}f.m=v}
+  else if(a==='fglock'){const v=el.dataset.v==='1',f=S.sheet&&S.sheet.fgq?S.fgq:S.sheet&&S.sheet.fgo?S.fgo:null;S.fgLock=v;if(f)f.lock=v}
   else if(a==='gunit'){S.fgq.unit=el.dataset.v}
   else if(a==='gwd'){const i=+el.dataset.v,w=S.fgq.wd,p=w.indexOf(i);if(p<0)w.push(i);else w.splice(p,1)}
   else if(a==='fgqdel'){if(confirm('Apagar esta meta recorrente? Os dias passam a usar a meta base.')){D.fgr=(D.fgr||[]).filter(x=>x.id!==el.dataset.i);if(S.sheet&&S.sheet.fgq){S.sheet={food:true};S.fgq=null}save()}else return}
@@ -937,20 +959,20 @@ document.addEventListener('click',e=>{
     if(ev<1){alert('Informe de quanto em quanto tempo repete (1 ou mais).');return}
     if((f.start||'').length!==10){alert('Informe a data de início.');return}
     if(f.end&&f.end<f.start){alert('O término precisa ser depois do início.');return}
-    if(!(n(f.k)>0)){alert('Informe as calorias do dia.');return}
+    if(!(f.gk>0)){alert('Informe as calorias do dia.');return}
     const rule={every:ev,unit:f.unit};if(f.unit==='w')rule.wd=f.wd.slice().sort((a,b)=>a-b);
     if(f.unit==='m')rule.md=[...new Set((f.md||'').split(/\D+/).filter(Boolean).map(Number).filter(x=>x>=1&&x<=31))].sort((a,b)=>a-b);
-    const o={rule,start:f.start,k:Math.round(n(f.k)),c:Math.round(n(f.c)),p:Math.round(n(f.p)),f:Math.round(n(f.f))};if(f.end)o.end=f.end;
-    if(f.m==='kg'){const w=wAt(f.start);if(!(w>0)){alert('Registre seu peso para usar a prescrição por kg.');return}Object.assign(o,{m:'kg',kc:r2(n(f.c)),kp:r2(n(f.p)),kf:r2(n(f.f)),kk:r2(n(f.k)),k:Math.round(n(f.k)*w),c:Math.round(n(f.c)*w),p:Math.round(n(f.p)*w),f:Math.round(n(f.f)*w)})}
+    const o={rule,start:f.start,k:Math.round(f.gk),c:Math.round(f.gc),p:Math.round(f.gp),f:Math.round(f.gf)};if(f.end)o.end=f.end;
+    if(f.m==='kg'){const w=wAt(f.start);if(!(w>0)){alert('Registre seu peso para usar a prescrição por kg.');return}Object.assign(o,{m:'kg',kc:r2(f.gc/w),kp:r2(f.gp/w),kf:r2(f.gf/w),kk:r2(f.gk/w),k:Math.round(f.gk),c:Math.round(f.gc),p:Math.round(f.gp),f:Math.round(f.gf)})}
     if(f.id){const r=D.fgr.find(x=>x.id===f.id);if(!r)return;delete r.end;['m','kc','kp','kf','kk'].forEach(x=>delete r[x]);Object.assign(r,o)}else D.fgr.push(Object.assign({id:'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)},o));
     S.sheet={food:true};S.fgq=null;save()}
   else if(a==='fgodel'){delete D.fgo[el.dataset.k];save()}
   else if(a==='fgoback'){S.sheet={food:true};S.fgo=null;S.fgq=null}
   else if(a==='fgosave'){const f=S.fgo,n=x=>{const v=parseFloat(String(x).replace(',','.'));return v>=0?v:0};
     if(!/^\d{4}-\d{2}-\d{2}$/.test(f.d||'')){alert('Escolha o dia.');return}
-    if(!(n(f.k)>0)){alert('Informe as calorias do dia.');return}
+    if(!(f.gk>0)){alert('Informe as calorias do dia.');return}
     if(f.orig&&f.orig!==f.d)delete D.fgo[f.orig];
-    let o={k:Math.round(n(f.k)),c:Math.round(n(f.c)),p:Math.round(n(f.p)),f:Math.round(n(f.f))};if(f.m==='kg'){const w=wAt(f.d);if(!(w>0)){alert('Registre seu peso para usar a prescrição por kg.');return}o={m:'kg',kc:r2(n(f.c)),kp:r2(n(f.p)),kf:r2(n(f.f)),kk:r2(n(f.k)),k:Math.round(n(f.k)*w),c:Math.round(n(f.c)*w),p:Math.round(n(f.p)*w),f:Math.round(n(f.f)*w)}}
+    let o={k:Math.round(f.gk),c:Math.round(f.gc),p:Math.round(f.gp),f:Math.round(f.gf)};if(f.m==='kg'){const w=wAt(f.d);if(!(w>0)){alert('Registre seu peso para usar a prescrição por kg.');return}o={m:'kg',kc:r2(f.gc/w),kp:r2(f.gp/w),kf:r2(f.gf/w),kk:r2(f.gk/w),k:Math.round(f.gk),c:Math.round(f.gc),p:Math.round(f.gp),f:Math.round(f.gf)}}
     D.fgo[f.d]=o;S.sheet={food:true};S.fgo=null;save()}
   else if(a==='ffreq'){const e0=D.fl[el.dataset.k],a0=S.sheet&&S.sheet.fadd;if(e0&&a0){const dk=S.fday||key(TODAY);if(dk<key(TODAY)&&!D.fgd[dk])D.fgd[dk]=Object.assign({},D.food.goal);D.fl[dk+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=[a0.m].concat(e0.slice(1));S.fq='';S.fms=null;S.sheet=S.fday?{dayf:S.fday}:{food:true};save()}}
   else if(a==='fcedit'){const c=D.cf[el.dataset.i];if(c){S.cfd={n:c.n,k:String(c.k),p:String(c.p),l:String(c.l),c:String(c.c)};S.sheet={fnew:{m:S.sheet.fadd.m,edit:el.dataset.i}}}}
@@ -1110,7 +1132,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v55',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v56',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
