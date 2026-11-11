@@ -472,7 +472,6 @@ function fgxHtml(f,w,wh){const sk=fgxK(f)||1,ok=w>0,open=!!S.fgxOpen,
   cell=(x,u,val,dis)=>'<input type="text" class="gx" data-w="'+wh+'" data-f="'+x+'" data-u="'+u+'" inputmode="decimal" maxlength="7"'+(dis?' disabled placeholder="–" value=""':' value="'+val+'"')+'>',
   row=(x,l,g,kc)=>'<div class="l">'+l+'</div>'+cell(x,'g',Math.round(g),0)+cell(x,'kg',ok?fmtG(r2(g/w)):'',!ok)+cell(x,'pc',fmtG(r1(kc*g/sk*100)),0);
   let m='';if(f.msg)m+='<div class="fwarn">'+f.msg+'</div>';
-  if(ok){const fk=f.gf/w;if(fk<0.6)m+='<div class="fwarn">Gordura em '+fmtG(r2(fk))+' g/kg, abaixo de 0,6. '+(fk<0.5?'Muito baixa. ':'')+'Gordura baixa demais pode atrapalhar a parte hormonal.</div>'}
   const body='<div class="gxg"><div></div><div class="h">g</div><div class="h">g/kg</div><div class="h">% kcal</div>'+row('c','Carbo',f.gc,4)+row('p','Proteína',f.gp,4)+row('f','Gordura',f.gf,9)
     +'<div class="l">Calorias</div>'+cell('k','g',Math.round(f.gk),0)+cell('k','kg',ok?fmtG(r2(f.gk/w)):'',!ok)+'<div class="t">100</div></div>'
     +(ok?'':'<div class="fwarn">Registre seu peso para usar g/kg.</div>')
@@ -1135,7 +1134,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v57',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v58',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
