@@ -101,6 +101,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .wdr{display:flex;gap:6px;margin:8px 0 16px}.wdr .opt{flex:1;padding:11px 0;font-size:13px}
 .evr{display:flex;gap:6px;align-items:center}.evr input{width:64px;margin:8px 0 14px;flex:none}.evr .opt{flex:1;padding:12px 2px;margin-bottom:6px;font-size:13px}
 .load{padding:12px 20px 0;font-size:12px;line-height:1.5;color:var(--mut)}.load b{color:var(--txt);font-size:14px}
+.tkp{flex:none;padding:6px 2px;cursor:pointer;color:var(--mut);opacity:.45;line-height:0}.tkp.p1{color:#4c8dff;opacity:1}.tkp.p2{color:#ff9f0a;opacity:1}.tkp.p3{color:var(--r);opacity:1}
 .tkd{font-size:12px;color:var(--mut);padding:6px 4px;white-space:nowrap;cursor:pointer}
 .apw{padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}.aph{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}.aph b{font-size:20px}
 .apb{height:8px;border-radius:4px;background:var(--bg);margin:8px 0 6px;overflow:hidden}.apb i{display:block;height:100%;background:var(--g);border-radius:4px}
@@ -179,6 +180,8 @@ const cls=(h,d)=>d>TODAY?'f':has(h,key(d))?(h.intent==='build'?'g':'r'):'';
 const cell=(h,d,txt='',extra='')=>`<div class="cell ${cls(h,d)} ${key(d)===key(TODAY)?'t':''} ${extra}" ${d>TODAY?'':`data-a="toggle" data-h="${h.id}" data-d="${key(d)}"`}>${txt}</div>`;
 
 /* ---------- views ---------- */
+const FLAG=p=>'<svg width="17" height="17" viewBox="0 0 24 24" fill="'+(p?'currentColor':'none')+'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2.5 4.5L17 13H5"/></svg>';
+const PRL=['Sem prioridade','Prioridade baixa','Prioridade média','Prioridade alta'];
 const CHECK='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
 function weekHtml(h,mon,compact){
   let c='';for(let i=0;i<7;i++){const d=addD(mon,i);c+=cell(h,d,`<span>${DLF[d.getDay()]}</span><b>${d.getDate()}</b>`)}return `<div class="wk">${c}</div>`}
@@ -232,7 +235,7 @@ function ensureDay(k){
     if(!occurs(r,k)||(r.skip||[]).includes(k))return;
     const id=r.id+'_'+k;
     if(D.tasks.some(t=>t.id===id))return;
-    D.tasks.push(Object.assign({id,day:k,text:r.text,done:false,rid:r.id},r.dur?{dur:r.dur}:{}));c++});
+    D.tasks.push(Object.assign({id,day:k,text:r.text,done:false,rid:r.id},r.dur?{dur:r.dur}:{},r.p?{p:r.p}:{}));c++});
   if(c)save();return c}
 const dlabel=d=>WD[d.getDay()].slice(0,3)+' · '+pad(d.getDate())+' '+MS[d.getMonth()].toLowerCase();
 function parseDur(s,paren){const r=paren?/\((\d+)\s*(pomodoros?|pomos?|min(?:utos?)?|h)\)/i:/\s(\d+)\s*(pomodoros?|pomos?|p|min(?:utos?)?|m|h)$/i,m=s.match(r);if(!m)return null;const n=+m[1],u=m[2].toLowerCase();if(!n)return null;const d=/^p/.test(u)?{n,u:'p'}:u==='h'?{n:n*60,u:'m'}:{n,u:'m'};d.i=m.index;return d}
@@ -515,7 +518,7 @@ function loadHtml(k){const L=dayLoad(k);if(!L.tot)return '';
 function tasksHtml(day){
   const k=key(day),isT=k===key(TODAY),L=tasksOf(k);
   return `<div class="tk"><div class="tkh"><span>${isT?'TAREFAS DE HOJE':'TAREFAS · '+pad(day.getDate())+' '+MS[day.getMonth()]}</span><span data-a="thist">Histórico ›</span></div>
-  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}${recLab(t)}${pgLab(t)}</div>`}<div class="tkd" data-a="${t.dur?'pgt':'tdur'}" data-t="${t.id}">${t.dur?pgBadge(t.dur,t.prog||0,t.done):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
+  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}${recLab(t)}${pgLab(t)}</div>`}<div class="tkp p${t.p||0}" data-a="tprio" data-t="${t.id}" title="${PRL[t.p||0]}">${FLAG(t.p||0)}</div><div class="tkd" data-a="${t.dur?'pgt':'tdur'}" data-t="${t.id}">${t.dur?pgBadge(t.dur,t.prog||0,t.done):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
   <div class="tka"><input type="text" class="tin" placeholder="Nova tarefa · 30min" maxlength="120" enterkeyhint="done"><button data-a="rnew" aria-label="Repetir tarefa">↻</button><button data-a="tadd" aria-label="Adicionar tarefa">+</button></div>${isT?pendHtml(k):''}</div>`}
 function pendHtml(k){
   const P=(D.tasks||[]).filter(t=>!t.done&&!t.rid&&t.day<k).sort((a,b)=>a.day<b.day?1:a.day>b.day?-1:0);if(!P.length)return '';
@@ -825,6 +828,7 @@ document.addEventListener('click',e=>{
   else if(a==='tmove'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.day=key(TODAY);save()}}
   else if(a==='tall'){D.tasks.forEach(t=>{if(!t.done&&!t.rid&&t.day<key(TODAY))t.day=key(TODAY)});save()}
   else if(a==='tedit'){S.edit=el.dataset.t;S.refocusEdit=true}
+  else if(a==='tprio'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){const p=((t.p||0)+1)%4;if(p)t.p=p;else delete t.p;const r=t.rid&&(D.rec||[]).find(x=>x.id===t.rid);if(r){if(p)r.p=p;else delete r.p;D.tasks.forEach(x=>{if(x.rid===r.id&&!x.done&&x.day>t.day){if(p)x.p=p;else delete x.p}})}save()}}
   else if(a==='ropt'){S.sheet={ropt:el.dataset.t};S.confirm=null;S.edit=null}
   else if(a==='rskip1'){const t=D.tasks.find(x=>x.id===S.sheet.ropt),r=t&&t.rid&&D.rec.find(x=>x.id===t.rid);if(r){r.skip=r.skip||[];if(!r.skip.includes(t.day))r.skip.push(t.day)}if(t)D.tasks=D.tasks.filter(x=>x.id!==t.id);S.sheet=null;save()}
   else if(a==='rend'){const t=D.tasks.find(x=>x.id===S.sheet.ropt),r=t&&D.rec.find(x=>x.id===t.rid);if(t&&r){if(S.confirm!=='rend'){S.confirm='rend'}else{const d=dparse(t.day);d.setDate(d.getDate()-1);const pv=key(d);
@@ -983,7 +987,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v46',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v47',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
