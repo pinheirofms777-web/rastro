@@ -261,6 +261,8 @@ const WML=n=>n>=1000?(n/1000).toFixed(2).replace(/\.?0+$/,'').replace('.',',')+'
 function wInit(){if(!D.water||typeof D.water!=='object')D.water={};const w=D.water;if(!(w.goal>0))w.goal=2500;if(!Array.isArray(w.cups)||!w.cups.length)w.cups=[300,500,750];if(!D.wl||typeof D.wl!=='object')D.wl={};if(!D.wgd||typeof D.wgd!=='object')D.wgd={}}
 function wDay(k){let t=0;for(const x in D.wl)if(x.startsWith(k+'|'))t+=D.wl[x];return t}
 function wGoal(k){return k>=key(TODAY)?D.water.goal:(D.wgd[k]||D.water.goal)}
+function wTime(x){const id=x.split('|')[1]||'';if(id.length===10){const ms=parseInt(id.slice(0,8),36);if(ms>1.6e12&&ms<4.1e12){const d=new Date(ms);return pad(d.getHours())+':'+pad(d.getMinutes())}}return '—'}
+function wAddDay(k,ml){ml=Math.max(1,Math.min(5000,ml|0));if(!ml)return;if(k<key(TODAY)&&D.wgd[k]===undefined)D.wgd[k]=D.water.goal;D.wl[k+'|_'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=ml;save()}
 function wAdd(ml){ml=Math.max(1,Math.min(5000,ml|0));if(!ml)return;D.wl[key(TODAY)+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=ml;save()}
 function wUndo(){const k=key(TODAY),ids=Object.keys(D.wl).filter(x=>x.startsWith(k+'|')).sort();if(ids.length){delete D.wl[ids[ids.length-1]];save()}}
 function wgUpd(){try{wInit();const t=key(TODAY);if(wDay(t)>0){if(D.wgd[t]!==D.water.goal)D.wgd[t]=D.water.goal}else if(D.wgd[t]!==undefined)delete D.wgd[t]}catch(e){}}
@@ -274,11 +276,11 @@ function wWeeks(){
   for(let d=dparse(first);key(d)<=t;d=addD(d,1)){const k=key(d),w=wk(d),o=W[w]||(W[w]={w,ml:0,g:0,hit:0,n:0,days:{}}),m=wDay(k),g=wGoal(k);
     o.ml+=m;o.g+=g;o.n++;if(m>=g)o.hit++;o.days[k]=[m,g]}
   const L=Object.values(W).sort((a,b)=>a.w<b.w?1:-1),cw=wk(TODAY);
-  return '<div class="note" style="padding:0 0 4px">Percentual = água ingerida ÷ meta do dia. Dias sem registro contam como 0%. Toque na semana para ver os dias.</div>'+L.map((w,i)=>{
+  return '<div class="note" style="padding:0 0 4px">Percentual = água ingerida ÷ meta do dia. Dias sem registro contam como 0%. Toque na semana para ver os dias e em um dia para ver e editar os registros.</div>'+L.map((w,i)=>{
     const p=Math.floor(w.ml*100/w.g),pv=L[i+1]&&dnum(w.w)-dnum(L[i+1].w)===7?L[i+1]:null;
     let dl='';if(pv){const d=p-Math.floor(pv.ml*100/pv.g);dl=d===0?' · igual à semana anterior':' · <span class="'+(d>0?'up':'dn')+'">'+(d>0?'+':'−')+Math.abs(d)+' pts</span> vs semana anterior'}
     let dd='';if(S.hw===w.w){dd='<div style="margin-top:8px">'+[0,1,2,3,4,5,6].map(j=>{const dt=addD(dparse(w.w),j),k=key(dt),v=w.days[k];
-      return '<div class="apd" style="grid-template-columns:46px 1fr 138px"><span>'+WDS[dt.getDay()]+' '+pad(dt.getDate())+'</span>'+(v?'<div class="apb"><i style="width:'+Math.min(100,Math.floor(v[0]*100/v[1]))+'%"></i></div><b>'+Math.floor(v[0]*100/v[1])+'% · '+v[0]+'/'+v[1]+'</b>':'<div></div><b style="color:var(--mut)">—</b>')+'</div>'}).join('')+'</div>'}
+      return '<div class="apd" '+(k<=t?'data-a="wday" data-k="'+k+'" ':'')+'style="grid-template-columns:46px 1fr 138px'+(k<=t?';cursor:pointer':'')+'"><span>'+WDS[dt.getDay()]+' '+pad(dt.getDate())+'</span>'+(v?'<div class="apb"><i style="width:'+Math.min(100,Math.floor(v[0]*100/v[1]))+'%"></i></div><b>'+Math.floor(v[0]*100/v[1])+'% · '+v[0]+'/'+v[1]+'</b>':'<div></div><b style="color:var(--mut)">—</b>')+'</div>'}).join('')+'</div>'}
     return '<div class="apw" data-a="wkx" data-w="'+w.w+'"><div class="aph"><span>'+wkLab(w.w)+(w.w===cw?' · em andamento':'')+'</span><b>'+p+'%</b></div><div class="apb"><i style="width:'+Math.min(100,p)+'%"></i></div><div class="aps">média '+WML(Math.round(w.ml/w.n))+'/dia · meta em '+w.hit+' de '+w.n+' dia'+(w.n>1?'s':'')+dl+'</div>'+dd+'</div>'}).join('')}
 function waterHtml(){wInit();const w=D.water,k=key(TODAY),has=Object.keys(D.wl).some(x=>x.startsWith(k+'|'));
   return `<div id="wtop">${wTop()}</div>
@@ -359,10 +361,10 @@ function bwHistHtml(){bwInit();const ks=Object.keys(D.bw).sort().reverse(),t=key
     ${tot!==null?'<div class="fkr">Variação total: <b>'+(tot>=0?'+':'−')+fmtG(r2(Math.abs(tot)))+' kg</b> desde '+dfmt(ks[ks.length-1])+'</div>':''}
     <div style="margin-top:10px">${list||'<div class="note" style="padding:0">Nenhum peso registrado ainda.</div>'}</div></div></div>`}
 function fgUpd(){try{fInit();const t=key(TODAY),d=fDay(t);if(d.n>0){if(JSON.stringify(D.fgd[t])!==JSON.stringify(D.food.goal))D.fgd[t]=Object.assign({},D.food.goal)}else if(D.fgd[t])delete D.fgd[t]}catch(e){}}
-function fAdd(m,name,g,per){const f=g/100;D.fl[key(TODAY)+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=[m,name,g,r1(per[0]*f),r2(per[1]*f),r2(per[2]*f),r2(per[3]*f)];save()}
+function fAdd(m,name,g,per){const f=g/100,dk=S.fday||key(TODAY);if(dk<key(TODAY)&&!D.fgd[dk])D.fgd[dk]=Object.assign({},D.food.goal);D.fl[dk+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=[m,name,g,r1(per[0]*f),r2(per[1]*f),r2(per[2]*f),r2(per[3]*f)];save()}
 function fSel(r){if(!r)return null;if(r.t==='t'){const x=FOODS&&FOODS[r.i];return x?{name:x[1],per:[x[3],x[4],x[5],x[6]]}:null}const c=D.cf[r.i];return c?{name:c.n,per:[c.k,c.p,c.l,c.c]}:null}
 function fPrev(sel,gs){const g=parseFloat(String(gs).replace(',','.'));if(!(g>0))return 'Informe a quantidade em gramas.';const f=g/100;return Math.round(sel.per[0]*f)+' kcal · C '+r1(sel.per[3]*f)+' g · P '+r1(sel.per[1]*f)+' g · G '+r1(sel.per[2]*f)+' g'}
-function fConfirm(){const a=S.sheet&&S.sheet.fadd,sel=a&&fSel(a.sel);if(!sel)return;const g=parseFloat(String(S.fgv).replace(',','.'));if(!(g>0))return;const lab=fMsLab();fAdd(a.m,(sel.name+(lab?' · '+lab:'')).slice(0,90),r2(Math.min(5000,g)),sel.per);S.fq='';S.fms=null;S.sheet={food:true};render()}
+function fConfirm(){const a=S.sheet&&S.sheet.fadd,sel=a&&fSel(a.sel);if(!sel)return;const g=parseFloat(String(S.fgv).replace(',','.'));if(!(g>0))return;const lab=fMsLab();fAdd(a.m,(sel.name+(lab?' · '+lab:'')).slice(0,90),r2(Math.min(5000,g)),sel.per);S.fq='';S.fms=null;S.sheet=S.fday?{dayf:S.fday}:{food:true};render()}
 function fResHtml(){
   const q=S.fq||'',gm=q.match(GRE),tk=nrm(gm?q.slice(0,gm.index):q).split(/\s+/).filter(Boolean);
   let L=[];
@@ -438,14 +440,14 @@ function fWeeks(){
   fInit();const t=key(TODAY),days=[...new Set(Object.keys(D.fl).map(x=>x.split('|')[0]))].filter(k=>k<=t).sort();
   if(!days.length)return '<div class="note" style="padding:0">Ainda sem registros. Toque em “+ alimento” em uma refeição para começar.</div>';
   const W={},wk=d=>key(addD(d,-((d.getDay()-WS()+7)%7)));
-  days.forEach(k=>{const w=wk(dparse(k)),o=W[w]||(W[w]={w,k:0,g:0,p:0,l:0,c:0,n:0,days:{}}),d=fDay(k),g=fGoal(k).k;o.k+=d.k;o.g+=g;o.p+=d.p;o.l+=d.l;o.c+=d.c;o.n++;o.days[k]=[d.k,g]});
+  for(let d=dparse(days[0]);key(d)<=t;d=addD(d,1)){const k=key(d),w=wk(d),o=W[w]||(W[w]={w,k:0,g:0,p:0,l:0,c:0,n:0,hit:0,days:{}}),x=fDay(k),g=fGoal(k).k;o.k+=x.k;o.g+=g;o.p+=x.p;o.l+=x.l;o.c+=x.c;o.n++;if(x.k>=g)o.hit++;o.days[k]=[x.k,g]}
   const L=Object.values(W).sort((a,b)=>a.w<b.w?1:-1),cw=wk(TODAY);
-  return '<div class="note" style="padding:0 0 4px">Percentual = calorias consumidas ÷ meta do dia, contando só os dias com registro. Toque na semana para ver os dias.</div>'+L.map((w,i)=>{
+  return '<div class="note" style="padding:0 0 4px">Percentual = calorias consumidas ÷ meta do dia. Dias sem registro contam como 0%. Toque na semana para ver os dias e em um dia para ver e editar os registros.</div>'+L.map((w,i)=>{
     const p=Math.floor(w.k*100/w.g),pv=L[i+1]&&dnum(w.w)-dnum(L[i+1].w)===7?L[i+1]:null,av=x=>Math.round(x/w.n);
     let dl='';if(pv){const d=p-Math.floor(pv.k*100/pv.g);dl=d===0?' · igual à semana anterior':' · <span class="'+(d>0?'up':'dn')+'">'+(d>0?'+':'−')+Math.abs(d)+' pts</span> vs semana anterior'}
     let dd='';if(S.hw===w.w){dd='<div style="margin-top:8px">'+[0,1,2,3,4,5,6].map(j=>{const dt=addD(dparse(w.w),j),k=key(dt),v=w.days[k];
-      return '<div class="apd" style="grid-template-columns:46px 1fr 138px"><span>'+WDS[dt.getDay()]+' '+pad(dt.getDate())+'</span>'+(v?'<div class="apb"><i style="width:'+Math.min(100,Math.floor(v[0]*100/v[1]))+'%"></i></div><b>'+Math.floor(v[0]*100/v[1])+'% · '+v[0]+'/'+v[1]+'</b>':'<div></div><b style="color:var(--mut)">—</b>')+'</div>'}).join('')+'</div>'}
-    return '<div class="apw" data-a="wkx" data-w="'+w.w+'"><div class="aph"><span>'+wkLab(w.w)+(w.w===cw?' · em andamento':'')+'</span><b>'+p+'%</b></div><div class="apb"><i style="width:'+Math.min(100,p)+'%"></i></div><div class="aps">média '+av(w.k)+' kcal/dia · C '+av(w.c)+' · P '+av(w.p)+' · G '+av(w.l)+' g · '+w.n+' dia'+(w.n>1?'s':'')+' registrado'+(w.n>1?'s':'')+dl+'</div>'+dd+'</div>'}).join('')}
+      return '<div class="apd" '+(k<=t?'data-a="fday" data-k="'+k+'" ':'')+'style="grid-template-columns:46px 1fr 138px'+(k<=t?';cursor:pointer':'')+'"><span>'+WDS[dt.getDay()]+' '+pad(dt.getDate())+'</span>'+(v?'<div class="apb"><i style="width:'+Math.min(100,Math.floor(v[0]*100/v[1]))+'%"></i></div><b>'+Math.floor(v[0]*100/v[1])+'% · '+v[0]+'/'+v[1]+'</b>':'<div></div><b style="color:var(--mut)">—</b>')+'</div>'}).join('')+'</div>'}
+    return '<div class="apw" data-a="wkx" data-w="'+w.w+'"><div class="aph"><span>'+wkLab(w.w)+(w.w===cw?' · em andamento':'')+'</span><b>'+p+'%</b></div><div class="apb"><i style="width:'+Math.min(100,p)+'%"></i></div><div class="aps">média '+av(w.k)+' kcal/dia · C '+av(w.c)+' · P '+av(w.p)+' · G '+av(w.l)+' g · meta em '+w.hit+' de '+w.n+' dia'+(w.n>1?'s':'')+dl+'</div>'+dd+'</div>'}).join('')}
 function foodHtml(){fInit();const g=D.food.goal;
   return `<div id="ftop">${foodTop()}</div>${foodMeals()}
   <div class="sub" style="margin-top:22px">METAS DIÁRIAS</div>
@@ -597,6 +599,22 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
   if(sh.bc)return bcHtml();
   if(sh.food)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Alimentação</b><button class="lnk" data-a="close">Fechar</button></div>${foodHtml()}</div></div>`;
+  if(sh.dayw){wInit();const k=sh.dayw,t=wDay(k),g=wGoal(k),p=Math.floor(t*100/g),E=Object.keys(D.wl).filter(x=>x.startsWith(k+'|')).sort();
+    return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
+    <div class="sh"><button class="lnk" data-a="wback">‹ Voltar</button><b>${dfmt(k)}</b><button class="lnk" data-a="close">Fechar</button></div>
+    <div class="wbig"><b>${p}%</b><span>${t} / ${g} ml</span></div><div class="wbar"><i style="width:${Math.min(100,p)}%"></i></div>
+    <div class="sub" style="margin-top:16px">REGISTROS DO DIA</div>
+    ${E.length?E.map(x=>`<div class="fer"><div class="fet">${wTime(x)}</div><input type="text" class="rin dwin" inputmode="numeric" maxlength="4" data-k="${x}" value="${D.wl[x]}" style="width:84px;margin:0"><span style="color:var(--mut)">ml</span><div class="tkx" data-a="wdelx" data-k="${x}">×</div></div>`).join(''):'<div class="note" style="padding:0">Nenhum registro neste dia.</div>'}
+    <div class="sub" style="margin-top:16px">ADICIONAR AO DIA</div>
+    <div class="wgrid">${D.water.cups.map(c=>`<div class="opt" data-a="wadddy" data-v="${c}">+ ${c} ml</div>`).join('')}</div>
+    <div class="wrow"><input type="text" id="dwn" class="rin" inputmode="numeric" maxlength="4" placeholder="Outro valor (ml)"><div class="opt" data-a="wadddn">Adicionar</div></div></div></div>`}
+  if(sh.dayf){fInit();const k=sh.dayf,d=fDay(k),g=fGoal(k),p=Math.floor(d.k*100/g.k),E=Object.keys(D.fl).filter(x=>x.startsWith(k+'|')).sort();
+    return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
+    <div class="sh"><button class="lnk" data-a="fdback">‹ Voltar</button><b>${dfmt(k)}</b><button class="lnk" data-a="close">Fechar</button></div>
+    <div class="wbig"><b>${p}%</b><span>${d.k} / ${g.k} kcal</span></div><div class="wbar"><i style="width:${Math.min(100,p)}%"></i></div>
+    <div class="fms" style="margin-top:8px">C ${d.c} / ${g.c} g · P ${d.p} / ${g.p} g · G ${d.l} / ${g.f} g</div>
+    ${FMEALS.map((n,m)=>{const L=E.filter(x=>D.fl[x][0]===m),t=Math.round(L.reduce((a,x)=>a+D.fl[x][3],0));
+      return '<div class="fmh"><span>'+n+'</span><span>'+t+' kcal</span></div>'+L.map(x=>{const e=D.fl[x];return '<div class="fer"><div class="fet">'+escH(e[1])+'<small>C '+e[6]+' · P '+e[4]+' · G '+e[5]+'</small></div><input type="text" class="rin dfin" inputmode="decimal" maxlength="6" data-k="'+x+'" value="'+e[2]+'" style="width:72px;margin:0"><span style="color:var(--mut)">g</span><div class="fek">'+Math.round(e[3])+'</div><div class="tkx" data-a="fdel" data-k="'+x+'">×</div></div>'}).join('')+'<div class="fad" data-a="faddopen" data-m="'+m+'" data-d="'+k+'">+ alimento</div>'}).join('')}</div></div>`}
   if(sh.fadd)return faddHtml(sh.fadd);
   if(sh.fnew)return fnewHtml(sh.fnew.m);
   if(sh.fscan)return fscanHtml(sh.fscan);
@@ -728,6 +746,9 @@ function step(ref,mode,dir){
   if(mode==='week')return addD(ref,7*dir);
   if(mode==='month')return new Date(ref.getFullYear(),ref.getMonth()+dir,1);
   return new Date(ref.getFullYear()+dir,0,1)}
+document.addEventListener('change',e=>{const i=e.target,c=i.classList;if(!c)return;
+  if(c.contains('dwin')){const v=parseInt(i.value,10);if(v>0&&v<=5000&&D.wl[i.dataset.k]!==undefined){D.wl[i.dataset.k]=v;save()}render()}
+  else if(c.contains('dfin')){const g=parseFloat(String(i.value).replace(',','.')),e0=D.fl[i.dataset.k];if(g>0&&g<=5000&&e0&&e0[2]>0){const r=g/e0[2];D.fl[i.dataset.k]=[e0[0],e0[1],r2(g),r1(e0[3]*r),r2(e0[4]*r),r2(e0[5]*r),r2(e0[6]*r)].concat(e0.slice(7));save()}render()}});
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-stop]')&&!e.target.closest('[data-a]'))return;
   const el=e.target.closest('[data-a]');if(!el)return;
@@ -743,8 +764,8 @@ document.addEventListener('click',e=>{
   else if(a==='import'){document.getElementById('imp').click();return}
   else if(a==='thist'){S.sheet={thist:true}}
   else if(a==='aprov'){S.sheet={aprov:true};S.hw=null}
-  else if(a==='food'){S.sheet={food:true};S.hw=null;S.fq=''}
-  else if(a==='faddopen'){S.sheet={fadd:{m:+el.dataset.m,sel:null}};S.fqFocus=1;loadFoods();loadMeas()}
+  else if(a==='food'){S.sheet={food:true};S.hw=null;S.fq='';S.fday=null}
+  else if(a==='faddopen'){if(el.dataset.d)S.fday=el.dataset.d;S.sheet={fadd:{m:+el.dataset.m,sel:null}};S.fqFocus=1;loadFoods();loadMeas()}
   else if(a==='fmeas'){const ad=S.sheet&&S.sheet.fadd;if(!ad)return;const L=fMeasList(ad.sel),i=+el.dataset.i,x=L[i];if(!x)return;const ms=fMsCur();if(ms&&ms.i===i)ms.n=Math.min(50,ms.n+1);else S.fms={k:selKey(ad.sel),i,n:1};S.fgv=fmtG(x[1]*S.fms.n);const gi=document.getElementById('fg'),pv=document.getElementById('fprev'),mc=document.getElementById('fmch'),sl=fSel(ad.sel);if(gi)gi.value=S.fgv;if(pv&&sl)pv.textContent=fPrev(sl,S.fgv);if(mc)mc.innerHTML=fMeasHtml();return}
   else if(a==='fpick'){const gm=(S.fq||'').match(GRE);S.sheet.fadd.sel={t:el.dataset.t,i:el.dataset.t==='t'?+el.dataset.i:el.dataset.i};S.fgv=gm?gm[1]:'100';S.fgFocus=1}
   else if(a==='fscan'){scStop();S.sheet={fscan:{m:+el.dataset.m}}}
@@ -847,7 +868,14 @@ document.addEventListener('click',e=>{
   else if(a==='toggle'){const k=h+'|'+el.dataset.d;D.entries[k]?delete D.entries[k]:D.entries[k]=1;save()}
   else if(a==='prev'||a==='next'){slide(a==='next'?1:-1);return}
   else if(a==='open'){S.sheet={id:h,mode:S.tab==='week'?'week':S.tab==='month'?'month':'year',ref:S.tab==='today'?TODAY:S.ref}}
-  else if(a==='close'){S.sheet=null}
+  else if(a==='close'){S.sheet=null;S.fday=null}
+  else if(a==='wday'){S.sheet={dayw:el.dataset.k}}
+  else if(a==='fday'){S.sheet={dayf:el.dataset.k};S.fday=null}
+  else if(a==='wback'){S.sheet={water:true}}
+  else if(a==='fdback'){S.sheet={food:true};S.fday=null}
+  else if(a==='wdelx'){delete D.wl[el.dataset.k];save()}
+  else if(a==='wadddy'){wAddDay(S.sheet.dayw,parseInt(el.dataset.v,10))}
+  else if(a==='wadddn'){const i=document.getElementById('dwn'),v=parseInt(i&&i.value,10);if(v>0)wAddDay(S.sheet.dayw,v)}
   else if(a==='mode'){S.sheet.mode=el.dataset.v}
   else if(a==='sprev'||a==='snext'){S.sheet.ref=step(S.sheet.ref,S.sheet.mode,a==='snext'?1:-1)}
   else if(a==='add'){S.sheet={add:true};S.draft='';S.intent='build';S.dn='';S.du='p'}
@@ -987,7 +1015,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v48',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v49',KNOWN=/^([etpkwxrhfycbz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
