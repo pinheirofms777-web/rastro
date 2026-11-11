@@ -105,7 +105,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .tkd{font-size:12px;color:var(--mut);padding:6px 4px;white-space:nowrap;cursor:pointer}
 .apw{padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}.aph{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}.aph b{font-size:20px}
 .apb{height:8px;border-radius:4px;background:var(--bg);margin:8px 0 6px;overflow:hidden}.apb i{display:block;height:100%;background:var(--g);border-radius:4px}
-.aps{font-size:12px;color:var(--mut);line-height:1.5}.aps .up{color:var(--g)}.aps .dn{color:var(--r)}
+.aps{font-size:12px;color:var(--mut);line-height:1.5}.aps.apsw{color:var(--txt);font-size:13px}.aps .up{color:var(--g)}.aps .dn{color:var(--r)}
 .wbig{display:flex;align-items:baseline;justify-content:space-between;margin:6px 0 10px}.wbig b{font-size:44px;font-weight:700;line-height:1}.wbig span{font-size:14px;color:var(--mut)}
 .wbar{height:18px;border-radius:9px;background:var(--bg);overflow:hidden}.wbar i{display:block;height:100%;background:var(--g);border-radius:9px;transition:width .25s}
 .wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin:8px 0 10px}.wgrid .opt{background:var(--bg);font-weight:600}
@@ -454,7 +454,7 @@ function fWeeks(){
     let dl='';if(pv){const d=p-Math.floor(pv.k*100/pv.g);dl=d===0?' · igual à semana anterior':' · <span class="'+(d>0?'up':'dn')+'">'+(d>0?'+':'−')+Math.abs(d)+' pts</span> vs semana anterior'}
     let dd='';if(S.hw===w.w){dd='<div style="margin-top:8px">'+[0,1,2,3,4,5,6].map(j=>{const dt=addD(dparse(w.w),j),k=key(dt),v=w.days[k];
       return '<div class="apd" '+(k<=t?'data-a="fday" data-k="'+k+'" ':'')+'style="grid-template-columns:46px 1fr 138px'+(k<=t?';cursor:pointer':'')+'"><span>'+WDS[dt.getDay()]+' '+pad(dt.getDate())+'</span>'+(v?'<div class="apb"><i style="width:'+Math.min(100,Math.floor(v[0]*100/v[1]))+'%"></i></div><b>'+Math.floor(v[0]*100/v[1])+'% · '+v[0]+'/'+v[1]+'</b>':'<div></div><b style="color:var(--mut)">—</b>')+'</div>'}).join('')+'</div>'}
-    return '<div class="apw" data-a="wkx" data-w="'+w.w+'"><div class="aph"><span>'+wkLab(w.w)+(w.w===cw?' · em andamento':'')+'</span><b>'+p+'%</b></div><div class="apb"><i style="width:'+Math.min(100,p)+'%"></i></div><div class="aps">total '+w.k+' kcal · média '+av(w.k)+' kcal/dia (÷'+w.n+')'+(w.lg<w.n?' · só dos '+w.lg+' dia'+(w.lg===1?'':'s')+' registrado'+(w.lg===1?'':'s')+': '+Math.round(w.k/Math.max(1,w.lg))+' kcal/dia':'')+' · C '+av(w.c)+' · P '+av(w.p)+' · G '+av(w.l)+' g · meta em '+w.hit+' de '+w.n+' dia'+(w.n>1?'s':'')+dl+'</div>'+dd+'</div>'}).join('')}
+    return '<div class="apw" data-a="wkx" data-w="'+w.w+'"><div class="aph"><span>'+wkLab(w.w)+(w.w===cw?' · em andamento':'')+'</span><b>'+p+'%</b></div><div class="apb"><i style="width:'+Math.min(100,p)+'%"></i></div><div class="aps apsw">total '+w.k+' kcal · média '+av(w.k)+' kcal/dia (÷'+w.n+')'+(w.lg<w.n?' · só dos '+w.lg+' dia'+(w.lg===1?'':'s')+' registrado'+(w.lg===1?'':'s')+': '+Math.round(w.k/Math.max(1,w.lg))+' kcal/dia':'')+' · C '+av(w.c)+' · P '+av(w.p)+' · G '+av(w.l)+' g · meta em '+w.hit+' de '+w.n+' dia'+(w.n>1?'s':'')+dl+'</div>'+dd+'</div>'}).join('')}
 function fgoHtml(){fInit();const t=key(TODAY),L=Object.keys(D.fgo).filter(k=>k>=t).sort();
   return L.map(k=>{const o=D.fgo[k];return '<div class="fer"><div class="fet" data-a="fgoed" data-k="'+k+'">'+WDS[dparse(k).getDay()]+' '+dfmt(k)+'<small>'+o.k+' kcal · C '+o.c+' · P '+o.p+' · G '+o.f+'</small></div><div class="tkx" data-a="fgodel" data-k="'+k+'">×</div></div>'}).join('')+'<div class="fad" data-a="fgoed" data-k="">+ Definir meta para um dia</div>'+(D.fgr||[]).filter(r=>!r.end||r.end>=t).map(r=>'<div class="fer"><div class="fet" data-a="fgqed" data-i="'+r.id+'">'+ruleLabel(r)+'<small>'+r.k+' kcal · C '+r.c+' · P '+r.p+' · G '+r.f+(r.end?' · até '+dfmt(r.end):' · sem data final')+'</small></div><div class="tkx" data-a="fgqdel" data-i="'+r.id+'">×</div></div>').join('')+'<div class="fad" data-a="fgqed" data-i="">+ Meta recorrente (ex.: toda quarta por 1 mês)</div>'}
 function fgqSheet(){const f=S.fgq;if(!f)return '';const u=f.unit,fl=(l,k)=>`<div class="sub" style="margin-top:12px">${l}</div><input type="text" class="fgq rin" data-f="${k}" inputmode="decimal" maxlength="6" value="${escH(f[k])}">`,
@@ -1099,7 +1099,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v53',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v54',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
