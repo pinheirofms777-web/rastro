@@ -116,6 +116,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .fad{padding:11px 0 4px;font-size:13px;color:var(--g);cursor:pointer}
 .sheet.tall{height:88%}.mch{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}.mch .mc{flex:none;margin:0;padding:8px 11px;font-size:13px;font-weight:500}.mch .mc.on{border-color:var(--g);color:var(--g)}.scv{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3}.scv video{width:100%;height:100%;object-fit:cover;display:block}.scv i{position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--g);opacity:.85}
 .fres{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.3;cursor:pointer}.fres small{color:var(--mut);white-space:nowrap;font-size:12px}
+.sub.hl{color:var(--txt);font-size:14px}
 .fgxh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-top:10px;cursor:pointer}.fgxh b{font-weight:500;font-size:15px}.fgxh small{display:block;font-size:12px;color:var(--mut);margin-top:2px}.fgxh svg{flex:none;transition:transform .2s}.fgxh.o svg{transform:rotate(180deg)}
 .gxg{display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:6px;align-items:center;margin-top:10px}.gxg input{margin:0;padding:10px 4px;font-size:16px;text-align:center;min-width:0}.gxg .h{font-size:11px;color:var(--mut);text-align:center}.gxg .l{font-size:12px;color:var(--mut)}.gxg .t{font-size:15px;text-align:center;color:var(--mut)}
 .fgl{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:8px}.fgl.k3{grid-template-columns:1fr 1fr 1fr}.bcch{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px}.bcch .opt{flex:none;padding:8px 11px;font-size:12px;cursor:pointer;white-space:nowrap}.bcch .opt.on{background:var(--txt);color:#111;border-color:var(--txt);font-weight:600}.bcr{display:grid;grid-template-columns:1fr auto 52px 52px;gap:6px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.bcr b{font-weight:500;text-align:right;white-space:nowrap}.bcr small{color:var(--mut);font-size:11px;text-align:right}.bcr.h{color:var(--mut);font-size:11px;border:0;padding-bottom:0}.bch{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}.bch span{flex:1;color:var(--mut);line-height:1.4}.bch b{font-weight:500;color:var(--txt)}.fmode{display:flex;gap:6px;margin:10px 0 4px}.fmode .opt{flex:1;padding:10px 0;font-size:13px;cursor:pointer}.fmode .opt.on{background:var(--txt);color:#111;border-color:var(--txt);font-weight:600}.fkr{font-size:13px;line-height:1.6;color:var(--mut);margin-top:12px}.fkr b{color:var(--txt);font-weight:500}.fwarn{font-size:13px;line-height:1.5;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.bwr{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}.bwr span{flex:1}.bwr small{color:var(--mut);font-size:12px;min-width:56px;text-align:right}.bwr b{font-weight:500}.fgl .sub{font-size:11px}.fgl input{width:100%;margin:6px 0 0}
@@ -513,10 +514,10 @@ function foodHtml(){fInit();const g=D.food.goal;
   <div class="fmode"><div class="opt ${g.m==='kg'?'':'on'}" data-a="fmode" data-v="g">Em gramas</div><div class="opt ${g.m==='kg'?'on':''}" data-a="fmode" data-v="kg">Por kg de peso</div></div>
   ${fgxHtml(fgxGoal(g),wAt(key(TODAY)),'fgb')}
   <div id="fkgr">${fKgHtml()}</div>
-  <div class="sub" style="margin-top:22px">METAS ESPECÍFICAS POR DIA</div>
+  <div class="sub hl" style="margin-top:22px">METAS ESPECÍFICAS POR DIA</div>
   <div class="note" style="padding:0 0 4px">Use para dias com meta diferente (ex.: véspera de treino de perna), uma vez ou de forma recorrente. Fora desses dias vale a meta base.</div>
   <div id="fgoh">${fgoHtml()}</div>
-  <div class="sub" style="margin-top:22px">HISTÓRICO SEMANAL</div>
+  <div class="sub hl" style="margin-top:22px">HISTÓRICO SEMANAL</div>
   <div id="fhist" style="margin-top:6px">${fWeeks()}</div>
   <div class="note" style="padding:16px 0 0">Valores calculados com a TACO (4ª ed., NEPA/UNICAMP, 2011), por 100 g de parte comestível. Carboidrato total. Itens marcados (TBCA): TBCA – Tabela Brasileira de Composição de Alimentos (USP/FoRC). Itens marcados (IBGE): IBGE, POF 2008-2009, Tabelas de Composição Nutricional dos Alimentos Consumidos no Brasil (2011). Medidas caseiras: IBGE, POF 2008-2009, Tabela de Medidas Referidas para os Alimentos Consumidos no Brasil (2011).</div>`}
 function faddHtml(a){const sel=fSel(a.sel);
@@ -1134,7 +1135,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v58',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v59',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
