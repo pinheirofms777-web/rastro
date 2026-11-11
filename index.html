@@ -116,6 +116,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .fad{padding:11px 0 4px;font-size:13px;color:var(--g);cursor:pointer}
 .sheet.tall{height:88%}.mch{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}.mch .mc{flex:none;margin:0;padding:8px 11px;font-size:13px;font-weight:500}.mch .mc.on{border-color:var(--g);color:var(--g)}.scv{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3}.scv video{width:100%;height:100%;object-fit:cover;display:block}.scv i{position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--g);opacity:.85}
 .fres{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.3;cursor:pointer}.fres small{color:var(--mut);white-space:nowrap;font-size:12px}
+.stl{font-size:12px;color:var(--mut);margin:10px 0 2px}.str{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}.str small{display:block;font-size:12px;color:var(--mut);margin-top:2px}.str .r{text-align:right;flex:none}.str .lt{color:var(--r)}.str .ok{color:var(--g)}.stlk{color:var(--g);font-size:13px;word-break:break-all}
 .sub.hl{color:var(--txt);font-size:14px}
 .fgxh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-top:10px;cursor:pointer}.fgxh b{font-weight:500;font-size:15px}.fgxh small{display:block;font-size:12px;color:var(--mut);margin-top:2px}.fgxh svg{flex:none;transition:transform .2s}.fgxh.o svg{transform:rotate(180deg)}
 .gxg{display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:6px;align-items:center;margin-top:10px}.gxg input{margin:0;padding:10px 4px;font-size:16px;text-align:center;min-width:0}.gxg .h{font-size:11px;color:var(--mut);text-align:center}.gxg .l{font-size:12px;color:var(--mut)}.gxg .t{font-size:15px;text-align:center;color:var(--mut)}
@@ -229,6 +230,59 @@ function ruleLabel(r){const n=r.rule.every|0||1,u=r.rule.unit,s=dparse(r.start);
     return (n===1?'Toda semana':'A cada '+n+' semanas')+' · '+wd.slice().sort((a,b)=>(a+6)%7-(b+6)%7).map(x=>WDS[x]).join(', ')}
   const md=r.rule.md&&r.rule.md.length?r.rule.md:[s.getDate()];
   return (n===1?'Todo mês':'A cada '+n+' meses')+' · dia '+md.slice().sort((a,b)=>a-b).join(', ')}
+const SIV=[1,3,7,14,30,60],SMT=90,STB='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2zM22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z"/></svg>';
+function stInit(){if(!Array.isArray(D.st))D.st=[];D.st.forEach(s=>{if(!Array.isArray(s.rv))s.rv=[]})}
+function stIv(s){return Array.isArray(s.iv)&&s.iv.length?s.iv:SIV}
+function stMt(s){return s.mt==null?SMT:s.mt}
+function stGap(s,i){const iv=stIv(s);return i<iv.length?iv[i]:stMt(s)}
+function stBase(s,i){return i===0?s.d0:s.rv[i-1].d}
+function stDue(s){const i=s.rv.length,g=stGap(s,i);return g>0?key(addD(dparse(stBase(s,i)),g)):null}
+function stPlan(s,n){const o=[];let i=s.rv.length,b=stBase(s,i);for(let j=0;j<n;j++){const g=stGap(s,i);if(!(g>0))break;b=key(addD(dparse(b),g));o.push([i,b]);i++}return o}
+function stTid(s,i){return 'v'+s.id+'_'+i}
+function stName(s,i){const n=stIv(s).length;return i<n?'Revisão '+(i+1):'Manutenção '+(i-n+1)}
+function stDd(a,b){return Math.round((dparse(b)-dparse(a))/864e5)}
+function stRel(k){const d=stDd(key(TODAY),k);return d===0?'hoje':d===1?'amanhã':d>0?'em '+d+' d':'atrasada '+(-d)+' d'}
+function ensureStudy(){stInit();if(!D.st.length)return 0;if(SY.cfg&&navigator.onLine&&!SY.last&&!SY.err)return 0;let c=0;
+  D.st.forEach(s=>{const due=stDue(s);if(!due)return;const id=stTid(s,s.rv.length);if(!D.tasks.some(t=>t.id===id)){D.tasks.push({id,day:due,text:'Revisar: '+s.n,sid:s.id,si:s.rv.length});c=1}});if(c)save();return c}
+function stDone(t){const s=(D.st||[]).find(x=>x.id===t.sid);if(!s)return;
+  if(t.done){if(s.rv.length===t.si){const p=stDue(s),tk=key(TODAY);s.rv.push({p,d:t.day<tk?t.day:tk})}}
+  else if(s.rv.length===t.si+1&&!s.rv[t.si].x){s.rv.pop();const nid=stTid(s,t.si+1);D.tasks=D.tasks.filter(x=>!(x.id===nid&&!x.done))}}
+function stLab(t){const s=t.sid&&(D.st||[]).find(x=>x.id===t.sid);if(!s)return '';const n=stIv(s).length;
+  return '<small class="tks" data-a="stv" data-i="'+s.id+'" style="cursor:pointer">'+STB+' '+(t.si<n?'revisão '+(t.si+1)+'/'+n:'manutenção')+' · ver ciclo ›</small>'}
+function stProg(s){const n=stIv(s).length,d=Math.min(s.rv.length,n);return [d,n]}
+function stCard(s){const [d,n]=stProg(s),due=stDue(s),t=D.tasks.find(x=>x.id===stTid(s,s.rv.length)&&!x.done),k=t?t.day:due,p=Math.round(d/n*100);
+  return '<div class="apw" data-a="stv" data-i="'+s.id+'"><div class="aph"><span>'+escH(s.n)+'</span><b>'+d+'/'+n+'</b></div><div class="apb"><i style="width:'+p+'%"></i></div><div class="aps">'+(s.a?escH(s.a)+' · ':'')+(k?(s.rv.length>=n?'manutenção · ':'')+'próxima '+dfmt(k)+' ('+stRel(k)+')':'ciclo concluído')+'</div></div>'}
+function stListSheet(){stInit();const tk=key(TODAY),L=D.st.slice().sort((a,b)=>{const x=stDue(a)||'9',y=stDue(b)||'9';return x<y?-1:x>y?1:0}),
+  T=D.tasks.filter(t=>t.sid&&!t.done),late=T.filter(t=>t.day<tk).length,
+  ld=[0,1,2,3,4,5,6].map(j=>{const k=key(addD(TODAY,j));return (j===0?'hoje':WDS[dparse(k).getDay()])+' '+T.filter(t=>t.day===k).length}).join(' · ');
+  return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
+  <div class="sh"><span style="width:50px"></span><b>Estudo</b><button class="lnk" data-a="close">Fechar</button></div>
+  <div class="note" style="padding:0">Cada conteúdo coloca a próxima revisão nas tarefas do dia certo. Marcar a tarefa como feita registra a revisão e agenda a seguinte, contada a partir do dia em que você revisou.</div>
+  ${D.st.length?`<div class="sub hl" style="margin-top:16px">PRÓXIMOS 7 DIAS</div><div class="aps" style="margin-top:6px">${ld}${late?' · <span style="color:var(--r)">'+late+' atrasada'+(late>1?'s':'')+'</span>':''}</div>`:''}
+  <div class="sub hl" style="margin-top:16px">CONTEÚDOS</div>
+  ${L.map(stCard).join('')||'<div class="empty">Nenhum conteúdo ainda.</div>'}
+  <div class="fad" data-a="sted" data-i="">+ Novo conteúdo</div></div></div>`}
+function stViewSheet(id){const s=(D.st||[]).find(x=>x.id===id);if(!s)return stListSheet();const [d,n]=stProg(s),iv=stIv(s),mt=stMt(s),tk=key(TODAY),
+  done=s.rv.map((r,i)=>{const late=r.p?stDd(r.p,r.d):0;return '<div class="str"><div>'+stName(s,i)+'<small>prevista '+(r.p?dfmt(r.p):'–')+'</small></div><div class="r">'+(r.x?'<span class="lt">pulada '+dfmt(r.d)+'</span>':'<span class="ok">feita '+dfmt(r.d)+'</span>')+'<small>'+(r.x?'':late>0?'+'+late+' d de atraso':late<0?(-late)+' d antes':'no dia')+'</small></div></div>'}).reverse().join(''),
+  plan=stPlan(s,4).map(([i,k],j)=>{const t=j===0&&D.tasks.find(x=>x.id===stTid(s,i)&&!x.done),kk=t?t.day:k;return '<div class="str"><div>'+stName(s,i)+'<small>'+(j===0?'na agenda de tarefas':'prevista (recalcula quando a anterior for feita)')+'</small></div><div class="r">'+dfmt(kk)+'<small'+(kk<tk?' class="lt"':'')+'>'+stRel(kk)+'</small></div></div>'}).join('');
+  return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
+  <div class="sh"><button class="lnk" data-a="st">‹ Voltar</button><b>${escH(s.n)}</b><button class="lnk" data-a="close">Fechar</button></div>
+  ${s.a?`<div class="stl">${escH(s.a)}</div>`:''}${s.u?`<a class="stlk" href="${escH(s.u)}" target="_blank" rel="noopener">${escH(s.u)}</a>`:''}
+  <div class="aph" style="margin-top:12px"><span>Ciclo</span><b>${d}/${n}</b></div><div class="apb"><i style="width:${Math.round(d/n*100)}%"></i></div>
+  <div class="aps">Intervalos: ${iv.join(' · ')} dias${mt>0?' · depois, manutenção a cada '+mt+' d':' · sem manutenção'}</div>
+  <div class="sub hl" style="margin-top:18px">PROGRAMADAS</div>${plan||'<div class="note" style="padding:8px 0">Ciclo concluído, sem revisões programadas.</div>'}
+  <div class="sub hl" style="margin-top:18px">HISTÓRICO</div>${done}<div class="str"><div>Estudo inicial</div><div class="r">${dfmt(s.d0)}</div></div>
+  <button class="btn" style="margin-top:18px" data-a="sted" data-i="${s.id}">Editar</button>
+  <div class="fad" style="color:var(--r);text-align:center" data-a="stdel" data-i="${s.id}">Excluir conteúdo</div></div></div>`}
+function stEditSheet(){const f=S.stf;if(!f)return '';const fl=(l,k,ph,t)=>`<div class="sub" style="margin-top:12px">${l}</div><input type="${t||'text'}" class="stf rin" data-f="${k}" ${ph?'placeholder="'+ph+'"':''} value="${escH(f[k])}">`;
+  return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
+  <div class="sh"><button class="lnk" data-a="stback">‹ Voltar</button><b>${f.id?'Editar conteúdo':'Novo conteúdo'}</b><button class="lnk" data-a="close">Fechar</button></div>
+  ${fl('CONTEÚDO','n','Ex.: Aula 3 – Intervalo de confiança')}${fl('ÁREA (OPCIONAL)','a','Ex.: Pós – Interpretando Evidências')}${fl('LINK (OPCIONAL)','u','Nota do Obsidian, PDF…')}
+  ${fl('DATA DO ESTUDO INICIAL','d0','','date')}
+  <div class="sub" style="margin-top:12px">INTERVALOS EM DIAS, ENTRE CADA REVISÃO</div><input type="text" class="stf rin" data-f="iv" inputmode="numeric" placeholder="1, 3, 7, 14, 30, 60" value="${escH(f.iv)}">
+  <div class="sub" style="margin-top:12px">MANUTENÇÃO DEPOIS DO CICLO, A CADA (DIAS · 0 = NENHUMA)</div><input type="text" class="stf rin" data-f="mt" inputmode="numeric" maxlength="4" value="${escH(f.mt)}">
+  <div class="note" style="padding:8px 0 0">Cada intervalo conta a partir do dia em que a revisão anterior foi feita. Mudar os intervalos recalcula só as revisões futuras; o histórico fica.</div>
+  <button class="btn" style="margin-top:18px" data-a="stsave">Salvar</button></div></div>`}
 function recLab(t){const r=t.rid&&(D.rec||[]).find(x=>x.id===t.rid);return r?'<small class="tks" data-a="ropt" data-t="'+t.id+'" style="cursor:pointer">↻ '+ruleLabel(r)+' · opções ›</small>':''}
 function ensureDay(k){
   if(k<key(TODAY)||!(D.rec||[]).length)return 0;
@@ -588,7 +642,7 @@ function loadHtml(k){const L=dayLoad(k);if(!L.tot)return '';
 function tasksHtml(day){
   const k=key(day),isT=k===key(TODAY),L=tasksOf(k);
   return `<div class="tk"><div class="tkh"><span>${isT?'TAREFAS DE HOJE':'TAREFAS · '+pad(day.getDate())+' '+MS[day.getMonth()]}</span><span data-a="thist">Histórico ›</span></div>
-  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}${recLab(t)}${pgLab(t)}</div>`}<div class="tkp p${t.p||0}" data-a="tprio" data-t="${t.id}" title="${PRL[t.p||0]}">${FLAG(t.p||0)}</div><div class="tkd" data-a="${t.dur?'pgt':'tdur'}" data-t="${t.id}">${t.dur?pgBadge(t.dur,t.prog||0,t.done):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
+  ${L.map(t=>`<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${t.text.replace(/</g,'&lt;')}${recLab(t)}${stLab(t)}${pgLab(t)}</div>`}<div class="tkp p${t.p||0}" data-a="tprio" data-t="${t.id}" title="${PRL[t.p||0]}">${FLAG(t.p||0)}</div><div class="tkd" data-a="${t.dur?'pgt':'tdur'}" data-t="${t.id}">${t.dur?pgBadge(t.dur,t.prog||0,t.done):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`).join('')||'<div class="tke">Nenhuma tarefa para este dia.</div>'}
   <div class="tka"><input type="text" class="tin" placeholder="Nova tarefa · 30min" maxlength="120" enterkeyhint="done"><button data-a="rnew" aria-label="Repetir tarefa">↻</button><button data-a="tadd" aria-label="Adicionar tarefa">+</button></div>${isT?pendHtml(k):''}</div>`}
 function pendHtml(k){
   const P=(D.tasks||[]).filter(t=>!t.done&&!t.rid&&t.day<k).sort((a,b)=>a.day<b.day?1:a.day>b.day?-1:0);if(!P.length)return '';
@@ -622,9 +676,12 @@ year:'<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><g>'+[
 function menuHtml(){if(!S.menu)return '';
   const m=D.sort||'green',it=(v,t)=>`<div class="mi" data-a="setsort" data-v="${v}"><i>${m===v?'✓':''}</i>${t}</div>`;
   return `<div class="shade mshade" data-a="closemenu"><div class="menu" data-stop>
-  <div class="mi" data-a="add"><i>+</i>Adicionar</div><div class="mi" data-a="thist"><i>☑</i>Histórico de tarefas</div><div class="mi" data-a="aprov"><i>%</i>Aproveitamento semanal</div><div class="mi" data-a="food"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 3v6a2.5 2.5 0 005 0V3M7.5 3v18M17 21V3c-2.5 2-4 5-4 8h4"/></svg></i>Alimentação</div><div class="mi" data-a="bcopen"><i>◐</i>Composição corporal</div><div class="mi" data-a="water"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><path d="M12 2.5S5 10 5 15a7 7 0 0014 0c0-5-7-12.5-7-12.5z"/></svg></i>Água</div><div class="mi" data-a="settings"><i>⚙</i>Configurações</div>
+  <div class="mi" data-a="add"><i>+</i>Adicionar</div><div class="mi" data-a="thist"><i>☑</i>Histórico de tarefas</div><div class="mi" data-a="aprov"><i>%</i>Aproveitamento semanal</div><div class="mi" data-a="food"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 3v6a2.5 2.5 0 005 0V3M7.5 3v18M17 21V3c-2.5 2-4 5-4 8h4"/></svg></i>Alimentação</div><div class="mi" data-a="st"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2zM22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z"/></svg></i>Estudo</div><div class="mi" data-a="bcopen"><i>◐</i>Composição corporal</div><div class="mi" data-a="water"><i><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><path d="M12 2.5S5 10 5 15a7 7 0 0014 0c0-5-7-12.5-7-12.5z"/></svg></i>Água</div><div class="mi" data-a="settings"><i>⚙</i>Configurações</div>
   <div class="ml">Ordenar:</div>${it('green','Verdes primeiro')}${it('red','Vermelhos primeiro')}${it('date','Data de criação')}${it('manual','Manual')}</div></div>`}
 function sheetHtml(){const sh=S.sheet;if(!sh)return '';
+  if(sh.st)return stListSheet();
+  if(sh.stv)return stViewSheet(sh.stv);
+  if(sh.sted)return stEditSheet();
   if(sh.thist){const days=[...new Set((D.tasks||[]).map(t=>t.day))].sort().reverse();
     return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><b>Histórico de tarefas</b><button class="lnk" data-a="close">Fechar</button></div>
@@ -770,7 +827,7 @@ function parts(){
   return {sub,title,v}}
 var nav0=0;
 function render(){
-  snapFill();
+  snapFill();ensureStudy();
   const {sub,title,v}=parts(),t=S.tab;
   const nav=`<button class="ib" data-a="prev">‹</button><button class="ib" data-a="next" ${canNext()?'':'disabled'}>›</button>`;
   const tv=document.querySelector('main .tin')?.value||'',scroll=nav0?0:(document.querySelector('main')?.scrollTop||0),hadSheet=!!document.querySelector('.sheet'),shs=document.querySelector('.sheet')?.scrollTop||0;
@@ -794,6 +851,7 @@ function render(){
   const scv=document.getElementById('scv');if(scv){if(SC.v!==scv){scStop();scStart(scv)}}else if(SC.v||SC.st||SC.rd)scStop();
   const scc=document.getElementById('scc');if(scc){scc.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'')});scc.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();offCode(scc.value)}})}
   const fgi=document.getElementById('fg');if(fgi){fgi.addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^\d.,]/g,'');S.fgv=e.target.value;const pv=document.getElementById('fprev'),sl=fSel(S.sheet.fadd.sel);if(pv&&sl)pv.textContent=fPrev(sl,S.fgv);if(fMsCur()){S.fms=null;const mc=document.getElementById('fmch');if(mc)mc.innerHTML=fMeasHtml()}});fgi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fConfirm()}});if(S.fgFocus){S.fgFocus=0;if(!fMeasList(S.sheet.fadd.sel).length){fgi.focus();fgi.select()}}}
+  document.querySelectorAll('.stf').forEach(i=>['input','change'].forEach(ev=>i.addEventListener(ev,e=>{if(S.stf)S.stf[e.target.dataset.f]=e.target.value})));
   document.querySelectorAll('.fgq').forEach(i=>i.addEventListener('input',e=>{if(S.fgq){S.fgq[e.target.dataset.f]=e.target.value;const x=document.getElementById('pkgq');if(x)x.textContent=pkgLive(S.fgq,S.fgq.start)}}));
   document.querySelectorAll('.fgi').forEach(i=>i.addEventListener('input',e=>{if(S.fgo){S.fgo[e.target.dataset.f]=e.target.value;const x=document.getElementById('pkgo');if(x)x.textContent=pkgLive(S.fgo,S.fgo.d)}}));
   document.querySelectorAll('.fei').forEach(i=>i.addEventListener('input',e=>{if(S.fe)S.fe[e.target.dataset.f]=e.target.value}));
@@ -926,7 +984,7 @@ document.addEventListener('click',e=>{
   else if(a==='syncon'){connect();return}
   else if(a==='syncoff'){if(confirm('Desconectar este aparelho? Os dados continuam aqui e na nuvem.')){SY.cfg=null;SY.cache=null;DB.set(null,'cfg').catch(()=>{})}}
   else if(a==='gotoday'){const [y,m,d]=el.dataset.d.split('-').map(Number);nav0=1;S.tab='today';S.day=new Date(y,m-1,d);S.ref=S.day;S.sheet=null}
-  else if(a==='tdone'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.done=!t.done;save()}}
+  else if(a==='tdone'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.done=!t.done;if(t.sid)stDone(t);save()}}
   else if(a==='tmove'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){t.day=key(TODAY);save()}}
   else if(a==='tall'){D.tasks.forEach(t=>{if(!t.done&&!t.rid&&t.day<key(TODAY))t.day=key(TODAY)});save()}
   else if(a==='tedit'){S.edit=el.dataset.t;S.refocusEdit=true}
@@ -937,6 +995,9 @@ document.addEventListener('click',e=>{
       if(pv<r.start)D.rec=D.rec.filter(x=>x.id!==r.id);else r.end=pv;
       D.tasks=D.tasks.filter(x=>!(x.rid===r.id&&!x.done&&x.day>=t.day));S.confirm=null;S.sheet=null;save()}}}
   else if(a==='rdelall'){const t=D.tasks.find(x=>x.id===S.sheet.ropt),r=t&&D.rec.find(x=>x.id===t.rid);if(t&&r){if(S.confirm!=='rdelall'){S.confirm='rdelall'}else{const t0=key(TODAY)<t.day?key(TODAY):t.day;D.rec=D.rec.filter(x=>x.id!==r.id);D.tasks=D.tasks.filter(x=>!(x.rid===r.id&&!x.done&&x.day>=t0));S.confirm=null;S.sheet=null;save()}}}
+  else if(a==='tdel'&&(()=>{const t=D.tasks.find(x=>x.id===el.dataset.t);return t&&t.sid})()){const t=D.tasks.find(x=>x.id===el.dataset.t),s=(D.st||[]).find(x=>x.id===t.sid);
+    if(s&&!t.done&&s.rv.length===t.si){if(!confirm('Pular esta revisão? Ela fica no histórico como pulada e a próxima é agendada a partir de hoje.'))return;s.rv.push({p:stDue(s),d:key(TODAY),x:1})}
+    D.tasks=D.tasks.filter(x=>x.id!==t.id);save()}
   else if(a==='tdel'&&(()=>{const t=D.tasks.find(x=>x.id===el.dataset.t);return t&&t.rid&&D.rec.some(x=>x.id===t.rid)})()){S.sheet={ropt:el.dataset.t};S.confirm=null}
   else if(a==='tdel'){const t=D.tasks.find(x=>x.id===el.dataset.t),r=t&&t.rid&&D.rec.find(x=>x.id===t.rid);if(r){r.skip=r.skip||[];if(!r.skip.includes(t.day))r.skip.push(t.day)}D.tasks=D.tasks.filter(x=>x.id!==el.dataset.t);save()}
   else if(a==='tadd'){if(!addTask(el.closest('.tk')))return;S.refocus=true}
@@ -950,6 +1011,17 @@ document.addEventListener('click',e=>{
   else if(a==='prev'||a==='next'){slide(a==='next'?1:-1);return}
   else if(a==='open'){S.sheet={id:h,mode:S.tab==='week'?'week':S.tab==='month'?'month':'year',ref:S.tab==='today'?TODAY:S.ref}}
   else if(a==='close'){S.sheet=null;S.fday=null}
+  else if(a==='st'){S.sheet={st:true}}
+  else if(a==='stv'){S.sheet={stv:el.dataset.i}}
+  else if(a==='sted'){stInit();const s=el.dataset.i&&D.st.find(x=>x.id===el.dataset.i);S.stf=s?{id:s.id,n:s.n||'',a:s.a||'',u:s.u||'',d0:s.d0,iv:stIv(s).join(', '),mt:String(stMt(s))}:{id:'',n:'',a:'',u:'',d0:key(TODAY),iv:SIV.join(', '),mt:String(SMT)};S.sheet={sted:true}}
+  else if(a==='stback'){S.sheet=S.stf&&S.stf.id?{stv:S.stf.id}:{st:true}}
+  else if(a==='stdel'){const s=(D.st||[]).find(x=>x.id===el.dataset.i);if(!s||!confirm('Excluir "'+s.n+'"? O histórico de revisões deste conteúdo será apagado.'))return;D.st=D.st.filter(x=>x!==s);D.tasks=D.tasks.filter(t=>!(t.sid===s.id&&!t.done));save();S.sheet={st:true}}
+  else if(a==='stsave'){stInit();const f=S.stf;if(!f)return;const n=f.n.trim();if(!n){alert('Informe o conteúdo.');return}if(!/^\d{4}-\d{2}-\d{2}$/.test(f.d0)){alert('Informe a data do estudo inicial.');return}
+    const iv=(String(f.iv).match(/\d+/g)||[]).map(Number).filter(x=>x>0&&x<=3650);if(!iv.length){alert('Informe ao menos um intervalo em dias.');return}const mt=Math.min(3650,parseInt(f.mt,10)||0);
+    let s=f.id&&D.st.find(x=>x.id===f.id);if(!s){s={id:Date.now().toString(36)+Math.random().toString(36).slice(2,4),rv:[]};D.st.push(s)}
+    Object.assign(s,{n:n.slice(0,120),a:f.a.trim().slice(0,80),u:f.u.trim().slice(0,300),d0:f.d0,iv,mt});if(!s.a)delete s.a;if(!s.u)delete s.u;
+    const t=D.tasks.find(x=>x.id===stTid(s,s.rv.length)&&!x.done),due=stDue(s);if(t){if(due){t.day=due;t.text='Revisar: '+s.n}else D.tasks=D.tasks.filter(x=>x!==t)}
+    save();S.stf=null;S.sheet={stv:s.id}}
   else if(a==='fgoed'){const k=el.dataset.k,o=k&&D.fgo[k],b=D.food.goal,v=o||b;const kg=o&&o.m==='kg',rv=o?fgRes(o,k):b;S.fgo={orig:k||'',d:k||key(addD(TODAY,1)),m:kg?'kg':'g',gc:rv.c,gp:rv.p,gf:rv.f,gk:rv.k,lock:!!S.fgLock,msg:''};S.sheet={fgo:true}}
   else if(a==='fgqed'){const r=el.dataset.i&&(D.fgr||[]).find(x=>x.id===el.dataset.i),b=D.food.goal,v=r||b,rr=r?fgRes(r,r.start):b;S.fgq={id:r?r.id:'',every:String(r?r.rule.every:1),unit:r?r.rule.unit:'w',wd:r?(r.rule.wd||[]).slice():[],md:r?(r.rule.md||[]).join(', '):'',start:r?r.start:key(TODAY),end:r&&r.end?r.end:'',m:r&&r.m==='kg'?'kg':'g',gc:rr.c,gp:rr.p,gf:rr.f,gk:rr.k,lock:!!S.fgLock,msg:''};S.sheet={fgq:true}}
   else if(a==='fgmode'){const f=S.sheet.fgq?S.fgq:S.fgo,v=el.dataset.v;if(!f)return;if(v==='kg'&&!(wAt(f.d||f.start||key(TODAY))>0)){alert('Registre seu peso para usar a prescrição por kg.');return}f.m=v}
@@ -1114,7 +1186,7 @@ var SY={cfg:null,run:0,again:0,err:'',msg:'',last:0,t:0,cache:null};
 const jstr=JSON.stringify;
 function flat(){const r={};
   for(const k in D.entries)if(D.entries[k])r['e|'+k]=1;
-  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur,rid:t.rid,prog:t.prog,p:t.p}});
+  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur,rid:t.rid,prog:t.prog,p:t.p,sid:t.sid,si:t.si}});
   for(const k in (D.prog||{}))if(D.prog[k])r['p|'+k]=D.prog[k];
   for(const k in (D.snap||{}))r['k|'+k]=D.snap[k];
   for(const k in (D.wl||{}))r['w|'+k]=D.wl[k];
@@ -1124,6 +1196,7 @@ function flat(){const r={};
   for(const k in (D.fgd||{}))r['y|'+k]=D.fgd[k];
   for(const k in (D.fgo||{}))r['g|'+k]=D.fgo[k];
   (D.fgr||[]).forEach(x=>{r['q|'+x.id]=Object.assign({rule:x.rule,start:x.start,end:x.end,k:x.k,c:x.c,p:x.p,f:x.f},x.m==='kg'?{m:'kg',kc:x.kc,kp:x.kp,kf:x.kf,kk:x.kk}:{})});
+  (D.st||[]).forEach(x=>{r['v|'+x.id]={n:x.n,a:x.a,u:x.u,d0:x.d0,iv:x.iv,mt:x.mt,rv:x.rv}});
   for(const k in (D.cf||{}))r['c|'+k]=D.cf[k];
   for(const k in (D.bw||{}))r['b|'+k]=D.bw[k];
   for(const k in (D.bc||{}))r['z|'+k]=D.bc[k];
@@ -1135,20 +1208,20 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v59',KNOWN=/^([etpkwxrhfycbgqz]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
+const VER='v60',KNOWN=/^([etpkwxrhfycbgqzv]\||o\|$|s\|(sort|ws|wg|wc|fg|ht)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
 /* após atualizar o app, adota registros que a versão antiga recebeu mas não sabia ler, antes de qualquer exclusão */
 function migrate(){if(D.sv===VER||!D.sync)return false;stamp(true);rebuild();D.sv=VER;return true}
-function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={},GO={},FQ=[];let ord=[],sort,ws,wg,wc,fg,ht;
+function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={},GO={},FQ=[],ST=[];let ord=[],sort,ws,wg,wc,fg,ht;
   for(const k in S2){const c=S2[k];if(c.v===null)continue;const p=k.slice(0,2),id=k.slice(2);
-    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='g|')GO[id]=c.v;else if(p==='q|')FQ.push(Object.assign({id},c.v));else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='z|')BC[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
+    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='g|')GO[id]=c.v;else if(p==='q|')FQ.push(Object.assign({id},c.v));else if(p==='v|')ST.push(Object.assign({id},c.v));else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='z|')BC[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
     else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v;else if(k==='s|wg')wg=c.v;else if(k==='s|wc')wc=c.v;else if(k==='s|fg')fg=c.v;else if(k==='s|ht')ht=c.v}
   const ids=ord.filter(i=>Hs[i]);Object.keys(Hs).sort().forEach(i=>{if(!ids.includes(i))ids.push(i)});
   D.habits=ids.map(i=>Hs[i]);
   D.entries={};for(const k in E)if(Hs[k.split('|')[0]])D.entries[k]=1;
-  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.fgo=GO;D.fgr=FQ.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.cf=CF;D.bw=BW;D.bc=BC;if(ht>0)D.ht=ht;else delete D.ht;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
+  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.fgo=GO;D.fgr=FQ.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.st=ST.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.cf=CF;D.bw=BW;D.bc=BC;if(ht>0)D.ht=ht;else delete D.ht;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
   if(sort===undefined||sort===null)delete D.sort;else D.sort=sort;
   if(ws===undefined||ws===null)delete D.weekStart;else D.weekStart=ws}
 function mergeIn(rem){const S2=D.sync||(D.sync={});let ch=0;
