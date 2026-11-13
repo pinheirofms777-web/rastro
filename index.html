@@ -379,6 +379,7 @@ function fmMat(){if(!Array.isArray(D.fm)||!D.fm.length)D.fm=fml().map(x=>({id:x.
 function fmUsed(id){for(const k in D.fl)if(D.fl[k][0]===id)return true;return false}
 function fmGroups(E){const L=fml(),ids=L.map(x=>x.id),o=L.map(x=>({id:x.id,n:x.n,L:E.filter(e=>D.fl[e][0]===x.id)})),r=E.filter(e=>!ids.includes(D.fl[e][0]));if(r.length)o.push({id:-1,n:'Sem refeição',L:r,orph:1});return o}
 function fmtHtml(k,id){const t=D.fmt&&D.fmt[k+'|'+id];return '<span class="fmw"><label class="ftm">'+(t?escH(t):'+ horário')+'<input type="time" data-fmt="'+k+'|'+id+'" value="'+(t?escH(t):'')+'"></label>'+(t?'<span class="tkx" data-a="fmtclr" data-k="'+k+'|'+id+'">×</span>':'')+'</span>'}
+function fmtSync(i){const k=i.dataset.fmt,v=/^\d\d:\d\d$/.test(i.value)?i.value:'',p=k.split('|');if(v===(D.fmt[k]||''))return;if(v)D.fmt[k]=v;else delete D.fmt[k];save();const w=i.closest('.fmw');if(w)w.outerHTML=fmtHtml(p[0],+p[1])}
 function fmHead(g,k){const t=Math.round(g.L.reduce((a,x)=>a+D.fl[x][3],0));return '<div class="fmh"><span>'+escH(g.n)+'</span><span class="fmr">'+(g.orph?'':fmtHtml(k,g.id))+'<span>'+t+' kcal</span></span></div>'}
 function fmEditHtml(){const L=fml(),n=L.length;return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
     <div class="sh"><button class="lnk" data-a="food">‹ Voltar</button><b>Refeições</b><button class="lnk" data-a="close">Fechar</button></div>
@@ -920,8 +921,10 @@ document.addEventListener('change',e=>{const i=e.target,c=i.classList;if(!c)retu
   else if(c.contains('fgi')){if(S.fgo&&i.dataset.f==='d')render()}
   else if(c.contains('fei')){if(i.dataset.f==='g'&&S.fe){const n=parseFloat(String(i.value).replace(',','.')),o=S.fe.g0;if(n>0&&o>0){const r=n/o;['kc','c','p','l'].forEach(f=>{const x=parseFloat(String(S.fe[f]).replace(',','.'));if(x>=0)S.fe[f]=String(r2(x*r))});S.fe.g=i.value;S.fe.g0=n;render()}}}
   else if(c.contains('fmn')){const L=fmMat(),x=L[+i.dataset.i],v=i.value.trim().slice(0,30);if(x){if(v)x.n=v;else i.value=x.n;save()}}
-  else if(i.dataset&&i.dataset.fmt){const p=i.dataset.fmt.split('|');if(/^\d\d:\d\d$/.test(i.value))D.fmt[i.dataset.fmt]=i.value;else delete D.fmt[i.dataset.fmt];save();const w=i.closest('.fmw');if(w)w.outerHTML=fmtHtml(p[0],+p[1])}
+  else if(i.dataset&&i.dataset.fmt){fmtSync(i)}
   else if(c.contains('dfin')){const g=parseFloat(String(i.value).replace(',','.')),e0=D.fl[i.dataset.k];if(g>0&&g<=5000&&e0&&e0[2]>0){const r=g/e0[2];D.fl[i.dataset.k]=[e0[0],e0[1],r2(g),r1(e0[3]*r),r2(e0[4]*r),r2(e0[5]*r),r2(e0[6]*r)].concat(e0.slice(7));save()}render()}});
+document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.fmt&&i.value==='')fmtSync(i)});
+document.addEventListener('focusout',e=>{const i=e.target;if(i.dataset&&i.dataset.fmt)fmtSync(i)});
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-stop]')&&!e.target.closest('[data-a]'))return;
   const el=e.target.closest('[data-a]');if(!el)return;
@@ -1254,7 +1257,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v65',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
+const VER='v66',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
