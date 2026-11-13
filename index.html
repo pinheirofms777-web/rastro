@@ -100,7 +100,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;display:block;box-sizin
 input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .wdr{display:flex;gap:6px;margin:8px 0 16px}.wdr .opt{flex:1;padding:11px 0;font-size:13px}
 .evr{display:flex;gap:6px;align-items:center}.evr input{width:64px;margin:8px 0 14px;flex:none}.evr .opt{flex:1;padding:12px 2px;margin-bottom:6px;font-size:13px}
-.load{padding:12px 20px 0;font-size:12px;line-height:1.5;color:var(--mut)}.load b{color:var(--txt);font-size:14px}
+.load{padding:12px 20px 0;font-size:12px;line-height:1.5;color:var(--mut)}.load b{color:var(--txt);font-size:14px}.load+.today{padding-top:8px}
 .tkp{flex:none;padding:6px 2px;cursor:pointer;color:var(--mut);opacity:.45;line-height:0}.tkp.p1{color:#4c8dff;opacity:1}.tkp.p2{color:#ff9f0a;opacity:1}.tkp.p3{color:var(--r);opacity:1}
 .tkd{font-size:12px;color:var(--mut);padding:6px 4px;white-space:nowrap;cursor:pointer}
 .apw{padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}.aph{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}.aph b{font-size:20px}
@@ -1231,7 +1231,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v63',KNOWN=/^([etpkwxrhfycbgqzv]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc)$)/;
+const VER='v64',KNOWN=/^([etpkwxrhfycbgqzv]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
