@@ -128,6 +128,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .tke{color:var(--mut);font-size:13px;padding:10px 0 4px}
 .hd2{font-size:12px;color:var(--mut);letter-spacing:.04em;padding:14px 0 4px;cursor:pointer}
 .note{font-size:11px;color:var(--mut);padding:14px 20px;line-height:1.5}
+.fmr{display:flex;align-items:baseline;gap:10px}.fmw{display:inline-flex;align-items:baseline}.ftm{position:relative;color:var(--g);font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer}.ftm input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.fmw .tkx{padding:0 0 0 6px;font-size:15px}
 </style>
 </head>
 <body>
@@ -372,7 +373,19 @@ var FOODS=null,FN=null,FERR=0;
 const FMEALS=['Café da manhã','Almoço','Lanche','Jantar','Ceia'],GRE=/(\d+(?:[.,]\d+)?)\s*g\s*$/i;
 const nrm=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const r1=n=>Math.round(n*10)/10,r2=n=>Math.round(n*100)/100;
-function fInit(){bwInit();if(!D.bc||typeof D.bc!=='object')D.bc={};if(!D.food||typeof D.food!=='object')D.food={};const f=D.food;if(!f.goal||!(f.goal.k>0))f.goal={k:1823,c:228,p:137,f:41};if(!D.fl||typeof D.fl!=='object')D.fl={};if(!D.fgd||typeof D.fgd!=='object')D.fgd={};if(!D.cf||typeof D.cf!=='object')D.cf={};if(!D.fgo||typeof D.fgo!=='object')D.fgo={};if(!Array.isArray(D.fgr))D.fgr=[]}
+function fml(){const L=Array.isArray(D.fm)?D.fm.filter(x=>x&&typeof x.id==='number'&&typeof x.n==='string'):[];return L.length?L:FMEALS.map((n,i)=>({id:i,n}))}
+function fmn(id){const x=fml().find(y=>y.id===id);return x?x.n:'Refeição'}
+function fmMat(){if(!Array.isArray(D.fm)||!D.fm.length)D.fm=fml().map(x=>({id:x.id,n:x.n}));return D.fm}
+function fmUsed(id){for(const k in D.fl)if(D.fl[k][0]===id)return true;return false}
+function fmGroups(E){const L=fml(),ids=L.map(x=>x.id),o=L.map(x=>({id:x.id,n:x.n,L:E.filter(e=>D.fl[e][0]===x.id)})),r=E.filter(e=>!ids.includes(D.fl[e][0]));if(r.length)o.push({id:-1,n:'Sem refeição',L:r,orph:1});return o}
+function fmtHtml(k,id){const t=D.fmt&&D.fmt[k+'|'+id];return '<span class="fmw"><label class="ftm">'+(t?escH(t):'+ horário')+'<input type="time" data-fmt="'+k+'|'+id+'" value="'+(t?escH(t):'')+'"></label>'+(t?'<span class="tkx" data-a="fmtclr" data-k="'+k+'|'+id+'">×</span>':'')+'</span>'}
+function fmHead(g,k){const t=Math.round(g.L.reduce((a,x)=>a+D.fl[x][3],0));return '<div class="fmh"><span>'+escH(g.n)+'</span><span class="fmr">'+(g.orph?'':fmtHtml(k,g.id))+'<span>'+t+' kcal</span></span></div>'}
+function fmEditHtml(){const L=fml(),n=L.length;return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
+    <div class="sh"><button class="lnk" data-a="food">‹ Voltar</button><b>Refeições</b><button class="lnk" data-a="close">Fechar</button></div>
+    <div class="note" style="padding:0 0 6px">Renomeie, reordene ou crie refeições. Uma refeição com registros não pode ser excluída (mude os alimentos de refeição antes).</div>
+    ${L.map((x,i)=>`<div class="fer"><input type="text" class="rin fmn" data-i="${i}" maxlength="30" value="${escH(x.n)}" style="flex:1;margin:0"><div class="tkx" data-a="fmup" data-i="${i}" style="${i?'':'opacity:.25'}">↑</div><div class="tkx" data-a="fmdn" data-i="${i}" style="${i<n-1?'':'opacity:.25'}">↓</div>${n>1&&!fmUsed(x.id)?`<div class="tkx" data-a="fmdel" data-i="${i}">×</div>`:'<div class="tkx" style="opacity:.25">×</div>'}</div>`).join('')}
+    <div class="fad" data-a="fmnew" style="padding-top:14px">+ Nova refeição</div></div></div>`}
+function fInit(){bwInit();if(!D.bc||typeof D.bc!=='object')D.bc={};if(!D.food||typeof D.food!=='object')D.food={};const f=D.food;if(!f.goal||!(f.goal.k>0))f.goal={k:1823,c:228,p:137,f:41};if(!D.fl||typeof D.fl!=='object')D.fl={};if(!D.fgd||typeof D.fgd!=='object')D.fgd={};if(!D.cf||typeof D.cf!=='object')D.cf={};if(!D.fgo||typeof D.fgo!=='object')D.fgo={};if(!Array.isArray(D.fgr))D.fgr=[];if(!D.fmt||typeof D.fmt!=='object'||Array.isArray(D.fmt))D.fmt={};if(D.fm!==undefined&&!Array.isArray(D.fm))delete D.fm}
 function loadFoods(){if(FOODS)return;fetch('taco.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{FOODS=j.f;FERR=0;if(S.sheet&&S.sheet.fadd&&!S.sheet.fadd.sel&&!document.activeElement.id)render();else{const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()}}).catch(()=>{FERR=1;const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()})}
 function fDay(k){const o={k:0,p:0,l:0,c:0,n:0};for(const x in D.fl)if(x.startsWith(k+'|')){const e=D.fl[x];o.k+=e[3];o.p+=e[4];o.l+=e[5];o.c+=e[6];o.n++}o.k=Math.round(o.k);o.p=r1(o.p);o.l=r1(o.l);o.c=r1(o.c);return o}
 function fgRule(k){const L=D.fgr||[];for(let i=L.length-1;i>=0;i--)if(L[i].rule&&occurs(L[i],k))return L[i];return null}
@@ -515,8 +528,8 @@ function foodTop(){fInit();const k=key(TODAY),d=fDay(k),g=fGoal(k),p=Math.floor(
   ${D.fgo&&D.fgo[k]?'<div class="fms" style="margin-top:6px">Meta específica deste dia</div>':''}<div class="note" style="padding:8px 0 0;font-size:13px;color:var(--txt)">${d.k>=g.k?'Meta batida'+(d.k>g.k?' · +'+(d.k-g.k)+' kcal além da meta':''):'Falta '+(g.k-d.k)+' kcal ('+Math.max(0,100-p)+'%)'}</div>
   ${row('Carboidratos',d.c,g.c)}${row('Proteína',d.p,g.p)}${row('Gordura',d.l,g.f)}`}
 function foodMeals(){const k=key(TODAY),E=Object.keys(D.fl).filter(x=>x.startsWith(k+'|')).sort();
-  return FMEALS.map((n,m)=>{const L=E.filter(x=>D.fl[x][0]===m),t=Math.round(L.reduce((a,x)=>a+D.fl[x][3],0));
-    return '<div class="fmh"><span>'+n+'</span><span>'+t+' kcal</span></div>'+L.map(x=>{const e=D.fl[x];return '<div class="fer"><div class="fet" data-a="fedit" data-k="'+x+'">'+escH(e[1])+'<small>'+e[2]+' g · C '+e[6]+' · P '+e[4]+' · G '+e[5]+'</small></div><div class="fek">'+Math.round(e[3])+'</div><div class="tkx" data-a="fdel" data-k="'+x+'">×</div></div>'}).join('')+'<div class="fad" data-a="faddopen" data-m="'+m+'">+ alimento</div>'}).join('')}
+  return fmGroups(E).map(g=>{const m=g.id;
+    return fmHead(g,k)+g.L.map(x=>{const e=D.fl[x];return '<div class="fer"><div class="fet" data-a="fedit" data-k="'+x+'">'+escH(e[1])+'<small>'+e[2]+' g · C '+e[6]+' · P '+e[4]+' · G '+e[5]+'</small></div><div class="fek">'+Math.round(e[3])+'</div><div class="tkx" data-a="fdel" data-k="'+x+'">×</div></div>'}).join('')+(g.orph?'':'<div class="fad" data-a="faddopen" data-m="'+m+'">+ alimento</div>')}).join('')+'<div class="fad" data-a="fmedit" style="margin-top:14px">Editar refeições ›</div>'}
 function fWeeks(){
   fInit();const t=key(TODAY),days=[...new Set(Object.keys(D.fl).map(x=>x.split('|')[0]))].filter(k=>k<=t).sort();
   if(!days.length)return '<div class="note" style="padding:0">Ainda sem registros. Toque em “+ alimento” em uma refeição para começar.</div>';
@@ -591,7 +604,7 @@ function foodHtml(){fInit();const g=D.food.goal;
   <div id="fhist" style="margin-top:6px">${fWeeks()}</div>
   <div class="note" style="padding:16px 0 0">Valores calculados com a TACO (4ª ed., NEPA/UNICAMP, 2011), por 100 g de parte comestível. Carboidrato total. Itens marcados (TBCA): TBCA – Tabela Brasileira de Composição de Alimentos (USP/FoRC). Itens marcados (IBGE): IBGE, POF 2008-2009, Tabelas de Composição Nutricional dos Alimentos Consumidos no Brasil (2011). Medidas caseiras: IBGE, POF 2008-2009, Tabela de Medidas Referidas para os Alimentos Consumidos no Brasil (2011).</div>`}
 function faddHtml(a){const sel=fSel(a.sel);
-  const hd=`<div class="sh"><button class="lnk" data-a="${sel?'fback':'food'}">‹ Voltar</button><b>${FMEALS[a.m]}</b><button class="lnk" data-a="close">Fechar</button></div>`;
+  const hd=`<div class="sh"><button class="lnk" data-a="${sel?'fback':'food'}">‹ Voltar</button><b>${escH(fmn(a.m))}</b><button class="lnk" data-a="close">Fechar</button></div>`;
   if(sel)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>${hd}
     <div class="note" style="padding:0 0 10px;font-size:14px;color:var(--txt)">${escH(sel.name)}</div>
     <div class="sub">QUANTIDADE (G)</div>
@@ -614,7 +627,7 @@ function feditHtml(){const f=S.fe;if(!f)return '';const fl=(l,k,h)=>`<div class=
     <div class="note" style="padding:0">Valores deste registro (não por 100 g). Ao mudar a quantidade, kcal e macros se ajustam na proporção; depois você pode corrigir qualquer campo.</div>
     ${fl('NOME','n')}${fl('QUANTIDADE (G)','g')}${fl('CALORIAS (KCAL)','kc')}${fl('CARBOIDRATOS (G)','c')}${fl('PROTEÍNA (G)','p')}${fl('GORDURA (G)','l')}
     <div class="sub" style="margin-top:12px">REFEIÇÃO</div>
-    <div class="bcch">${FMEALS.map((n,m)=>`<div class="opt" data-a="femeal" data-m="${m}" style="${f.m===m?'border-color:var(--g);color:var(--g)':''}">${n}</div>`).join('')}</div>
+    <div class="bcch">${fml().map(x=>`<div class="opt" data-a="femeal" data-m="${x.id}" style="${f.m===x.id?'border-color:var(--g);color:var(--g)':''}">${escH(x.n)}</div>`).join('')}</div>
     <button class="btn" style="margin-top:18px" data-a="fesave">Salvar</button></div></div>`}
 function snapUpd(){try{if(!D.snap)D.snap={};const t=key(TODAY);[t,key(S.day)].forEach(k=>{if(k>t)return;const L=dayLoad(k),c=D.snap[k];
   if(L.tot>0){if(!c||c[0]!==L.tot||c[1]!==L.fe)D.snap[k]=[L.tot,L.fe]}else if(c)delete D.snap[k]})}catch(e){}}
@@ -755,8 +768,9 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     <div class="sh"><button class="lnk" data-a="fdback">‹ Voltar</button><b>${dfmt(k)}</b><button class="lnk" data-a="close">Fechar</button></div>
     <div class="wbig"><b>${p}%</b><span>${d.k} / ${g.k} kcal</span></div><div class="wbar"><i style="width:${Math.min(100,p)}%"></i></div>
     <div class="fms" style="margin-top:8px">C ${d.c} / ${g.c} g · P ${d.p} / ${g.p} g · G ${d.l} / ${g.f} g</div>
-    ${FMEALS.map((n,m)=>{const L=E.filter(x=>D.fl[x][0]===m),t=Math.round(L.reduce((a,x)=>a+D.fl[x][3],0));
-      return '<div class="fmh"><span>'+n+'</span><span>'+t+' kcal</span></div>'+L.map(x=>{const e=D.fl[x];return '<div class="fer"><div class="fet" data-a="fedit" data-k="'+x+'">'+escH(e[1])+'<small>C '+e[6]+' · P '+e[4]+' · G '+e[5]+'</small></div><input type="text" class="rin dfin" inputmode="decimal" maxlength="6" data-k="'+x+'" value="'+e[2]+'" style="width:72px;margin:0"><span style="color:var(--mut)">g</span><div class="fek">'+Math.round(e[3])+'</div><div class="tkx" data-a="fdel" data-k="'+x+'">×</div></div>'}).join('')+'<div class="fad" data-a="faddopen" data-m="'+m+'" data-d="'+k+'">+ alimento</div>'}).join('')}</div></div>`}
+    ${fmGroups(E).map(g=>{const m=g.id;
+      return fmHead(g,k)+g.L.map(x=>{const e=D.fl[x];return '<div class="fer"><div class="fet" data-a="fedit" data-k="'+x+'">'+escH(e[1])+'<small>C '+e[6]+' · P '+e[4]+' · G '+e[5]+'</small></div><input type="text" class="rin dfin" inputmode="decimal" maxlength="6" data-k="'+x+'" value="'+e[2]+'" style="width:72px;margin:0"><span style="color:var(--mut)">g</span><div class="fek">'+Math.round(e[3])+'</div><div class="tkx" data-a="fdel" data-k="'+x+'">×</div></div>'}).join('')+(g.orph?'':'<div class="fad" data-a="faddopen" data-m="'+m+'" data-d="'+k+'">+ alimento</div>')}).join('')}</div></div>`}
+  if(sh.fmed)return fmEditHtml();
   if(sh.fadd)return faddHtml(sh.fadd);
   if(sh.fgq)return fgqSheet();
   if(sh.fgo)return fgoSheet();
@@ -905,6 +919,8 @@ document.addEventListener('change',e=>{const i=e.target,c=i.classList;if(!c)retu
   else if(c.contains('fgq')){if(S.fgq&&i.dataset.f==='start')render()}
   else if(c.contains('fgi')){if(S.fgo&&i.dataset.f==='d')render()}
   else if(c.contains('fei')){if(i.dataset.f==='g'&&S.fe){const n=parseFloat(String(i.value).replace(',','.')),o=S.fe.g0;if(n>0&&o>0){const r=n/o;['kc','c','p','l'].forEach(f=>{const x=parseFloat(String(S.fe[f]).replace(',','.'));if(x>=0)S.fe[f]=String(r2(x*r))});S.fe.g=i.value;S.fe.g0=n;render()}}}
+  else if(c.contains('fmn')){const L=fmMat(),x=L[+i.dataset.i],v=i.value.trim().slice(0,30);if(x){if(v)x.n=v;else i.value=x.n;save()}}
+  else if(i.dataset&&i.dataset.fmt){const p=i.dataset.fmt.split('|');if(/^\d\d:\d\d$/.test(i.value))D.fmt[i.dataset.fmt]=i.value;else delete D.fmt[i.dataset.fmt];save();const w=i.closest('.fmw');if(w)w.outerHTML=fmtHtml(p[0],+p[1])}
   else if(c.contains('dfin')){const g=parseFloat(String(i.value).replace(',','.')),e0=D.fl[i.dataset.k];if(g>0&&g<=5000&&e0&&e0[2]>0){const r=g/e0[2];D.fl[i.dataset.k]=[e0[0],e0[1],r2(g),r1(e0[3]*r),r2(e0[4]*r),r2(e0[5]*r),r2(e0[6]*r)].concat(e0.slice(7));save()}render()}});
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-stop]')&&!e.target.closest('[data-a]'))return;
@@ -922,6 +938,11 @@ document.addEventListener('click',e=>{
   else if(a==='thist'){S.sheet={thist:true}}
   else if(a==='aprov'){S.sheet={aprov:true};S.hw=null}
   else if(a==='food'){S.sheet={food:true};S.hw=null;S.fq='';S.fday=null}
+  else if(a==='fmedit'){S.sheet={fmed:true}}
+  else if(a==='fmnew'){fmMat().push({id:Date.now(),n:'Nova refeição'});save();render();setTimeout(()=>{const q=document.querySelectorAll('.fmn'),l=q[q.length-1];if(l){l.focus();l.select()}},30)}
+  else if(a==='fmup'||a==='fmdn'){const L=fmMat(),i=+el.dataset.i,j=i+(a==='fmup'?-1:1);if(j>=0&&j<L.length){const t=L[i];L[i]=L[j];L[j]=t;save();render()}}
+  else if(a==='fmdel'){const L=fmMat(),i=+el.dataset.i,x=L[i];if(x&&L.length>1&&!fmUsed(x.id)){L.splice(i,1);for(const k in D.fmt)if(k.endsWith('|'+x.id))delete D.fmt[k];save();render()}}
+  else if(a==='fmtclr'){delete D.fmt[el.dataset.k];save();const w=el.closest('.fmw'),p=el.dataset.k.split('|');if(w)w.outerHTML=fmtHtml(p[0],+p[1])}
   else if(a==='faddopen'){if(el.dataset.d)S.fday=el.dataset.d;S.sheet={fadd:{m:+el.dataset.m,sel:null}};S.fqFocus=1;loadFoods();loadMeas()}
   else if(a==='fmeas'){const ad=S.sheet&&S.sheet.fadd;if(!ad)return;const L=fMeasList(ad.sel),i=+el.dataset.i,x=L[i];if(!x)return;const ms=fMsCur();if(ms&&ms.i===i)ms.n=Math.min(50,ms.n+1);else S.fms={k:selKey(ad.sel),i,n:1};S.fgv=fmtG(x[1]*S.fms.n);const gi=document.getElementById('fg'),pv=document.getElementById('fprev'),mc=document.getElementById('fmch'),sl=fSel(ad.sel);if(gi)gi.value=S.fgv;if(pv&&sl)pv.textContent=fPrev(sl,S.fgv);if(mc)mc.innerHTML=fMeasHtml();return}
   else if(a==='fpick'){const gm=(S.fq||'').match(GRE);S.sheet.fadd.sel={t:el.dataset.t,i:el.dataset.t==='t'?+el.dataset.i:el.dataset.i};S.fgv=gm?gm[1]:'100';S.fgFocus=1}
@@ -1200,7 +1221,7 @@ document.getElementById('imp').addEventListener('change',async e=>{
   try{const j=JSON.parse(await f.text());
     if(!Array.isArray(j.habits)||typeof j.entries!=='object'||!j.habits.every(h=>h&&h.id&&h.name&&(h.intent==='build'||h.intent==='break')))throw 0;
     if(!confirm('Importar vai SUBSTITUIR todos os dados atuais ('+D.habits.length+' hábitos) por '+j.habits.length+' hábitos do arquivo. Continuar?'))return;
-    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],rec:Array.isArray(j.rec)?j.rec:[],prog:j.prog&&typeof j.prog==='object'?j.prog:{},snap:j.snap&&typeof j.snap==='object'?j.snap:{},water:j.water,wl:j.wl,wgd:j.wgd,food:j.food,fl:j.fl,fgd:j.fgd,cf:j.cf,bw:j.bw,bc:j.bc,ht:j.ht,fgo:j.fgo&&typeof j.fgo==='object'&&!Array.isArray(j.fgo)?j.fgo:{},fgr:Array.isArray(j.fgr)?j.fgr:[],st:Array.isArray(j.st)?j.st:[],stc:j.stc>0?j.stc:undefined,sync:D.sync};wInit();fInit();stInit();save();S.sheet=null;render();
+    D={habits:j.habits,entries:j.entries,seq:j.seq||j.habits.length+1000,sort:j.sort,weekStart:j.weekStart,tasks:Array.isArray(j.tasks)?j.tasks:[],rec:Array.isArray(j.rec)?j.rec:[],prog:j.prog&&typeof j.prog==='object'?j.prog:{},snap:j.snap&&typeof j.snap==='object'?j.snap:{},water:j.water,wl:j.wl,wgd:j.wgd,food:j.food,fl:j.fl,fgd:j.fgd,cf:j.cf,bw:j.bw,bc:j.bc,ht:j.ht,fgo:j.fgo&&typeof j.fgo==='object'&&!Array.isArray(j.fgo)?j.fgo:{},fgr:Array.isArray(j.fgr)?j.fgr:[],st:Array.isArray(j.st)?j.st:[],stc:j.stc>0?j.stc:undefined,fm:Array.isArray(j.fm)&&j.fm.length?j.fm:undefined,fmt:j.fmt&&typeof j.fmt==='object'&&!Array.isArray(j.fmt)?j.fmt:{},sync:D.sync};wInit();fInit();stInit();save();S.sheet=null;render();
   }catch(_){alert('Arquivo inválido. Use um backup exportado pelo Rastro.')}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(svT)flush();if(SY.cfg){clearTimeout(SY.t);sync()}}if(!document.hidden&&key(new Date())!==key(TODAY))location.reload();if(!document.hidden)sync()});
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{})}
@@ -1223,6 +1244,8 @@ function flat(){const r={};
   for(const k in (D.cf||{}))r['c|'+k]=D.cf[k];
   for(const k in (D.bw||{}))r['b|'+k]=D.bw[k];
   for(const k in (D.bc||{}))r['z|'+k]=D.bc[k];
+  for(const k in (D.fmt||{}))if(D.fmt[k])r['m|'+k]=D.fmt[k];
+  if(Array.isArray(D.fm)&&D.fm.length)r['s|fm']=D.fm;
   if(D.ht)r['s|ht']=D.ht;if(D.stc)r['s|sc']=D.stc;
   if(D.food&&D.food.set)r['s|fg']=D.food.goal;
   (D.rec||[]).forEach(x=>{r['r|'+x.id]={text:x.text,dur:x.dur,rule:x.rule,start:x.start,end:x.end,paused:x.paused,skip:x.skip,p:x.p}});
@@ -1231,20 +1254,20 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v64',KNOWN=/^([etpkwxrhfycbgqzv]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc)$)/;
+const VER='v65',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
 /* após atualizar o app, adota registros que a versão antiga recebeu mas não sabia ler, antes de qualquer exclusão */
 function migrate(){if(D.sv===VER||!D.sync)return false;stamp(true);rebuild();D.sv=VER;return true}
-function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={},GO={},FQ=[],ST=[];let ord=[],sort,ws,wg,wc,fg,ht,sc;
+function rebuild(){const S2=D.sync,E={},T=[],Hs={},Rs=[],PR={},SN={},WL={},WX={},FL={},FY={},CF={},BW={},BC={},GO={},FM={},FQ=[],ST=[];let ord=[],sort,ws,wg,wc,fg,ht,sc,fm;
   for(const k in S2){const c=S2[k];if(c.v===null)continue;const p=k.slice(0,2),id=k.slice(2);
-    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='g|')GO[id]=c.v;else if(p==='q|')FQ.push(Object.assign({id},c.v));else if(p==='v|')ST.push(Object.assign({id},c.v));else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='z|')BC[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
-    else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v;else if(k==='s|wg')wg=c.v;else if(k==='s|wc')wc=c.v;else if(k==='s|fg')fg=c.v;else if(k==='s|ht')ht=c.v;else if(k==='s|sc')sc=c.v}
+    if(p==='e|')E[id]=1;else if(p==='t|')T.push(Object.assign({id},c.v));else if(p==='r|')Rs.push(Object.assign({id},c.v));else if(p==='p|')PR[id]=c.v;else if(p==='k|')SN[id]=c.v;else if(p==='w|')WL[id]=c.v;else if(p==='x|')WX[id]=c.v;else if(p==='f|')FL[id]=c.v;else if(p==='y|')FY[id]=c.v;else if(p==='g|')GO[id]=c.v;else if(p==='q|')FQ.push(Object.assign({id},c.v));else if(p==='v|')ST.push(Object.assign({id},c.v));else if(p==='c|')CF[id]=c.v;else if(p==='b|')BW[id]=c.v;else if(p==='z|')BC[id]=c.v;else if(p==='m|')FM[id]=c.v;else if(p==='h|')Hs[id]=Object.assign({id},c.v);
+    else if(k==='o|')ord=c.v;else if(k==='s|sort')sort=c.v;else if(k==='s|ws')ws=c.v;else if(k==='s|wg')wg=c.v;else if(k==='s|wc')wc=c.v;else if(k==='s|fg')fg=c.v;else if(k==='s|ht')ht=c.v;else if(k==='s|sc')sc=c.v;else if(k==='s|fm')fm=c.v}
   const ids=ord.filter(i=>Hs[i]);Object.keys(Hs).sort().forEach(i=>{if(!ids.includes(i))ids.push(i)});
   D.habits=ids.map(i=>Hs[i]);
   D.entries={};for(const k in E)if(Hs[k.split('|')[0]])D.entries[k]=1;
-  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.fgo=GO;D.fgr=FQ.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.st=ST.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.cf=CF;D.bw=BW;D.bc=BC;if(ht>0)D.ht=ht;else delete D.ht;if(sc>0)D.stc=sc;else delete D.stc;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
+  D.tasks=T.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.rec=Rs.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.prog={};for(const k in PR)if(Hs[k.split('|')[0]])D.prog[k]=PR[k];D.snap=SN;D.wl=WL;D.wgd=WX;wInit();if(wg>0){D.water.goal=wg;D.water.set=1}if(Array.isArray(wc)&&wc.length){D.water.cups=wc;D.water.set=1}D.fl=FL;D.fgd=FY;D.fgo=GO;D.fgr=FQ.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.st=ST.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);D.cf=CF;D.bw=BW;D.bc=BC;D.fmt=FM;if(Array.isArray(fm)&&fm.length)D.fm=fm;else delete D.fm;if(ht>0)D.ht=ht;else delete D.ht;if(sc>0)D.stc=sc;else delete D.stc;fInit();if(fg&&fg.k>0){D.food.goal=fg;D.food.set=1}
   if(sort===undefined||sort===null)delete D.sort;else D.sort=sort;
   if(ws===undefined||ws===null)delete D.weekStart;else D.weekStart=ws}
 function mergeIn(rem){const S2=D.sync||(D.sync={});let ch=0;
