@@ -232,7 +232,7 @@ function ruleLabel(r){const n=r.rule.every|0||1,u=r.rule.unit,s=dparse(r.start);
   const md=r.rule.md&&r.rule.md.length?r.rule.md:[s.getDate()];
   return (n===1?'Todo mês':'A cada '+n+' meses')+' · dia '+md.slice().sort((a,b)=>a-b).join(', ')}
 const SIV=[1,3,7,14,30,60],SMT=90,STB='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2zM22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z"/></svg>';
-function stInit(){if(!Array.isArray(D.st))D.st=[];D.st.forEach(s=>{if(!Array.isArray(s.rv))s.rv=[]})}
+function stInit(){if(!Array.isArray(D.st))D.st=[];D.st.forEach(s=>{if(!Array.isArray(s.rv))s.rv=[]});let f=0;if(Array.isArray(D.tasks))D.tasks.forEach(t=>{if(t.sid&&typeof t.dur==='number'){if(t.dur>0)t.dur={n:t.dur,u:'m'};else delete t.dur;f=1}});if(f)save()}
 function stIv(s){return Array.isArray(s.iv)&&s.iv.length?s.iv:SIV}
 function stMt(s){return s.mt==null?SMT:s.mt}
 function stStage(s,u){let g=0;const L=s.rv,n=u==null?L.length:u;for(let i=0;i<n;i++){const r=L[i];g+=!r||r.x?1:r.q==='h'?0:r.q==='e'?2:1}return g}
@@ -245,7 +245,7 @@ function stName(s,i){const n=stIv(s).length;if(stStage(s,i)<n)return 'Revisão '
 function stDd(a,b){return Math.round((dparse(b)-dparse(a))/864e5)}
 function stRel(k){const d=stDd(key(TODAY),k);return d===0?'hoje':d===1?'amanhã':d>0?'em '+d+' d':'atrasada '+(-d)+' d'}
 function ensureStudy(){stInit();if(!D.st.length)return 0;if(SY.cfg&&navigator.onLine&&!SY.last&&!SY.err)return 0;let c=0;
-  D.st.forEach(s=>{const due=stDue(s);if(!due)return;const id=stTid(s,s.rv.length);if(!D.tasks.some(t=>t.id===id)){let day=due;if(D.stc>0&&stStage(s)>=stIv(s).length){let k=0;while(k<60&&D.tasks.filter(t=>t.sid&&!t.done&&t.day===day).length>=D.stc){day=key(addD(dparse(day),1));k++}}const t={id,day,text:'Revisar: '+s.n,sid:s.id,si:s.rv.length};if(s.m>0)t.dur=s.m;D.tasks.push(t);c=1}});if(c)save();return c}
+  D.st.forEach(s=>{const due=stDue(s);if(!due)return;const id=stTid(s,s.rv.length);if(!D.tasks.some(t=>t.id===id)){let day=due;if(D.stc>0&&stStage(s)>=stIv(s).length){let k=0;while(k<60&&D.tasks.filter(t=>t.sid&&!t.done&&t.day===day).length>=D.stc){day=key(addD(dparse(day),1));k++}}const t={id,day,text:'Revisar: '+s.n,sid:s.id,si:s.rv.length};if(s.m>0)t.dur={n:s.m,u:'m'};D.tasks.push(t);c=1}});if(c)save();return c}
 function stDone(t,q){const s=(D.st||[]).find(x=>x.id===t.sid);if(!s)return;
   if(t.done){if(s.rv.length===t.si){const p=stDue(s),tk=key(TODAY),r={p,d:t.day<tk?t.day:tk};if(q==='h'||q==='e')r.q=q;s.rv.push(r)}}
   else if(s.rv.length===t.si+1&&!s.rv[t.si].x){s.rv.pop();const nid=stTid(s,t.si+1);D.tasks=D.tasks.filter(x=>!(x.id===nid&&!x.done))}}
@@ -1043,7 +1043,7 @@ document.addEventListener('click',e=>{
     const iv=f.iv.map(x=>parseInt(x,10)).filter(x=>x>0&&x<=3650);if(!iv.length){alert('Informe ao menos um intervalo em dias.');return}const mt=Math.min(3650,parseInt(f.mt,10)||0);
     let s=f.id&&D.st.find(x=>x.id===f.id);if(!s){s={id:Date.now().toString(36)+Math.random().toString(36).slice(2,4),rv:[]};D.st.push(s)}
     const m=Math.min(600,parseInt(f.m,10)||0),qs=String(f.qs||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,20).join('\n').slice(0,2000);Object.assign(s,{n:n.slice(0,120),a:f.a.trim().slice(0,80),u:f.u.trim().slice(0,300),d0:f.d0,iv,mt,m,qs});['a','u','m','qs'].forEach(k=>{if(!s[k])delete s[k]});
-    const t=D.tasks.find(x=>x.id===stTid(s,s.rv.length)&&!x.done),due=stDue(s);if(t){if(due){t.day=due;t.text='Revisar: '+s.n;if(s.m)t.dur=s.m;else delete t.dur}else D.tasks=D.tasks.filter(x=>x!==t)}
+    const t=D.tasks.find(x=>x.id===stTid(s,s.rv.length)&&!x.done),due=stDue(s);if(t){if(due){t.day=due;t.text='Revisar: '+s.n;if(s.m)t.dur={n:s.m,u:'m'};else delete t.dur}else D.tasks=D.tasks.filter(x=>x!==t)}
     save();S.stf=null;S.sheet={stv:s.id}}
   else if(a==='fgoed'){const k=el.dataset.k,o=k&&D.fgo[k],b=D.food.goal,v=o||b;const kg=o&&o.m==='kg',rv=o?fgRes(o,k):b;S.fgo={orig:k||'',d:k||key(addD(TODAY,1)),m:kg?'kg':'g',gc:rv.c,gp:rv.p,gf:rv.f,gk:rv.k,lock:!!S.fgLock,msg:''};S.sheet={fgo:true}}
   else if(a==='fgqed'){const r=el.dataset.i&&(D.fgr||[]).find(x=>x.id===el.dataset.i),b=D.food.goal,v=r||b,rr=r?fgRes(r,r.start):b;S.fgq={id:r?r.id:'',every:String(r?r.rule.every:1),unit:r?r.rule.unit:'w',wd:r?(r.rule.wd||[]).slice():[],md:r?(r.rule.md||[]).join(', '):'',start:r?r.start:key(TODAY),end:r&&r.end?r.end:'',m:r&&r.m==='kg'?'kg':'g',gc:rr.c,gp:rr.p,gf:rr.f,gk:rr.k,lock:!!S.fgLock,msg:''};S.sheet={fgq:true}}
@@ -1231,7 +1231,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v62',KNOWN=/^([etpkwxrhfycbgqzv]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc)$)/;
+const VER='v63',KNOWN=/^([etpkwxrhfycbgqzv]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
