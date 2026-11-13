@@ -779,7 +779,7 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     ${fmGroups(E).map(g=>{const m=g.id;
       return fmHead(g,k)+g.L.map(x=>{const e=D.fl[x];return '<div class="fer"><div class="fet" data-a="fedit" data-k="'+x+'">'+escH(e[1])+'<small>C '+e[6]+' · P '+e[4]+' · G '+e[5]+'</small></div><input type="text" class="rin dfin" inputmode="decimal" maxlength="6" data-k="'+x+'" value="'+e[2]+'" style="width:72px;margin:0"><span style="color:var(--mut)">g</span><div class="fek">'+Math.round(e[3])+'</div><div class="tkx" data-a="fdel" data-k="'+x+'">×</div></div>'}).join('')+(g.orph?'':'<div class="fad" data-a="faddopen" data-m="'+m+'" data-d="'+k+'">+ alimento</div>')}).join('')}</div></div>`}
   if(sh.fmed)return fmEditHtml();
-  if(sh.fmts)return fmtSheet();
+  if(sh.fmts){const bk=S.fmts&&S.fmts.back;let u='';if(bk){S.sheet=bk;u=sheetHtml();S.sheet=sh}return u+fmtSheet()}
   if(sh.fadd)return faddHtml(sh.fadd);
   if(sh.fgq)return fgqSheet();
   if(sh.fgo)return fgoSheet();
@@ -1267,7 +1267,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v67',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
+const VER='v68',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
