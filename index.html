@@ -1325,7 +1325,7 @@ function flat(){const r={};
   for(const k in (D.fl||{}))r['f|'+k]=D.fl[k];
   for(const k in (D.fgd||{}))r['y|'+k]=D.fgd[k];
   for(const k in (D.fgo||{}))r['g|'+k]=D.fgo[k];
-  (D.fgr||[]).forEach(x=>{r['q|'+x.id]=Object.assign({rule:x.rule,start:x.start,end:x.end,k:x.k,c:x.c,p:x.p,f:x.f},x.m==='kg'?{m:'kg',kc:x.kc,kp:x.kp,kf:x.kf,kk:x.kk}:{})});
+  (D.fgr||[]).forEach(x=>{r['q|'+x.id]=Object.assign({rule:x.rule,start:x.start,end:x.end,k:x.k,c:x.c,p:x.p,f:x.f,m:undefined,kc:undefined,kp:undefined,kf:undefined,kk:undefined},x.m==='kg'?{m:'kg',kc:x.kc,kp:x.kp,kf:x.kf,kk:x.kk}:{})});
   (D.st||[]).forEach(x=>{r['v|'+x.id]={n:x.n,a:x.a,u:x.u,d0:x.d0,iv:x.iv,mt:x.mt,rv:x.rv,m:x.m,qs:x.qs}});
   for(const k in (D.cf||{}))r['c|'+k]=D.cf[k];
   for(const k in (D.bw||{}))r['b|'+k]=D.bw[k];
@@ -1340,9 +1340,9 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v73',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
+const VER='v74',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
-  for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
+  for(const k in r){const c=S2[k];let v=r[k];if(c&&c.v&&typeof c.v==='object'&&!Array.isArray(c.v)&&v&&typeof v==='object'&&!Array.isArray(v)&&/^[trhvq]\|/.test(k))v=Object.assign({},c.v,v);if(!c||jstr(c.v)!==jstr(v))S2[k]={v,ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
 /* após atualizar o app, adota registros que a versão antiga recebeu mas não sabia ler, antes de qualquer exclusão */
 function migrate(){if(D.sv===VER||!D.sync)return false;stamp(true);rebuild();D.sv=VER;return true}
