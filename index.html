@@ -127,7 +127,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .tks{display:block;color:var(--mut);font-size:11px;margin-top:3px}.tkm{font-size:12px;padding:8px 10px;border-radius:8px;background:var(--panel);cursor:pointer;white-space:nowrap}
 .tke{color:var(--mut);font-size:13px;padding:10px 0 4px}
 .pln{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-top:1px solid var(--line);font-size:15px;cursor:pointer}.pln span:last-child{color:var(--mut)}
-.tkp2{flex:none;padding:6px 4px;cursor:pointer;color:var(--mut);line-height:0}.tkp2.on{color:var(--g)}.tks .ov{color:var(--r)}.tks .un{color:var(--g)}.tkd2{flex:none;text-align:right}.tkd2 .tks{margin:-2px 0 0;padding:0 4px 4px;white-space:nowrap}.tkr.d .tkt.pt{text-decoration:none}.tkr.d .tkt.pt .tt{text-decoration:line-through}.pth{font-size:12px;color:var(--mut);letter-spacing:.06em;padding:16px 0 2px}.ptn{margin:8px 0 0}
+.tkp2{flex:none;padding:6px 4px;cursor:pointer;color:var(--mut);line-height:0}.tkp2.on{color:var(--g)}.tks .ov,.ov{color:var(--r)}.tks .un,.un{color:var(--g)}.tkd2{flex:none;text-align:right}.tkd2 .tks{margin:-2px 0 0;padding:0 4px 4px;white-space:nowrap}.tkr.d .tkt.pt{text-decoration:none}.tkr.d .tkt.pt .tt{text-decoration:line-through}.pth{font-size:12px;color:var(--mut);letter-spacing:.06em;padding:16px 0 2px}.ptn{margin:8px 0 0}
 .hd2{font-size:12px;color:var(--mut);letter-spacing:.04em;padding:14px 0 4px;cursor:pointer}
 .note{font-size:11px;color:var(--mut);padding:14px 20px;line-height:1.5}
 .fmr{display:flex;align-items:baseline;gap:10px}.fmw{display:inline-flex;align-items:baseline}.ftm{color:var(--g);font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer;padding:12px 8px;margin:-12px -8px}
@@ -711,13 +711,33 @@ function padjSheet(id){const t=D.tasks.find(x=>x.id===id);if(!t)return pessSheet
   <div class="sub">MINUTOS GASTOS</div><div class="durr"><input type="text" id="pam" inputmode="numeric" maxlength="4" value="${m}"></div>
   <div class="note" style="padding:0 0 14px">${t.ts&&!t.done?'A tarefa está rodando: o tempo ajustado vale até agora e ela continua a contar.':'Corrija se esqueceu de pausar ou concluir.'}</div>
   <button class="btn" data-a="padjsave" data-t="${t.id}">Salvar</button>${t.tr||t.ts?`<button class="btn d" data-a="padjzero" data-t="${t.id}">Zerar tempo</button>`:''}</div></div>`}
+function pSgn(m){return m>0?'<span class="un">+'+fmtT(m)+'</span>':m<0?'<span class="ov">−'+fmtT(-m)+'</span>':'0'}
+function pStats(){const t=key(TODAY),W={},G={},T={l:0,g:0,n:0,im:0,ni:0};
+  (D.tasks||[]).forEach(x=>{if(!isP(x)||x.day>t)return;const s=pReal(x);if(s<=0)return;const m=Math.round(s/60),dt=dparse(x.day),w=key(addD(dt,-((dt.getDay()-WS()+7)%7)));
+    const o=W[w]||(W[w]={w,l:0,g:0,n:0,im:0,ni:0,days:{}}),dd=o.days[x.day]||(o.days[x.day]={l:0,g:0,n:0,im:0,ni:0});
+    if(x.np){o.im+=m;o.ni++;dd.im+=m;dd.ni++;T.im+=m;T.ni++;return}
+    if(!x.done)return;const e=pEst(x);if(!(e>0))return;const d=m-e;
+    if(d>0){o.l+=d;dd.l+=d;T.l+=d}else{o.g-=d;dd.g-=d;T.g-=d}o.n++;dd.n++;T.n++;
+    const k=nrm(x.text.trim()),a=G[k]||(G[k]={t:x.text,n:0,r:0,e:0,day:''});a.n++;a.r+=m;a.e+=e;if(x.day>=a.day){a.day=x.day;a.t=x.text}});
+  return {W:Object.values(W).sort((a,b)=>a.w<b.w?1:-1),G:Object.values(G).sort((a,b)=>b.n-a.n||(a.t<b.t?-1:1)),T}}
+function phistSheet(){const {W,G,T}=pStats(),cw=key(addD(TODAY,-((TODAY.getDay()-WS()+7)%7))),ln=o=>(o.n?'perdido <span class="ov">'+fmtT(o.l)+'</span> · ganho <span class="un">'+fmtT(o.g)+'</span> · '+o.n+' tarefa'+(o.n>1?'s':''):'sem tarefa comparável')+(o.ni?(o.n?' · ':'')+'imprevistos '+fmtT(o.im)+' ('+o.ni+')':'');
+  const weeks=W.map(w=>{let dd='';if(S.hw===w.w){dd='<div style="margin-top:8px">'+[0,1,2,3,4,5,6].map(j=>{const dt=addD(dparse(w.w),j),v=w.days[key(dt)];return '<div class="apd" style="grid-template-columns:46px 1fr"><span>'+WDS[dt.getDay()]+' '+pad(dt.getDate())+'</span>'+(v?'<b style="font-size:12px">'+ln(v)+'</b>':'<b style="color:var(--mut)">—</b>')+'</div>'}).join('')+'</div>'}
+    return '<div class="apw" data-a="wkx" data-w="'+w.w+'"><div class="aph"><span>'+wkLab(w.w)+(w.w===cw?' · em andamento':'')+'</span><b>'+(w.n?pSgn(w.g-w.l):'—')+'</b></div><div class="aps" style="margin-top:6px">'+ln(w)+'</div>'+dd+'</div>'}).join('');
+  const avg=G.map(a=>{const r=Math.round(a.r/a.n),e=Math.round(a.e/a.n),d=r-e;return '<div class="str"><div>'+escH(a.t)+'<small>'+a.n+(a.n>1?' vezes':' vez')+' · estimado '+fmtT(e)+' · real '+(a.n>1?'médio ':'')+fmtT(r)+'</small></div><div class="r">'+(d>0?'<span class="lt">↑ '+fmtT(d)+'</span>':d<0?'<span class="ok">↓ '+fmtT(-d)+'</span>':'no tempo')+'</div></div>'}).join('');
+  return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
+  <div class="sh"><button class="lnk" data-a="pess">‹ Voltar</button><b>Tempo pessoal</b><button class="lnk" data-a="close">Fechar</button></div>
+  <div class="note" style="padding:0">Entram só tarefas pessoais concluídas que tenham tempo estimado e tempo real. Imprevistos ficam separados e não entram no saldo.</div>
+  ${T.n||T.ni?`<div class="aph" style="margin-top:16px"><span>Saldo total</span><b>${T.n?pSgn(T.g-T.l):'—'}</b></div><div class="aps" style="margin-top:6px">${ln(T)}</div>`:'<div class="empty" style="padding:30px 10px">Ainda sem dados. Conclua tarefas pessoais com estimativa e cronômetro para ver o histórico.</div>'}
+  ${W.length?`<div class="sub hl" style="margin-top:20px">SEMANAS</div><div class="note" style="padding:0 0 4px">Saldo = tempo ganho − tempo perdido. Toque na semana para ver os dias.</div>${weeks}`:''}
+  ${G.length?`<div class="sub hl" style="margin-top:20px">MÉDIA POR TAREFA</div>${avg}`:''}
+  <div class="note" style="padding:16px 0 0">Atenção: a diferença é medida contra a estimativa. Se a estimativa for irreal, o tempo "perdido" mostra a estimativa errada, não lentidão. Tarefa concluída em segundos conta como tempo ganho inteiro: corrija o tempo real tocando na diferença.</div></div></div>`}
 function pessSheet(){const day=S.day,k=key(day),isT=k===key(TODAY),L=ptasksOf(k),d=L.filter(t=>t.done).length;
   return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
   <div class="sh"><b>Pessoal</b><button class="lnk" data-a="close">Fechar</button></div>
   <div class="note" style="padding:0 0 6px">${dlabel(day)} · ${L.length?d+' de '+L.length+' feitas':'nenhuma tarefa'}</div>
   <div class="pk">${(()=>{const G=['m','t','n',''].map(g=>[g,L.filter(t=>(TNL[t.tn]?t.tn:'')===g)]).filter(x=>x[1].length),multi=G.length>1||(G.length===1&&G[0][0]!=='');return G.map(([g,A])=>(multi?'<div class="pth">'+(g?TNL[g].toUpperCase():'SEM TURNO')+'</div>':'')+A.map(t=>pRow(t,isT)).join('')).join('')||'<div class="tke">Nenhuma tarefa pessoal neste dia.</div>'})()}
   <div class="sub" style="margin-top:16px">TURNO DA NOVA TAREFA</div><div class="wdr ptn">${['m','t','n'].map(g=>`<div class="opt ${curTn()===g?'g':''}" data-a="ptn" data-v="${g}">${TNL[g]}</div>`).join('')}</div>
-  <div class="tka"><input type="text" class="pin" placeholder="Nova tarefa pessoal · 30min" maxlength="120" enterkeyhint="done"><button data-a="padd" aria-label="Adicionar tarefa pessoal">+</button></div>${isT?'<div class="fad" data-a="pimp">+ Imprevisto (já inicia o tempo)</div>':''}<div class="fad" data-a="prnew">↻ Repetir (criar recorrente pessoal)</div>${isT?pendHtml(k,1):''}</div></div></div>`}
+  <div class="tka"><input type="text" class="pin" placeholder="Nova tarefa pessoal · 30min" maxlength="120" enterkeyhint="done"><button data-a="padd" aria-label="Adicionar tarefa pessoal">+</button></div>${isT?'<div class="fad" data-a="pimp">+ Imprevisto (já inicia o tempo)</div>':''}<div class="fad" data-a="prnew">↻ Repetir (criar recorrente pessoal)</div><div class="fad" data-a="phist">Histórico de tempo ›</div>${isT?pendHtml(k,1):''}</div></div></div>`}
 function viewToday(){
   const day=S.day,k=key(day),isT=k===key(TODAY);
   ensureDay(k);
@@ -751,6 +771,7 @@ function menuHtml(){if(!S.menu)return '';
 function sheetHtml(){const sh=S.sheet;if(!sh)return '';
   if(sh.st)return stListSheet();
   if(sh.pess)return pessSheet();
+  if(sh.phist)return phistSheet();
   if(sh.padj)return padjSheet(sh.padj);
   if(sh.stv)return stViewSheet(sh.stv);
   if(sh.sted)return stEditSheet();
@@ -1093,6 +1114,7 @@ document.addEventListener('click',e=>{
   else if(a==='tdel'&&(()=>{const t=D.tasks.find(x=>x.id===el.dataset.t);return t&&t.rid&&D.rec.some(x=>x.id===t.rid)})()){S.sheet={ropt:el.dataset.t};S.confirm=null}
   else if(a==='tdel'){const t=D.tasks.find(x=>x.id===el.dataset.t),r=t&&t.rid&&D.rec.find(x=>x.id===t.rid);if(r){r.skip=r.skip||[];if(!r.skip.includes(t.day))r.skip.push(t.day)}D.tasks=D.tasks.filter(x=>x.id!==el.dataset.t);save()}
   else if(a==='pess'){S.sheet={pess:true};S.edit=null}
+  else if(a==='phist'){S.sheet={phist:true};S.hw=null}
   else if(a==='padd'){if(!addTask(el.closest('.pk'),1))return;S.prefocus=true}
   else if(a==='ptn'){const v=el.dataset.v;S.ptn=curTn()===v?'':v}
   else if(a==='prnew'){const inp=document.querySelector('.pin'),v=(inp?inp.value:'').trim(),pd=parseDur(v,false),text=pd&&v.slice(0,pd.i).trim()?v.slice(0,pd.i).trim():v;
@@ -1318,7 +1340,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v71',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
+const VER='v72',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
