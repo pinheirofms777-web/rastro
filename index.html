@@ -392,8 +392,8 @@ function fmtSheet(){const f=S.fmts;if(!f)return '';const p=f.k.split('|'),has=!!
 function fmHead(g,k){const t=Math.round(g.L.reduce((a,x)=>a+D.fl[x][3],0));return '<div class="fmh"><span>'+escH(g.n)+'</span><span class="fmr">'+(g.orph?'':fmtHtml(k,g.id))+'<span>'+t+' kcal</span></span></div>'}
 function fmEditHtml(){const L=fml(),n=L.length;return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
     <div class="sh"><button class="lnk" data-a="food">‹ Voltar</button><b>Refeições</b><button class="lnk" data-a="close">Fechar</button></div>
-    <div class="note" style="padding:0 0 6px">Renomeie, reordene ou crie refeições. Uma refeição com registros não pode ser excluída (mude os alimentos de refeição antes).</div>
-    ${L.map((x,i)=>`<div class="fer"><input type="text" class="rin fmn" data-i="${i}" maxlength="30" value="${escH(x.n)}" style="flex:1;margin:0"><div class="tkx" data-a="fmup" data-i="${i}" style="${i?'':'opacity:.25'}">↑</div><div class="tkx" data-a="fmdn" data-i="${i}" style="${i<n-1?'':'opacity:.25'}">↓</div>${n>1&&!fmUsed(x.id)?`<div class="tkx" data-a="fmdel" data-i="${i}">×</div>`:'<div class="tkx" style="opacity:.25">×</div>'}</div>`).join('')}
+    <div class="note" style="padding:0 0 6px">Renomeie, reordene ou crie refeições. Ao excluir uma refeição que já tem registros, eles continuam nos dias, no grupo "Sem refeição" (dá para mudar a refeição pela edição do registro).</div>
+    ${L.map((x,i)=>`<div class="fer"><input type="text" class="rin fmn" data-i="${i}" maxlength="30" value="${escH(x.n)}" style="flex:1;margin:0"><div class="tkx" data-a="fmup" data-i="${i}" style="${i?'':'opacity:.25'}">↑</div><div class="tkx" data-a="fmdn" data-i="${i}" style="${i<n-1?'':'opacity:.25'}">↓</div>${n>1?`<div class="tkx" data-a="fmdel" data-i="${i}">×</div>`:'<div class="tkx" style="opacity:.25">×</div>'}</div>`).join('')}
     <div class="fad" data-a="fmnew" style="padding-top:14px">+ Nova refeição</div></div></div>`}
 function fInit(){bwInit();if(!D.bc||typeof D.bc!=='object')D.bc={};if(!D.food||typeof D.food!=='object')D.food={};const f=D.food;if(!f.goal||!(f.goal.k>0))f.goal={k:1823,c:228,p:137,f:41};if(!D.fl||typeof D.fl!=='object')D.fl={};if(!D.fgd||typeof D.fgd!=='object')D.fgd={};if(!D.cf||typeof D.cf!=='object')D.cf={};if(!D.fgo||typeof D.fgo!=='object')D.fgo={};if(!Array.isArray(D.fgr))D.fgr=[];if(!D.fmt||typeof D.fmt!=='object'||Array.isArray(D.fmt))D.fmt={};if(D.fm!==undefined&&!Array.isArray(D.fm))delete D.fm}
 function loadFoods(){if(FOODS)return;fetch('taco.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{FOODS=j.f;FERR=0;if(S.sheet&&S.sheet.fadd&&!S.sheet.fadd.sel&&!document.activeElement.id)render();else{const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()}}).catch(()=>{FERR=1;const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()})}
@@ -1010,7 +1010,7 @@ document.addEventListener('click',e=>{
   else if(a==='fmedit'){S.sheet={fmed:true}}
   else if(a==='fmnew'){fmMat().push({id:Date.now(),n:'Nova refeição'});save();render();setTimeout(()=>{const q=document.querySelectorAll('.fmn'),l=q[q.length-1];if(l){l.focus();l.select()}},30)}
   else if(a==='fmup'||a==='fmdn'){const L=fmMat(),i=+el.dataset.i,j=i+(a==='fmup'?-1:1);if(j>=0&&j<L.length){const t=L[i];L[i]=L[j];L[j]=t;save();render()}}
-  else if(a==='fmdel'){const L=fmMat(),i=+el.dataset.i,x=L[i];if(x&&L.length>1&&!fmUsed(x.id)){L.splice(i,1);for(const k in D.fmt)if(k.endsWith('|'+x.id))delete D.fmt[k];save();render()}}
+  else if(a==='fmdel'){const L=fmMat(),i=+el.dataset.i,x=L[i];if(x&&L.length>1){let nu=0;for(const k in D.fl)if(D.fl[k][0]===x.id)nu++;if(nu&&!confirm('"'+x.n+'" tem '+nu+' registro'+(nu>1?'s':'')+' de alimento. Excluir a refeição mesmo assim? Os registros continuam nos dias, no grupo "Sem refeição".'))return;L.splice(i,1);for(const k in D.fmt)if(k.endsWith('|'+x.id))delete D.fmt[k];save();render()}}
   else if(a==='fmtset'){const k=el.dataset.k,v=D.fmt[k]||'';S.fmts={k,h:v?v.slice(0,2):'',m:v?v.slice(3,5):'',back:S.sheet};S.sheet={fmts:true}}
   else if(a==='fmtback'){S.sheet=S.fmts?S.fmts.back:null;S.fmts=null}
   else if(a==='fmtnow'){if(S.fmts){const d=new Date();S.fmts.h=pad(d.getHours());S.fmts.m=pad(d.getMinutes())}}
@@ -1340,7 +1340,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v72',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
+const VER='v73',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
