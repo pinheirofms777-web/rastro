@@ -127,7 +127,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
 .tks{display:block;color:var(--mut);font-size:11px;margin-top:3px}.tkm{font-size:12px;padding:8px 10px;border-radius:8px;background:var(--panel);cursor:pointer;white-space:nowrap}
 .tke{color:var(--mut);font-size:13px;padding:10px 0 4px}
 .pln{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-top:1px solid var(--line);font-size:15px;cursor:pointer}.pln span:last-child{color:var(--mut)}
-.tkp2{flex:none;padding:6px 4px;cursor:pointer;color:var(--mut);line-height:0}.tkp2.on{color:var(--g)}.tks .ov{color:var(--r)}.tks .un{color:var(--g)}
+.tkp2{flex:none;padding:6px 4px;cursor:pointer;color:var(--mut);line-height:0}.tkp2.on{color:var(--g)}.tks .ov{color:var(--r)}.tks .un{color:var(--g)}.tkd2{flex:none;text-align:right}.tkd2 .tks{margin:-2px 0 0;padding:0 4px 4px;white-space:nowrap}.tkr.d .tkt.pt{text-decoration:none}.tkr.d .tkt.pt .tt{text-decoration:line-through}.pth{font-size:12px;color:var(--mut);letter-spacing:.06em;padding:16px 0 2px}.ptn{margin:8px 0 0}
 .hd2{font-size:12px;color:var(--mut);letter-spacing:.04em;padding:14px 0 4px;cursor:pointer}
 .note{font-size:11px;color:var(--mut);padding:14px 20px;line-height:1.5}
 .fmr{display:flex;align-items:baseline;gap:10px}.fmw{display:inline-flex;align-items:baseline}.ftm{color:var(--g);font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer;padding:12px 8px;margin:-12px -8px}
@@ -311,7 +311,7 @@ function ensureDay(k){
     if(!occurs(r,k)||(r.skip||[]).includes(k))return;
     const id=r.id+'_'+k;
     if(D.tasks.some(t=>t.id===id))return;
-    D.tasks.push(Object.assign({id,day:k,text:r.text,done:false,rid:r.id},r.dur?{dur:r.dur}:{},r.p?{p:r.p}:{},r.a?{a:r.a}:{}));c++});
+    D.tasks.push(Object.assign({id,day:k,text:r.text,done:false,rid:r.id},r.dur?{dur:r.dur}:{},r.p?{p:r.p}:{},r.a?{a:r.a}:{},r.tn?{tn:r.tn}:{}));c++});
   if(c)save();return c}
 const dlabel=d=>WD[d.getDay()].slice(0,3)+' · '+pad(d.getDate())+' '+MS[d.getMonth()].toLowerCase();
 function parseDur(s,paren){const r=paren?/\((\d+)\s*(pomodoros?|pomos?|min(?:utos?)?|h)\)/i:/\s(\d+)\s*(pomodoros?|pomos?|p|min(?:utos?)?|m|h)$/i,m=s.match(r);if(!m)return null;const n=+m[1],u=m[2].toLowerCase();if(!n)return null;const d=/^p/.test(u)?{n,u:'p'}:u==='h'?{n:n*60,u:'m'}:{n,u:'m'};d.i=m.index;return d}
@@ -693,10 +693,16 @@ function pClock(s){const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?
 function pPause(t,n){n=n||Date.now();t.tr=(t.tr||0)+Math.max(0,Math.round((n-t.ts)/1000));delete t.ts}
 function pStart(t){const n=Date.now();D.tasks.forEach(x=>{if(x.ts&&x!==t)pPause(x,n)});t.ts=n}
 function pEst(t){return t.dur?(t.dur.u==='p'?t.dur.n*30:t.dur.n):0}
-function pSub(t){const s=pReal(t),m=Math.round(s/60),tag=t.np?'imprevisto':'';let x='';
+function pSub(t){const s=pReal(t),m=Math.round(s/60),tag=[t.rid?'↻ recorrente':'',t.np?'imprevisto':''].filter(Boolean).join(' · ');let x='';
   if(t.ts&&!t.done)x='<span data-pel="'+t.id+'">'+pClock(s)+'</span> · em andamento';
-  else if(s>0){if(t.done){x='levou '+(s<60?'<1 min':fmtT(m));const e=pEst(t);if(e>0){const d=m-e;x+=' · estimado '+fmtT(e)+' · '+(d>0?'<span class="ov">↑ '+d+' min</span>':d<0?'<span class="un">↓ '+(-d)+' min</span>':'no tempo')}}else x='pausada · '+(s<60?'<1 min':fmtT(m))}
+  else if(s>0&&!t.done)x='pausada · '+(s<60?'<1 min':fmtT(m));
   const all=[tag,x].filter(Boolean).join(' · ');return all?'<small class="tks" '+(s>0?'data-a="padj" data-t="'+t.id+'" ':'')+'style="cursor:pointer">'+all+'</small>':''}
+const TNL={m:'Manhã',t:'Tarde',n:'Noite'};
+function curTn(){if(S.ptn!==undefined)return S.ptn;const h=new Date().getHours();return h<12?'m':h<18?'t':'n'}
+function pDiff(t){if(!t.done)return '';const s=pReal(t);if(!(s>0))return '';const m=Math.round(s/60),e=pEst(t);let x;
+  if(e>0){const d=m-e;x=d>0?'<span class="ov">↑ '+d+' min</span>':d<0?'<span class="un">↓ '+(-d)+' min</span>':'no tempo'}else x='levou '+(s<60?'<1 min':fmtT(m));
+  return '<small class="tks" data-a="padj" data-t="'+t.id+'" style="cursor:pointer">'+x+'</small>'}
+function pRow(t,isT){const run=!!(t.ts&&!t.done);return `<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${escH(t.text)}">`:`<div class="tkt pt" data-a="tedit" data-t="${t.id}"><span class="tt">${escH(t.text)}</span>${pSub(t)}</div>`}${isT&&!t.done?`<div class="tkp2 ${run?'on':''}" data-a="pplay" data-t="${t.id}" aria-label="${run?'Pausar':'Iniciar'}">${run?PAUSE:PLAY}</div>`:''}<div class="tkd2"><div class="tkd" data-a="${t.dur?'pgt':'tdur'}" data-t="${t.id}">${t.dur?pgBadge(t.dur,t.prog||0,t.done):'min'}</div>${pDiff(t)}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`}
 function pessLine(day){const L=ptasksOf(key(day)),d=L.filter(t=>t.done).length,run=(D.tasks||[]).some(t=>t.a==='p'&&t.ts&&!t.done);return '<div class="pln" data-a="pess"><span>Pessoal</span><span>'+(run?'em andamento · ':'')+(L.length?d+'/'+L.length:'—')+' ›</span></div>'}
 function padjSheet(id){const t=D.tasks.find(x=>x.id===id);if(!t)return pessSheet();const m=Math.round(pReal(t)/60);
   return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
@@ -709,8 +715,9 @@ function pessSheet(){const day=S.day,k=key(day),isT=k===key(TODAY),L=ptasksOf(k)
   return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
   <div class="sh"><b>Pessoal</b><button class="lnk" data-a="close">Fechar</button></div>
   <div class="note" style="padding:0 0 6px">${dlabel(day)} · ${L.length?d+' de '+L.length+' feitas':'nenhuma tarefa'}</div>
-  <div class="pk">${L.map(t=>{const run=!!(t.ts&&!t.done);return `<div class="tkr ${t.done?'d':''}"><div class="tkb ${t.done?'on':''}" data-a="tdone" data-t="${t.id}">${t.done?CHECK:''}</div>${S.edit===t.id?`<input type="text" class="tedit" data-t="${t.id}" maxlength="120" value="${escH(t.text)}">`:`<div class="tkt" data-a="tedit" data-t="${t.id}">${escH(t.text)}${pSub(t)}</div>`}${isT&&!t.done?`<div class="tkp2 ${run?'on':''}" data-a="pplay" data-t="${t.id}" aria-label="${run?'Pausar':'Iniciar'}">${run?PAUSE:PLAY}</div>`:''}<div class="tkd" data-a="${t.dur?'pgt':'tdur'}" data-t="${t.id}">${t.dur?pgBadge(t.dur,t.prog||0,t.done):'min'}</div><div class="tkx" data-a="tdel" data-t="${t.id}">×</div></div>`}).join('')||'<div class="tke">Nenhuma tarefa pessoal neste dia.</div>'}
-  <div class="tka"><input type="text" class="pin" placeholder="Nova tarefa pessoal · 30min" maxlength="120" enterkeyhint="done"><button data-a="padd" aria-label="Adicionar tarefa pessoal">+</button></div>${isT?'<div class="fad" data-a="pimp">+ Imprevisto (já inicia o tempo)</div>':''}${isT?pendHtml(k,1):''}</div></div></div>`}
+  <div class="pk">${(()=>{const G=['m','t','n',''].map(g=>[g,L.filter(t=>(TNL[t.tn]?t.tn:'')===g)]).filter(x=>x[1].length),multi=G.length>1||(G.length===1&&G[0][0]!=='');return G.map(([g,A])=>(multi?'<div class="pth">'+(g?TNL[g].toUpperCase():'SEM TURNO')+'</div>':'')+A.map(t=>pRow(t,isT)).join('')).join('')||'<div class="tke">Nenhuma tarefa pessoal neste dia.</div>'})()}
+  <div class="sub" style="margin-top:16px">TURNO DA NOVA TAREFA</div><div class="wdr ptn">${['m','t','n'].map(g=>`<div class="opt ${curTn()===g?'g':''}" data-a="ptn" data-v="${g}">${TNL[g]}</div>`).join('')}</div>
+  <div class="tka"><input type="text" class="pin" placeholder="Nova tarefa pessoal · 30min" maxlength="120" enterkeyhint="done"><button data-a="padd" aria-label="Adicionar tarefa pessoal">+</button></div>${isT?'<div class="fad" data-a="pimp">+ Imprevisto (já inicia o tempo)</div>':''}<div class="fad" data-a="prnew">↻ Repetir (criar recorrente pessoal)</div>${isT?pendHtml(k,1):''}</div></div></div>`}
 function viewToday(){
   const day=S.day,k=key(day),isT=k===key(TODAY);
   ensureDay(k);
@@ -830,13 +837,14 @@ function sheetHtml(){const sh=S.sheet;if(!sh)return '';
     <div class="note" style="padding:12px 0 0">Para mudar só o nome deste dia, toque no texto da tarefa.</div></div></div>`}
   if(sh.recs)return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh"><button class="lnk" data-a="back">‹ Voltar</button><b>Tarefas recorrentes</b><button class="lnk" data-a="close">Fechar</button></div>
-    ${(D.rec||[]).length?D.rec.map(r=>`<div class="sr" data-a="redit" data-r="${r.id}"><span style="color:var(--txt)${r.paused?';opacity:.5':''}">${escH(r.text)}<small class="tks">${ruleLabel(r)}${r.paused?' · pausada':''}</small></span><span>›</span></div>`).join(''):'<div class="note" style="padding:0">Nenhuma recorrência ainda. Na tela Hoje, escreva a tarefa e toque em ↻.</div>'}</div></div>`;
+    ${(D.rec||[]).length?D.rec.map(r=>`<div class="sr" data-a="redit" data-r="${r.id}"><span style="color:var(--txt)${r.paused?';opacity:.5':''}">${escH(r.text)}<small class="tks">${ruleLabel(r)}${r.a==='p'?' · pessoal'+(TNL[r.tn]?' · '+TNL[r.tn]:''):''}${r.paused?' · pausada':''}</small></span><span>›</span></div>`).join(''):'<div class="note" style="padding:0">Nenhuma recorrência ainda. Na tela Hoje, escreva a tarefa e toque em ↻.</div>'}</div></div>`;
   if(sh.rec&&S.rf){const f=S.rf,u=f.unit,cur=f.id&&(D.rec||[]).find(x=>x.id===f.id),
     wdo=[1,2,3,4,5,6,0].map(i=>`<div class="opt ${f.wd.includes(i)?'g':''}" data-a="rwd" data-v="${i}">${WDS[i]}</div>`).join('');
     return `<div class="shade" data-a="close"><div class="sheet" data-stop><div class="grab"></div>
     <div class="sh">${f.id?'<button class="lnk" data-a="rlist">‹ Voltar</button>':'<span style="width:60px"></span>'}<b>${f.id?'Tarefa recorrente':'Repetir tarefa'}</b><button class="lnk" data-a="close">Fechar</button></div>
     <div class="sub">TAREFA</div><input type="text" class="rin" data-f="text" maxlength="120" placeholder="Nome da tarefa" value="${escH(f.text)}">
     <div class="sub">DURAÇÃO (OPCIONAL)</div><div class="durr"><input type="text" id="dn" inputmode="numeric" maxlength="3" placeholder="0" value="${S.dn||''}"><div class="opt ${S.du==='m'?'g':''}" data-a="dunit" data-v="m">min</div><div class="opt ${S.du==='p'?'g':''}" data-a="dunit" data-v="p">pomodoros</div></div>
+    ${f.pers?`<div class="sub">TURNO</div><div class="wdr">${['m','t','n'].map(g=>`<div class="opt ${f.tn===g?'g':''}" data-a="rtn" data-v="${g}">${TNL[g]}</div>`).join('')}</div>`:''}
     <div class="sub">REPETIR A CADA</div><div class="evr"><input type="text" class="rin" data-f="every" inputmode="numeric" maxlength="2" value="${escH(f.every)}"><div class="opt ${u==='d'?'g':''}" data-a="runit" data-v="d">dia(s)</div><div class="opt ${u==='w'?'g':''}" data-a="runit" data-v="w">semana(s)</div><div class="opt ${u==='m'?'g':''}" data-a="runit" data-v="m">mês(es)</div></div>
     ${u==='w'?`<div class="sub">DIAS DA SEMANA (VAZIO = DIA DO INÍCIO)</div><div class="wdr">${wdo}</div>`:''}
     ${u==='m'?`<div class="sub">DIAS DO MÊS, EX.: 10, 25 (VAZIO = DIA DO INÍCIO)</div><input type="text" class="rin" data-f="md" inputmode="numeric" placeholder="10, 25" value="${escH(f.md)}">`:''}
@@ -1039,7 +1047,7 @@ document.addEventListener('click',e=>{
   else if(a==='rlist'){S.sheet={recs:true};S.confirm=null}
   else if(a==='rnew'){const inp=document.querySelector('main .tin'),v=(inp?inp.value:'').trim(),pd=parseDur(v,false),text=pd&&v.slice(0,pd.i).trim()?v.slice(0,pd.i).trim():v;
     S.rf={text,every:'1',unit:'d',wd:[],md:'',start:key(S.day)<key(TODAY)?key(TODAY):key(S.day),end:'',fi:v?1:0};S.dn=pd&&text!==v?String(pd.n):'';S.du=pd&&text!==v?pd.u:'m';S.sheet={rec:true};S.confirm=null}
-  else if(a==='redit'){const r=D.rec.find(x=>x.id===el.dataset.r);if(r){S.rf={id:r.id,text:r.text,every:String(r.rule.every),unit:r.rule.unit,wd:(r.rule.wd||[]).slice(),md:(r.rule.md||[]).join(', '),start:r.start,end:r.end||''};S.dn=r.dur?String(r.dur.n):'';S.du=r.dur?r.dur.u:'m';S.sheet={rec:true};S.confirm=null}}
+  else if(a==='redit'){const r=D.rec.find(x=>x.id===el.dataset.r);if(r){S.rf={id:r.id,text:r.text,every:String(r.rule.every),unit:r.rule.unit,wd:(r.rule.wd||[]).slice(),md:(r.rule.md||[]).join(', '),start:r.start,end:r.end||'',pers:r.a==='p',tn:r.tn||''};S.dn=r.dur?String(r.dur.n):'';S.du=r.dur?r.dur.u:'m';S.sheet={rec:true};S.confirm=null}}
   else if(a==='runit'){S.rf.unit=el.dataset.v}
   else if(a==='rwd'){const i=+el.dataset.v,w=S.rf.wd,p=w.indexOf(i);if(p<0)w.push(i);else w.splice(p,1)}
   else if(a==='rpause'){const r=D.rec.find(x=>x.id===S.rf.id);if(r){if(r.paused)delete r.paused;else r.paused=true;save()}}
@@ -1052,11 +1060,11 @@ document.addEventListener('click',e=>{
     const rule={every:n,unit:f.unit};
     if(f.unit==='w')rule.wd=f.wd.slice().sort((a,b)=>a-b);
     if(f.unit==='m')rule.md=[...new Set((f.md||'').split(/\D+/).filter(Boolean).map(Number).filter(x=>x>=1&&x<=31))].sort((a,b)=>a-b);
-    const dn=parseInt(S.dn,10),base={text,rule,start:f.start};if(dn>0)base.dur={n:dn,u:S.du};if(f.end)base.end=f.end;
+    const dn=parseInt(S.dn,10),base={text,rule,start:f.start};if(dn>0)base.dur={n:dn,u:S.du};if(f.end)base.end=f.end;if(f.pers){base.a='p';if(f.tn)base.tn=f.tn}
     let r;
-    if(f.id){r=D.rec.find(x=>x.id===f.id);if(!r)return;delete r.dur;delete r.end;Object.assign(r,base);D.tasks=D.tasks.filter(t=>!(t.rid===r.id&&!t.done&&t.day>=key(TODAY)))}
-    else{r=Object.assign({id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)},base);D.rec.push(r);if(f.fi){const i=document.querySelector('main .tin');if(i)i.value=''}}
-    ensureDay(key(S.day));save();S.confirm=null;S.sheet=f.id?{recs:true}:null}
+    if(f.id){r=D.rec.find(x=>x.id===f.id);if(!r)return;delete r.dur;delete r.end;delete r.tn;Object.assign(r,base);D.tasks=D.tasks.filter(t=>!(t.rid===r.id&&!t.done&&t.day>=key(TODAY)))}
+    else{r=Object.assign({id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)},base);D.rec.push(r);if(f.fi&&!f.pers){const i=document.querySelector('main .tin');if(i)i.value=''}}
+    ensureDay(key(S.day));save();S.confirm=null;S.sheet=f.id?{recs:true}:f.pers?{pess:true}:null}
   else if(a==='tdur'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t){S.sheet={tdur:t.id};S.dn=t.dur?String(t.dur.n):'';S.du=t.dur?t.dur.u:'m'}}
   else if(a==='tdursave'){const t=D.tasks.find(x=>x.id===S.sheet.tdur),n=parseInt(S.dn,10);if(t){if(n>0){if(t.dur&&t.dur.u!==S.du)delete t.prog;t.dur={n,u:S.du};if(t.prog>n)t.prog=n}else{delete t.dur;delete t.prog}save()}S.sheet=t&&isP(t)?{pess:true}:null}
   else if(a==='tdurclear'){const t=D.tasks.find(x=>x.id===S.sheet.tdur);if(t){delete t.dur;delete t.prog;save()}S.sheet=t&&isP(t)?{pess:true}:null}
@@ -1086,6 +1094,10 @@ document.addEventListener('click',e=>{
   else if(a==='tdel'){const t=D.tasks.find(x=>x.id===el.dataset.t),r=t&&t.rid&&D.rec.find(x=>x.id===t.rid);if(r){r.skip=r.skip||[];if(!r.skip.includes(t.day))r.skip.push(t.day)}D.tasks=D.tasks.filter(x=>x.id!==el.dataset.t);save()}
   else if(a==='pess'){S.sheet={pess:true};S.edit=null}
   else if(a==='padd'){if(!addTask(el.closest('.pk'),1))return;S.prefocus=true}
+  else if(a==='ptn'){const v=el.dataset.v;S.ptn=curTn()===v?'':v}
+  else if(a==='prnew'){const inp=document.querySelector('.pin'),v=(inp?inp.value:'').trim(),pd=parseDur(v,false),text=pd&&v.slice(0,pd.i).trim()?v.slice(0,pd.i).trim():v;
+    S.rf={text,every:'1',unit:'d',wd:[],md:'',start:key(S.day)<key(TODAY)?key(TODAY):key(S.day),end:'',fi:0,pers:1,tn:curTn()};S.dn=pd&&text!==v?String(pd.n):'';S.du=pd&&text!==v?pd.u:'m';S.sheet={rec:true};S.confirm=null}
+  else if(a==='rtn'){S.rf.tn=S.rf.tn===el.dataset.v?'':el.dataset.v}
   else if(a==='pplay'){const t=D.tasks.find(x=>x.id===el.dataset.t);if(t&&t.a==='p'&&!t.done){if(t.ts)pPause(t);else pStart(t);save()}}
   else if(a==='pimp'){const i=document.querySelector('.pin'),v=((i&&i.value)||'').trim(),t={id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),day:key(TODAY),text:(v||'Imprevisto').slice(0,120),done:false,a:'p',np:1};if(i)i.value='';D.tasks.push(t);pStart(t);save()}
   else if(a==='padj'){S.sheet={padj:el.dataset.t}}
@@ -1179,7 +1191,7 @@ function addTask(box,pers){
   const inp=box&&box.querySelector(pers?'.pin':'.tin');if(!inp)return false;
   const v=inp.value.trim();if(!v){inp.focus();return false}
   const pd=parseDur(v,false),text=pd?v.slice(0,pd.i).trim():v,dur=pd&&text?{n:pd.n,u:pd.u}:null;
-  inp.value='';D.tasks.push(Object.assign({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),day:key(S.day),text:dur?text:v,done:false},dur?{dur}:{},pers?{a:'p'}:{}));save();return true}
+  inp.value='';D.tasks.push(Object.assign({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),day:key(S.day),text:dur?text:v,done:false},dur?{dur}:{},pers?Object.assign({a:'p'},curTn()?{tn:curTn()}:{}):{}));save();return true}
 function endEdit(inp,save_){
   const id=S.edit;if(!id)return;S.edit=null;
   const v=inp.value.trim(),t=D.tasks.find(x=>x.id===id);
@@ -1282,7 +1294,7 @@ var SY={cfg:null,run:0,again:0,err:'',msg:'',last:0,t:0,cache:null};
 const jstr=JSON.stringify;
 function flat(){const r={};
   for(const k in D.entries)if(D.entries[k])r['e|'+k]=1;
-  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur,rid:t.rid,prog:t.prog,p:t.p,sid:t.sid,si:t.si,a:t.a,ts:t.ts,tr:t.tr,np:t.np}});
+  (D.tasks||[]).forEach(t=>{r['t|'+t.id]={day:t.day,text:t.text,done:!!t.done,dur:t.dur,rid:t.rid,prog:t.prog,p:t.p,sid:t.sid,si:t.si,a:t.a,ts:t.ts,tr:t.tr,np:t.np,tn:t.tn}});
   for(const k in (D.prog||{}))if(D.prog[k])r['p|'+k]=D.prog[k];
   for(const k in (D.snap||{}))r['k|'+k]=D.snap[k];
   for(const k in (D.wl||{}))r['w|'+k]=D.wl[k];
@@ -1300,13 +1312,13 @@ function flat(){const r={};
   if(Array.isArray(D.fm)&&D.fm.length)r['s|fm']=D.fm;
   if(D.ht)r['s|ht']=D.ht;if(D.stc)r['s|sc']=D.stc;
   if(D.food&&D.food.set)r['s|fg']=D.food.goal;
-  (D.rec||[]).forEach(x=>{r['r|'+x.id]={text:x.text,dur:x.dur,rule:x.rule,start:x.start,end:x.end,paused:x.paused,skip:x.skip,p:x.p,a:x.a}});
+  (D.rec||[]).forEach(x=>{r['r|'+x.id]={text:x.text,dur:x.dur,rule:x.rule,start:x.start,end:x.end,paused:x.paused,skip:x.skip,p:x.p,a:x.a,tn:x.tn}});
   D.habits.forEach(h=>{r['h|'+h.id]={name:h.name,intent:h.intent,created:h.created,dur:h.dur}});
   r['o|']=D.habits.map(h=>h.id);
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v70',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
+const VER='v71',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];if(!c||jstr(c.v)!==jstr(r[k]))S2[k]={v:r[k],ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
