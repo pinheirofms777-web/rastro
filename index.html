@@ -600,7 +600,8 @@ function fgoSheet(){const f=S.fgo;if(!f)return '';const fl=(l,k)=>`<div class="s
     <button class="btn" style="margin-top:18px" data-a="fgosave">Salvar</button></div></div>`}
 function foodHtml(){fInit();const g=D.food.goal;
   return `<div id="ftop">${foodTop()}</div>${foodMeals()}
-  <div class="sub" style="margin-top:22px">METAS DIÁRIAS</div>
+  ${(()=>{const f=fgxGoal(g);return '<div class="fgxh'+(S.metasOpen?' o':'')+'" style="margin-top:22px" data-a="fmetog"><div><b>Metas diárias</b><small>'+Math.round(f.gk)+' kcal · C '+Math.round(f.gc)+' · P '+Math.round(f.gp)+' · G '+Math.round(f.gf)+' g · toque para editar</small></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>'})()}
+  <div id="fmetas" style="display:${S.metasOpen?'block':'none'}">
   <div class="sub" style="margin-top:12px">PESO (KG)</div>
   <div class="wrow" style="margin-top:8px"><input type="text" id="bwn" inputmode="decimal" maxlength="6" placeholder="Peso de hoje" value="${D.bw[key(TODAY)]!==undefined?fmtG(D.bw[key(TODAY)]):''}"><div class="opt" data-a="bwadd">Registrar</div></div>
   <div class="fms" style="margin-top:8px">${(()=>{const L=bwLast();return L?'Último: '+fmtG(L.v)+' kg em '+dfmt(L.d)+' · ':''})()}<span class="lnk" style="font-size:12px;cursor:pointer" data-a="bwhist">Histórico de peso ›</span></div>
@@ -610,6 +611,7 @@ function foodHtml(){fInit();const g=D.food.goal;
   <div class="sub hl" style="margin-top:22px">METAS ESPECÍFICAS POR DIA</div>
   <div class="note" style="padding:0 0 4px">Use para dias com meta diferente (ex.: véspera de treino de perna), uma vez ou de forma recorrente. Fora desses dias vale a meta base.</div>
   <div id="fgoh">${fgoHtml()}</div>
+  </div>
   <div class="sub hl" style="margin-top:22px">HISTÓRICO SEMANAL</div>
   <div id="fhist" style="margin-top:6px">${fWeeks()}</div>
   <div class="note" style="padding:16px 0 0">Valores calculados com a TACO (4ª ed., NEPA/UNICAMP, 2011), por 100 g de parte comestível. Carboidrato total. Itens marcados (TBCA): TBCA – Tabela Brasileira de Composição de Alimentos (USP/FoRC). Itens marcados (IBGE): IBGE, POF 2008-2009, Tabelas de Composição Nutricional dos Alimentos Consumidos no Brasil (2011). Medidas caseiras: IBGE, POF 2008-2009, Tabela de Medidas Referidas para os Alimentos Consumidos no Brasil (2011).</div>`}
@@ -1155,6 +1157,7 @@ document.addEventListener('click',e=>{
   else if(a==='fgqed'){const r=el.dataset.i&&(D.fgr||[]).find(x=>x.id===el.dataset.i),b=D.food.goal,v=r||b,rr=r?fgRes(r,r.start):b;S.fgq={id:r?r.id:'',every:String(r?r.rule.every:1),unit:r?r.rule.unit:'w',wd:r?(r.rule.wd||[]).slice():[],md:r?(r.rule.md||[]).join(', '):'',start:r?r.start:key(TODAY),end:r&&r.end?r.end:'',m:r&&r.m==='kg'?'kg':'g',gc:rr.c,gp:rr.p,gf:rr.f,gk:rr.k,lock:!!S.fgLock,msg:''};S.sheet={fgq:true}}
   else if(a==='fgmode'){const f=S.sheet.fgq?S.fgq:S.fgo,v=el.dataset.v;if(!f)return;if(v==='kg'&&!(wAt(f.d||f.start||key(TODAY))>0)){alert('Registre seu peso para usar a prescrição por kg.');return}f.m=v}
   else if(a==='fgxtog'){S.fgxOpen=!S.fgxOpen}
+  else if(a==='fmetog'){S.metasOpen=!S.metasOpen}
   else if(a==='fglock'){const v=el.dataset.v==='1',f=S.sheet&&S.sheet.fgq?S.fgq:S.sheet&&S.sheet.fgo?S.fgo:null;S.fgLock=v;if(f)f.lock=v}
   else if(a==='gunit'){S.fgq.unit=el.dataset.v}
   else if(a==='gwd'){const i=+el.dataset.v,w=S.fgq.wd,p=w.indexOf(i);if(p<0)w.push(i);else w.splice(p,1)}
@@ -1340,7 +1343,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v74',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
+const VER='v75',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];let v=r[k];if(c&&c.v&&typeof c.v==='object'&&!Array.isArray(c.v)&&v&&typeof v==='object'&&!Array.isArray(v)&&/^[trhvq]\|/.test(k))v=Object.assign({},c.v,v);if(!c||jstr(c.v)!==jstr(v))S2[k]={v,ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
