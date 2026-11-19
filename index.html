@@ -409,12 +409,13 @@ function fmEditHtml(){const A=fmAll(),act=A.map((x,i)=>i).filter(i=>!A[i].a),n=a
     <div class="note" style="padding:0 0 6px">Renomeie, reordene ou crie refeições. Ao excluir uma refeição que já tem registros, ela continua aparecendo nos dias em que foi usada e some só dos demais dias.</div>
     ${act.map((i,p)=>{const x=A[i];return `<div class="fer"><input type="text" class="rin fmn" data-i="${i}" maxlength="30" value="${escH(x.n)}" style="flex:1;margin:0"><div class="tkx" data-a="fmup" data-i="${i}" style="${p?'':'opacity:.25'}">↑</div><div class="tkx" data-a="fmdn" data-i="${i}" style="${p<n-1?'':'opacity:.25'}">↓</div>${n>1?`<div class="tkx" data-a="fmdel" data-i="${i}">×</div>`:'<div class="tkx" style="opacity:.25">×</div>'}</div>`}).join('')}
     <div class="fad" data-a="fmnew" style="padding-top:14px">+ Nova refeição</div></div></div>`}
+function fpImpHtml(){return S.fpimp?'<div class="sub" style="margin-top:14px">IMPORTAR PLANO</div><div class="note" style="padding:0 0 4px">Uma linha por item: refeição;nome;gramas;kcal;P;L;C. Refeição: '+fml().map(x=>x.id+' = '+escH(x.n)).join(', ')+'. Substitui o plano atual.</div><textarea class="stf sta" id="fpimpt" placeholder="0;Aveia em flocos;50;196,9;6,95;4,25;33,3"></textarea><div class="fad" data-a="fpimpgo">Importar</div><div class="fad" data-a="fpimpopen">Cancelar</div>':'<div class="fad" data-a="fpimpopen" style="margin-top:14px">Importar plano (colar texto) ›</div>'}
 function fplanHtml(){fInit();const P=fpItems(),sm=f=>P.reduce((a,x)=>a+x[f],0);
   return `<div class="shade" data-a="close"><div class="sheet tall" data-stop><div class="grab"></div>
     <div class="sh"><button class="lnk" data-a="food">‹ Voltar</button><b>Plano alimentar</b><button class="lnk" data-a="close">Fechar</button></div>
     <div class="note" style="padding:0 0 6px">Itens previstos de cada refeição. Em Alimentação, marque o item para lançar o registro do dia. Para comer outra quantidade, toque no item, ajuste e salve: vale só para aquele dia e o plano não muda.</div>
     ${P.length?'<div class="fms">Previsto no dia: '+Math.round(sm('k'))+' kcal · C '+r1(sm('c'))+' · P '+r1(sm('p'))+' · G '+r1(sm('l'))+' g</div>':''}
-    ${fml().map(x=>{const L=P.filter(it=>it.m===x.id),t=Math.round(L.reduce((a,it)=>a+it.k,0));return '<div class="fmh"><span>'+escH(x.n)+'</span><span>'+t+' kcal</span></div>'+L.map(it=>'<div class="fer"><div class="fet" data-a="fpedit" data-i="'+it.i+'">'+escH(it.n)+'<small>'+fpRowM(it)+'</small></div><div class="fek">'+Math.round(it.k)+'</div><div class="tkx" data-a="fpdel" data-i="'+it.i+'">×</div></div>').join('')+'<div class="fad" data-a="fpadd" data-m="'+x.id+'">+ alimento</div>'}).join('')}</div></div>`}
+    ${fml().map(x=>{const L=P.filter(it=>it.m===x.id),t=Math.round(L.reduce((a,it)=>a+it.k,0));return '<div class="fmh"><span>'+escH(x.n)+'</span><span>'+t+' kcal</span></div>'+L.map(it=>'<div class="fer"><div class="fet" data-a="fpedit" data-i="'+it.i+'">'+escH(it.n)+'<small>'+fpRowM(it)+'</small></div><div class="fek">'+Math.round(it.k)+'</div><div class="tkx" data-a="fpdel" data-i="'+it.i+'">×</div></div>').join('')+'<div class="fad" data-a="fpadd" data-m="'+x.id+'">+ alimento</div>'}).join('')}${fpImpHtml()}</div></div>`}
 function fInit(){bwInit();if(!D.bc||typeof D.bc!=='object')D.bc={};if(!D.food||typeof D.food!=='object')D.food={};const f=D.food;if(!f.goal||!(f.goal.k>0))f.goal={k:1823,c:228,p:137,f:41};if(!D.fl||typeof D.fl!=='object')D.fl={};if(!D.fgd||typeof D.fgd!=='object')D.fgd={};if(!D.cf||typeof D.cf!=='object')D.cf={};if(!D.fgo||typeof D.fgo!=='object')D.fgo={};if(!Array.isArray(D.fgr))D.fgr=[];if(!D.fmt||typeof D.fmt!=='object'||Array.isArray(D.fmt))D.fmt={};if(D.fm!==undefined&&!Array.isArray(D.fm))delete D.fm;if(D.fp!==undefined&&!Array.isArray(D.fp))delete D.fp}
 function loadFoods(){if(FOODS)return;fetch('taco.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{FOODS=j.f;FERR=0;if(S.sheet&&S.sheet.fadd&&!S.sheet.fadd.sel&&!document.activeElement.id)render();else{const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()}}).catch(()=>{FERR=1;const r=document.getElementById('fres');if(r)r.innerHTML=fResHtml()})}
 function fDay(k){const o={k:0,p:0,l:0,c:0,n:0};for(const x in D.fl)if(x.startsWith(k+'|')){const e=D.fl[x];o.k+=e[3];o.p+=e[4];o.l+=e[5];o.c+=e[6];o.n++}o.k=Math.round(o.k);o.p=r1(o.p);o.l=r1(o.l);o.c=r1(o.c);return o}
@@ -1031,7 +1032,9 @@ document.addEventListener('click',e=>{
   else if(a==='aprov'){S.sheet={aprov:true};S.hw=null}
   else if(a==='food'){S.sheet={food:true};S.hw=null;S.fq='';S.fday=null;S.fplan=0}
   else if(a==='fmedit'){S.sheet={fmed:true}}
-  else if(a==='fplan'){S.fplan=0;S.sheet={fplan:true};S.fq=''}
+  else if(a==='fplan'){S.fplan=0;S.fpimp=0;S.sheet={fplan:true};S.fq=''}
+  else if(a==='fpimpopen'){S.fpimp=!S.fpimp}
+  else if(a==='fpimpgo'){const t=document.getElementById('fpimpt'),L=((t&&t.value)||'').split('\n').map(x=>x.trim()).filter(Boolean),ok=new Set(fml().map(x=>x.id)),out=[];let bad='';L.forEach((x,n)=>{if(bad)return;const p=x.split(';').map(y=>y.trim()),v=p.slice(2).map(y=>parseFloat(y.replace(',','.')));if(p.length!==7||!p[1]||!/^\d+$/.test(p[0])||!ok.has(+p[0])||v.some(y=>!isFinite(y)||y<0)||!(v[0]>0)){bad='Linha '+(n+1)+' inválida.';return}out.push({i:'i'+Date.now().toString(36)+n.toString(36)+Math.random().toString(36).slice(2,4),m:+p[0],n:p[1],g:v[0],k:r1(v[1]),p:r2(v[2]),l:r2(v[3]),c:r2(v[4])})});if(bad){alert(bad);return}if(!out.length){alert('Cole as linhas do plano.');return}const old=fpItems().length;if(old&&!confirm('Substituir os '+old+' itens do plano por '+out.length+'? Registros já marcados deixam de contar como itens do plano.'))return;fpMat().it=out;S.fpimp=0;save()}
   else if(a==='fpadd'){S.fplan=1;S.sheet={fadd:{m:+el.dataset.m,sel:null}};S.fqFocus=1;loadFoods();loadMeas()}
   else if(a==='fpcheck'){const it=fpItems().find(x=>x.i===el.dataset.i),dk=el.dataset.k;if(it&&dk&&!fpDayMap(dk)[it.i])fpPut(dk,it.m,it.n,it.g,it.k,it.p,it.l,it.c,it.i)}
   else if(a==='fpall'){const m=+el.dataset.m,dk=el.dataset.k,mp=fpDayMap(dk);fpItems().filter(x=>x.m===m&&!mp[x.i]).forEach(x=>fpPut(dk,x.m,x.n,x.g,x.k,x.p,x.l,x.c,x.i))}
@@ -1376,7 +1379,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v78',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm|fp)$)/;
+const VER='v79',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm|fp)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];let v=r[k];if(c&&c.v&&typeof c.v==='object'&&!Array.isArray(c.v)&&v&&typeof v==='object'&&!Array.isArray(v)&&/^[trhvq]\|/.test(k))v=Object.assign({},c.v,v);if(!c||jstr(c.v)!==jstr(v))S2[k]={v,ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
