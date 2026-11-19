@@ -387,11 +387,11 @@ function fpItems(){const m=fpMenu();return m?m.it.filter(x=>x&&x.i&&typeof x.m==
 function fpMat(){if(!Array.isArray(D.fp)||!D.fp.length||!D.fp[0]||typeof D.fp[0]!=='object')D.fp=[{id:'p'+Date.now().toString(36),n:'Padrão',it:[]}];if(!Array.isArray(D.fp[0].it))D.fp[0].it=[];return D.fp[0]}
 function fpDayMap(k){const o={};for(const x in D.fl)if(x.startsWith(k+'|')){const p=D.fl[x][7];if(p&&!o[p])o[p]=x}return o}
 function fpDropMeal(id){const m=fpMenu();if(m)m.it=m.it.filter(x=>x.m!==id)}
-function fpPut(dk,m,n,g,k,p,l,c,pid){if(dk<key(TODAY)&&!D.fgd[dk])D.fgd[dk]=Object.assign({},D.food.goal);D.fl[dk+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)]=[m,n,g,k,p,l,c,pid];save()}
+function fpPut(dk,m,n,g,k,p,l,c,pid){if(dk<key(TODAY)&&!D.fgd[dk])D.fgd[dk]=Object.assign({},D.food.goal);let id,q=0;do{id=dk+'|'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)+(q?q.toString(36):'')}while(D.fl[id]&&++q<1000);D.fl[id]=[m,n,g,k,p,l,c,pid];save()}
 function fpAdd(m,name,g,per){const f=g/100;fpMat().it.push({i:'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),m,n:name,g,k:r1(per[0]*f),p:r2(per[1]*f),l:r2(per[2]*f),c:r2(per[3]*f)});save()}
 function fpPrev(m){return fpItems().filter(x=>x.m===m).reduce((a,x)=>a+x.k,0)}
 function fpRowM(x){return x.g+' g · C '+x.c+' · P '+x.p+' · G '+x.l}
-function fpGhosts(g,k,mp){if(g.orph)return '';const A=fmAll().find(y=>y.id===g.id);if(!A||A.a)return '';return fpItems().filter(x=>x.m===g.id&&!mp[x.i]).map(x=>'<div class="fer fpg"><div class="tkb" data-a="fpcheck" data-i="'+x.i+'" data-k="'+k+'"></div><div class="fet" data-a="fpday" data-i="'+x.i+'" data-k="'+k+'">'+escH(x.n)+'<small>'+fpRowM(x)+'</small></div><div class="fek">'+Math.round(x.k)+'</div><div class="tkx" style="visibility:hidden">×</div></div>').join('')}
+function fpGhosts(g,k,mp){if(g.orph)return '';const A=fmAll().find(y=>y.id===g.id);if(!A||A.a)return '';const L=fpItems().filter(x=>x.m===g.id&&!mp[x.i]);return L.map(x=>'<div class="fer fpg"><div class="tkb" data-a="fpcheck" data-i="'+x.i+'" data-k="'+k+'"></div><div class="fet" data-a="fpday" data-i="'+x.i+'" data-k="'+k+'">'+escH(x.n)+'<small>'+fpRowM(x)+'</small></div><div class="fek">'+Math.round(x.k)+'</div><div class="tkx" style="visibility:hidden">×</div></div>').join('')+(L.length>1?'<div class="fad" data-a="fpall" data-m="'+g.id+'" data-k="'+k+'">Marcar refeição inteira ('+L.length+' itens)</div>':'')}
 function fpLine(k){const P=fpItems();if(!P.length)return '';const mp=fpDayMap(k),ids=new Set(P.map(x=>x.i));let nd=0,pk=0,ex=0;P.forEach(x=>{pk+=x.k;if(mp[x.i])nd++});for(const x in D.fl)if(x.startsWith(k+'|')&&!ids.has(D.fl[x][7]))ex+=D.fl[x][3];return '<div class="fms" style="margin-top:6px">Plano: '+nd+' de '+P.length+' itens · previsto '+Math.round(pk)+' kcal'+(ex>0?' · extras +'+Math.round(ex)+' kcal':'')+'</div>'}
 function fmGroups(E){const A=fmAll(),ids=A.map(x=>x.id),o=A.filter(x=>!x.a||E.some(e=>D.fl[e][0]===x.id)).map(x=>({id:x.id,n:x.n,L:E.filter(e=>D.fl[e][0]===x.id)})),ob={};E.forEach(e=>{const m=D.fl[e][0];if(!ids.includes(m))(ob[m]=ob[m]||[]).push(e)});for(const m in ob)o.push({id:+m,n:'Sem refeição',L:ob[m],orph:1});return o}
 function fmtHtml(k,id){const t=D.fmt&&D.fmt[k+'|'+id];return '<span class="fmw"><span class="ftm" data-a="fmtset" data-k="'+k+'|'+id+'">'+(t?escH(t):'+ horário')+'</span></span>'}
@@ -1034,6 +1034,7 @@ document.addEventListener('click',e=>{
   else if(a==='fplan'){S.fplan=0;S.sheet={fplan:true};S.fq=''}
   else if(a==='fpadd'){S.fplan=1;S.sheet={fadd:{m:+el.dataset.m,sel:null}};S.fqFocus=1;loadFoods();loadMeas()}
   else if(a==='fpcheck'){const it=fpItems().find(x=>x.i===el.dataset.i),dk=el.dataset.k;if(it&&dk&&!fpDayMap(dk)[it.i])fpPut(dk,it.m,it.n,it.g,it.k,it.p,it.l,it.c,it.i)}
+  else if(a==='fpall'){const m=+el.dataset.m,dk=el.dataset.k,mp=fpDayMap(dk);fpItems().filter(x=>x.m===m&&!mp[x.i]).forEach(x=>fpPut(dk,x.m,x.n,x.g,x.k,x.p,x.l,x.c,x.i))}
   else if(a==='fpday'){const it=fpItems().find(x=>x.i===el.dataset.i);if(it){S.fe={m:it.m,n:it.n,g:String(it.g),g0:it.g,kc:String(it.k),p:String(it.p),l:String(it.l),c:String(it.c)};S.sheet={fedit:{mode:'day',pid:it.i,day:el.dataset.k,back:S.sheet&&S.sheet.dayf?{dayf:S.sheet.dayf}:{food:true}}}}}
   else if(a==='fpedit'){const it=fpItems().find(x=>x.i===el.dataset.i);if(it){S.fe={m:it.m,n:it.n,g:String(it.g),g0:it.g,kc:String(it.k),p:String(it.p),l:String(it.l),c:String(it.c)};S.sheet={fedit:{mode:'plan',pid:it.i,back:{fplan:true}}}}}
   else if(a==='fpdel'){if(confirm('Remover este item do plano? Os registros já feitos continuam.')){const m=fpMenu();if(m){m.it=m.it.filter(x=>x.i!==el.dataset.i);save()}}else return}
@@ -1375,7 +1376,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v77',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm|fp)$)/;
+const VER='v78',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm|fp)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];let v=r[k];if(c&&c.v&&typeof c.v==='object'&&!Array.isArray(c.v)&&v&&typeof v==='object'&&!Array.isArray(v)&&/^[trhvq]\|/.test(k))v=Object.assign({},c.v,v);if(!c||jstr(c.v)!==jstr(v))S2[k]={v,ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
