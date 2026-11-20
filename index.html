@@ -1379,7 +1379,7 @@ function flat(){const r={};
   r['s|sort']=D.sort===undefined?null:D.sort;
   r['s|ws']=D.weekStart===undefined?null:D.weekStart;
   return r}
-const VER='v79',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm|fp)$)/;
+const VER='v80',KNOWN=/^([etpkwxrhfycbgqzvm]\||o\|$|s\|(sort|ws|wg|wc|fg|ht|sc|fm|fp)$)/;
 function stamp(noDel){const S2=D.sync||(D.sync={}),r=flat(),now=Date.now();
   for(const k in r){const c=S2[k];let v=r[k];if(c&&c.v&&typeof c.v==='object'&&!Array.isArray(c.v)&&v&&typeof v==='object'&&!Array.isArray(v)&&/^[trhvq]\|/.test(k))v=Object.assign({},c.v,v);if(!c||jstr(c.v)!==jstr(v))S2[k]={v,ts:now}}
   if(noDel)return;for(const k in S2){if(S2[k].v!==null&&!(k in r)&&KNOWN.test(k))S2[k]={v:null,ts:now}}}
